@@ -4,7 +4,7 @@
 \alias{obtCount}
 \title{Calculates height and mid points of a distribution}
 \usage{
-obtCount(Y, w = 0.5, ...)
+obtCount(Y, w = NULL, ...)
 }
 \arguments{
 \item{Y}{a vector of gene expression data for a particular gene (in log CPM)}
@@ -23,5 +23,5 @@ Calculates height and mid points of a distribution
 \examples{
 Y <- rnorm(50)
 obtCount(Y, w=NULL)
-obtCount(Y, w=0.5)
+obtCount(Y, w=0.5) 
 }

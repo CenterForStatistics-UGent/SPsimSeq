@@ -18,5 +18,5 @@ a list object contating the fitted log linear model
 Fit log linear model for each gene
 }
 \examples{
-#
+# 
 }

@@ -27,4 +27,13 @@ More detailed description
 }
 \examples{
  # example
+ #count.data <- 
+ #fracZero.logit <- zeroProbModel()
+ #summary(fracZero.logit)
+ #par(mfrow=c(1,2))
+ #plot(exp(log.L), predict(fracZero.logit, type="response",                        
+ #newdata=data.frame(x1=median(mean.log.cpm), x2=log.L)), ylim=c(0,1))
+ #plot(mean.log.cpm, predict(fracZero.logit, type="response",
+ #newdata=data.frame(x1=mean.log.cpm, x2=median(log.L))), ylim=c(0,1))
+ 
 }
