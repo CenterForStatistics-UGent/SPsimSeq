@@ -5,8 +5,7 @@
 #' 
 #' @return a list object contating the fitted log linear model
 #' @examples 
-#' #
-#' @export
+#' # 
 #' @import stats
 
 fitLLmodel <- function(yy, ...){
@@ -29,7 +28,7 @@ fitLLmodel <- function(yy, ...){
         llm <- NULL
       }
     } 
-  }
+  } 
   
   if(!is.null(llm)){
     parm.list=list(betas=coef(llm), v=vcov(llm), mu.hat=yy$mu.hat, sig.hat=yy$sig.hat)

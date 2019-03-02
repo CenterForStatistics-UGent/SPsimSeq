@@ -14,12 +14,18 @@ License: GPL-2
 Encoding: UTF-8
 LazyData: true
 Imports: 
-         stats, 
-         Hmisc,
-         SingleCellExperiment,
-         edgeR,
+         stats,  
+         SingleCellExperiment, 
+         MASS,
          fitdistrplus,
-         MASS
+         Hmisc,
+         plyr,
+         utils,
+         graphics
 RoxygenNote: 6.1.1
 Suggests: 
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
+Depends: R (>= 3.3.0)

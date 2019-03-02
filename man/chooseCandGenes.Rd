@@ -4,33 +4,25 @@
 \alias{chooseCandGenes}
 \title{select candidate genes}
 \usage{
-chooseCandGenes(s.data, X, fc.type = "mean.diff", lfc.thrld = 0,
-  U.thrld = 0.7, llStat.thrld = 10, t.thrld = 2.5,
-  carrier.dist = "normal", w = 0.5, max.frac.zero = 0.7,
-  max.frac.zeror.diff = 0.1, ...)
+chooseCandGenes(s.data, X, lfc.thrld = 0, llStat.thrld = 10,
+  t.thrld = 2.5, carrier.dist = "normal", max.frac.zero = 1,
+  max.frac.zeror.diff = Inf, ...)
 }
 \arguments{
 \item{s.data}{a source data (a SingleCellExperiment object)}
 
 \item{X}{a vector of indicators for group memebership of cells/samples}
 
-\item{fc.type}{a character indicating how DE genes should be calculated
-('mean.diff'= difference in the mean log CPM, 'rank.sum'= a U-statistic for the log CPM)}
-
-\item{lfc.thrld}{a numeric value for the minimum fold change for DE genes (if fc.type='mean.diff')}
-
-\item{U.thrld}{a numeric value for the minimum U-statistic for DE genes (if fc.type='rank.sum')}
+\item{lfc.thrld}{a numeric value for the minimum fold change for DE genes}
 
 \item{llStat.thrld}{a numeric value for the minimum squared test statistics from a log-linear model
 containing X as a covariate to select DE genes}
 
-\item{t.thrld}{a numeric value for the minimum t statistic for DE genes (if fc.type='mean.diff')}
+\item{t.thrld}{a numeric value for the minimum t statistic for DE genes
+('mean.diff'= difference in the mean log CPM, 'rank.sum'= a U-statistic for the log CPM)}
 
 \item{carrier.dist}{a character indicating the type of
 carrier density (carrier.dist="normal" or carrier.dist="kernel")}
-
-\item{w}{a numeric value between 0 and 1 or NULL refering the number of classes to be created
-for the outcome data (if NULL the algorithm to calculate breakes in graphics::hist() function will be used)}
 
 \item{max.frac.zero}{a numeric value between 0 and 1 indicating the maximum fraction of
 zero counts that a DE gene should have}

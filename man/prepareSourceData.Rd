@@ -5,10 +5,7 @@
 \title{Prepare source data for simulation.}
 \usage{
 prepareSourceData(s.data, batch = NULL, group = NULL,
-  cand.genes = NULL, exprmt.design, fc.type = "mean.diff",
-  lfc.thrld = 0, U.thrld = 0.7, llStat.thrld = 5, t.thrld = 2.5,
-  carrier.dist = "normal", w = 0.5, max.frac.zero = 0.7,
-  max.frac.zeror.diff = 1, ...)
+  cand.genes = NULL, exprmt.design, ...)
 }
 \arguments{
 \item{s.data}{a source data (a SingleCellExperiment object)}
@@ -20,24 +17,6 @@ prepareSourceData(s.data, batch = NULL, group = NULL,
 \item{cand.genes}{a list object contating candidate genes}
 
 \item{exprmt.design}{a list contating simulation design configuration}
-
-\item{fc.type}{a character indicating how DE genes should be calculated ('mean.diff'= difference in the mean log CPM, 'rank.sum'= a U-statistic for the log CPM)}
-
-\item{lfc.thrld}{a numeric value for the minimum fold change for DE genes (if fc.type='mean.diff')}
-
-\item{U.thrld}{a numeric value for the minimum U-statistic for DE genes (if fc.type='rank.sum')}
-
-\item{llStat.thrld}{a numeric value for the minimum squared test statistics from a log-linear model containing X as a covariate to select DE genes}
-
-\item{t.thrld}{a numeric value for the minimum t statistic for DE genes (if fc.type='mean.diff')}
-
-\item{carrier.dist}{a character indicating the type of carrier density (carrier.dist="normal" or carrier.dist="kernel")}
-
-\item{w}{a numeric value between 0 and 1 or NULL refering the number of classes to be created for the outcome data (if NULL the algorithm to calculate breakes in graphics::hist() function will be used)}
-
-\item{max.frac.zero}{a numeric value between 0 and 1 indicating the maximum fraction of zero counts that a DE gene should have}
-
-\item{max.frac.zeror.diff}{a numeric value between 0 and 1 indicating the maximum  absolute difference in the fraction of zero counts between the groups for DE genes}
 
 \item{...}{further arguments passed to or from other methods.}
 }
