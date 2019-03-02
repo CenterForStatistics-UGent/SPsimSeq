@@ -5,7 +5,7 @@
 \title{Make an example RNA-seq data.}
 \usage{
 make.example.data(n.gene = 2000, n.sample = 30, n.group = 2,
-  n.batch = 3, p.DEgenes = 0.2, common.BCV = 0.25)
+  n.batch = 3, p.DEgenes = 0.2, common.BCV = 0.25, type = "bulk")
 }
 \arguments{
 \item{n.gene}{number of genes.}
@@ -19,6 +19,9 @@ make.example.data(n.gene = 2000, n.sample = 30, n.group = 2,
 \item{p.DEgenes}{fraction of genes with DE between simulated groups}
 
 \item{common.BCV}{common biological coefficient of variation}
+
+\item{type}{type gene expression data, either bulk RNA-seq (type="bulk") or 
+single cell RNA-seq (type="sc")}
 }
 \value{
 a SingleCellExperiment object.
@@ -28,5 +31,5 @@ Make an example RNA-seq data.
 }
 \examples{
 make.example.data()
-
+ 
 }

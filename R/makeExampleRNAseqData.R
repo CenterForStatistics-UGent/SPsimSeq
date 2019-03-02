@@ -6,21 +6,24 @@
 #' @param n.batch number of batchs.
 #' @param p.DEgenes fraction of genes with DE between simulated groups
 #' @param common.BCV common biological coefficient of variation
+#' @param type type gene expression data, either bulk RNA-seq (type="bulk") or 
+#' single cell RNA-seq (type="sc")
 #' @return a SingleCellExperiment object.
+#' 
+#' @export
 #' @examples
 #' make.example.data()
-#' 
-#' @export 
+#'  
 
 make.example.data <- function(n.gene=2000, n.sample=30, n.group=2, n.batch=3, p.DEgenes=0.2,
-                              common.BCV=0.25){ 
+                              common.BCV=0.25, type="bulk"){ 
   # relative abundance
   r0 <- rgamma(n.gene, 5, 1)/sum(rgamma(n.gene, 5, 1))
   
   # add biological signal
   group.fact <- matrix(1, ncol=n.group, nrow=n.gene)
   for(i in 1:ncol(group.fact)){
-    x <- rlnorm(p.DEgenes*n.gene/2, meanlog = 1, sdlog = 0.2)
+    x <- rlnorm(p.DEgenes*n.gene/2, meanlog = 0.5, sdlog = 0.4)
     group.fact[sample(nrow(group.fact), round(p.DEgenes*n.gene/2)),i] <- x
   } 
   
@@ -60,6 +63,26 @@ make.example.data <- function(n.gene=2000, n.sample=30, n.group=2, n.batch=3, p.
   
   row.dat <- data.frame(group.fact, batch.fact, rho=r0, row.names = rownames(cnt))
   
-  SingleCellExperiment(assays = list(counts=cnt), 
-                       colData = col.dat, rowData=row.dat)
+  
+  if(type=="bulk"){
+    SingleCellExperiment(assays = list(counts=cnt), 
+                         colData = col.dat, rowData=row.dat) 
+  }
+  else if(type=="sc"){
+    # # add excess zero
+    # ## model zero prob
+    # logCPM <- log(calCPM(cnt)+1)
+    # Z = as.vector(logCPM<quantile(logCPM, 0.25))
+    # logLS = log(colSums(cnt))
+    # meanLogCPM <- rowMeans(logCPM)
+    # 
+    # x1 <- rep(meanLogCPM, times=length(logLS))
+    # x2 <- rep(logLS, each=length(meanLogCPM))
+    # 
+    # lr.fit <- glm(Z~x1*x2, family = "binomial")
+    SingleCellExperiment(assays = list(counts=cnt), 
+                         colData = col.dat, rowData=row.dat) 
+  }
 }
+
+
