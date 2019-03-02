@@ -3,18 +3,14 @@
 #' More detailed description
 #'
 #' @param s.data a source data (a SingleCellExperiment object)
-#' @param X a vector of indicators for group memebership of cells/samples
-#' @param fc.type a character indicating how DE genes should be calculated
+#' @param X a vector of indicators for group memebership of cells/samples 
+#' @param lfc.thrld a numeric value for the minimum fold change for DE genes
+#' @param t.thrld a numeric value for the minimum t statistic for DE genes
 #' ('mean.diff'= difference in the mean log CPM, 'rank.sum'= a U-statistic for the log CPM)
-#' @param lfc.thrld a numeric value for the minimum fold change for DE genes (if fc.type='mean.diff')
-#' @param t.thrld a numeric value for the minimum t statistic for DE genes (if fc.type='mean.diff')
-#' @param U.thrld a numeric value for the minimum U-statistic for DE genes (if fc.type='rank.sum')
 #' @param llStat.thrld a numeric value for the minimum squared test statistics from a log-linear model
 #' containing X as a covariate to select DE genes
 #' @param carrier.dist a character indicating the type of
 #' carrier density (carrier.dist="normal" or carrier.dist="kernel")
-#' @param w a numeric value between 0 and 1 or NULL refering the number of classes to be created
-#' for the outcome data (if NULL the algorithm to calculate breakes in graphics::hist() function will be used)
 #' @param max.frac.zero a numeric value between 0 and 1 indicating the maximum fraction of
 #'  zero counts that a DE gene should have
 #' @param max.frac.zeror.diff a numeric value between 0 and 1 indicating the maximum  absolute
@@ -25,87 +21,84 @@
 #' @examples
 #'  # example
 #' @export 
+#' @importFrom utils combn
 
-
-chooseCandGenes <- function(s.data, X, fc.type="mean.diff", lfc.thrld=0, U.thrld=0.7,
+chooseCandGenes <- function(s.data, X,  lfc.thrld=0,  
                              llStat.thrld=10, t.thrld=2.5, carrier.dist="normal",
-                             w=0.5, max.frac.zero=0.7, max.frac.zeror.diff=0.1, ...){
-  n.cells <- table(X)
-  sim.group=length(n.cells)
-  cpm.data <- log(edgeR::cpm(counts(s.data))+1)
-  #cpm.data[counts(s.data)==0] <- 0
+                             max.frac.zero=1, max.frac.zeror.diff=Inf, ...){
+  n.cells   <- table(X)
+  sim.group <- length(n.cells)
+  
+  # calculate log CPM
+  if(class(s.data)=="SingleCellExperiment"){
+    cpm.data <- log(calCPM(counts(s.data))+1) 
+  }
+  else if(class(s.data) %in% c("data.frame", "matrix")){
+    cpm.data <- log(calCPM(s.data)+1) 
+  } 
 
   # calculate fold-changes
-  if(fc.type=="rank.sum"){
-    U.stat  <- apply(cpm.data, 1, function(y){
-      wlx.test <- wilcox.test(y~X)
-      #wlx.test$statistic*(wlx.test$p.value <0.05)
-      U <- wlx.test$statistic/prod(n.cells)
-      U <- ifelse(U<0.5, 1-U, U)
-      U
-    })
-
-    null.genes0      <- names(U.stat)[U.stat<U.thrld]
-    nonnull.genes0   <- names(U.stat)[U.stat>=U.thrld]
-
-    compr.stat <- as.data.frame(U.stat)
-  }
-  else if(fc.type=="mean.diff"){
-    m.diff  <- as.data.frame(t(apply(cpm.data, 1, function(y){
-      t.stat <- as.numeric(abs(t.test(y~X)$statistic))
-      fc     <- as.numeric(abs(diff(tapply(y, X, mean))))
-      frac.z.diff <- abs(diff(tapply(y, X, function(yy) mean(yy==0))))
-      c(t.stat=t.stat, fc=fc, frac.z.diff=frac.z.diff)
-    })))
-
-    null.genes0      <- rownames(m.diff)[m.diff$t.stat<t.thrld | m.diff$fc<lfc.thrld ]
-    nonnull.genes0   <- rownames(m.diff)[(m.diff$t.stat>=t.thrld) & (m.diff$fc>=lfc.thrld) & (m.diff$frac.z.diff <= max.frac.zeror.diff)]
-
-    compr.stat <- m.diff
-  }
-
+  m.diff  <- as.data.frame(t(apply(cpm.data, 1, function(y){ 
+    l.mod  <- lm(y~X)
+    t.stat <- max(abs(as.numeric(summary(l.mod)[["coefficients"]][-1, "t value"])))
+    fc     <- max(abs(as.numeric(coef(l.mod)[-1])))
+    frac.z.diff <- max(abs(combn(tapply(y, X, function(yy) mean(yy==0)), 2, FUN=diff)))
+    c(t.stat=t.stat, fc=fc, frac.z.diff=frac.z.diff)
+  })))
+  
+  null.genes0      <- rownames(m.diff)[m.diff$t.stat<t.thrld | m.diff$fc<lfc.thrld ]
+  nonnull.genes0   <- rownames(m.diff)[(m.diff$t.stat>=t.thrld) & (m.diff$fc>=lfc.thrld) & (m.diff$frac.z.diff <= max.frac.zeror.diff)]
+  
+  compr.stat <- m.diff 
   statLLmodel <- sapply(nonnull.genes0, function(j){
     Y <- lapply(names(n.cells), function(x){
       as.numeric(cpm.data[j, X==x])
     })
 
-    s <- lapply(1:length(Y), function(l){
-      if(!is.null(w)){
-        ww=w
-        while(round(ww*length(Y[[l]]))<3 & ww<1){
-          ww <- ww+0.05
-        }
-        h <- hist(Y[[l]], nclass = round(ww*length(Y[[l]])), plot = FALSE, right = TRUE)
-      }
-      else{
-        h <- hist(Y[[l]], plot = FALSE, right = TRUE)
-      }
-
-      h$breaks
-    })
-
-    lls <- lapply(1:length(Y), function(l){
-      t=s[[l]]
-      t[1:(length(t)-1)]
-    })
-    uls <- lapply(1:length(Y), function(l){
-      t=s[[l]]
-      t[2:length(t)]
-    })
-    ss <- lapply(1:length(Y), function(l){
-      t1 <- lls[[l]]
-      t2 <- uls[[l]]
-      (t1+t2)/2
-    })
-    Ny <- lapply(1:length(Y), function(l){
-      t  <- ss[[l]]
-      t1 <- lls[[l]]
-      t2 <- uls[[l]]
-      sapply(1:length(t), function(x){
-        if(x==1) sum(Y[[l]]<=t2[x])
-        else sum(Y[[l]]>t1[x] & Y[[l]]<=t2[x])
-      })
-    })
+    # s <- lapply(1:length(Y), function(l){
+    #   if(!is.null(w)){
+    #     ww=w
+    #     while(round(ww*length(Y[[l]]))<3 & ww<1){
+    #       ww <- ww+0.05
+    #     }
+    #     h <- hist(Y[[l]], nclass = round(ww*length(Y[[l]])), plot = FALSE, right = TRUE)
+    #   }
+    #   else{
+    #     h <- hist(Y[[l]], plot = FALSE, right = TRUE)
+    #   }
+    # 
+    #   h$breaks
+    # })
+    # 
+    # lls <- lapply(1:length(Y), function(l){
+    #   t=s[[l]]
+    #   t[1:(length(t)-1)]
+    # })
+    # uls <- lapply(1:length(Y), function(l){
+    #   t=s[[l]]
+    #   t[2:length(t)]
+    # })
+    # ss <- lapply(1:length(Y), function(l){
+    #   t1 <- lls[[l]]
+    #   t2 <- uls[[l]]
+    #   (t1+t2)/2
+    # })
+    # Ny <- lapply(1:length(Y), function(l){
+    #   t  <- ss[[l]]
+    #   t1 <- lls[[l]]
+    #   t2 <- uls[[l]]
+    #   sapply(1:length(t), function(x){
+    #     if(x==1) sum(Y[[l]]<=t2[x])
+    #     else sum(Y[[l]]>t1[x] & Y[[l]]<=t2[x])
+    #   })
+    # }) 
+    
+    S.list <- lapply(Y, obtCount)
+    ss     <- lapply(S.list, function(x) x$S)
+    lls    <- lapply(S.list, function(x) x$lls)
+    uls    <- lapply(S.list, function(x) x$uls)
+    Ny     <- lapply(S.list, function(x) x$Ny)
+    w      <- sapply(S.list, function(x) x$w)[[1]]
 
     N=sapply(Ny, sum)
 
@@ -119,13 +112,15 @@ chooseCandGenes <- function(s.data, X, fc.type="mean.diff", lfc.thrld=0, U.thrld
     }
     else if(carrier.dist=="normal"){
       gg0 <- lapply(1:length(Y), function(l){
-        est.parms <- try(fitdist(Y[[l]], distr = "norm", method = "mle"), silent = TRUE)
-        if(class(est.parms)=="try-error"){
-          est.parms <- fitdist(Y[[l]], distr = "norm", method = "mme")
-        }
-        est.parms <- est.parms$estimate
-        mu.hat <- est.parms[["mean"]]
-        sig.hat<- est.parms[["sd"]]
+        # est.parms <- try(fitdist(Y[[l]], distr = "norm", method = "mle"), silent = TRUE)
+        # if(class(est.parms)=="try-error"){
+        #   est.parms <- fitdist(Y[[l]], distr = "norm", method = "mme")
+        # }
+        # est.parms <- est.parms$estimate
+        # mu.hat <- est.parms[["mean"]]
+        # sig.hat<- est.parms[["sd"]]
+        mu.hat <- mean(Y[[l]])
+        sig.hat<- sd(Y[[l]]) 
         (pnorm(uls[[l]], mu.hat, sig.hat)-pnorm(lls[[l]], mu.hat, sig.hat))*N[[l]]
       })
     }
@@ -153,10 +148,19 @@ chooseCandGenes <- function(s.data, X, fc.type="mean.diff", lfc.thrld=0, U.thrld
     l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy),
                        family = "poisson", offset = log(gg0+ofs)),
                    silent = TRUE)
-    if(all(class(l.mod.x) != "try-error" ) & l.mod.x$rank != ncol(l.mod.x$R)){
-      l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
-                         family = "poisson", offset = log(gg0+ofs)),
-                     silent = TRUE)
+    if(all(class(l.mod.x) != "try-error")){
+      if(l.mod.x$rank != ncol(l.mod.x$R)){
+        l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
+                           family = "poisson", offset = log(gg0+ofs)),
+                       silent = TRUE)
+        if(all(class(l.mod.x) != "try-error")){
+          if(l.mod.x$rank != ncol(l.mod.x$R)){
+            l.mod.x <- try(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
+                               family = "poisson", offset = log(gg0+ofs)),
+                           silent = TRUE)
+          } 
+        }
+      } 
     }
 
     # pred1 <- predict(l.mod.x, type="response", newdata = data.frame(ss=ss[Xy==0], Xy=0, gg0=gg0[Xy==0]))

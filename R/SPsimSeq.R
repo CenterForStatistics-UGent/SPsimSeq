@@ -11,7 +11,6 @@
 #' @author  Alemu Takele Assefa \email{alemutak@hotmail.com}
 #' @name SPsimSeq
 #' @importFrom graphics hist
-#' @importFrom Hmisc cut2
-#' @importFrom edgeR cpm
+#' @importFrom Hmisc cut2 
 #' @import stats  SingleCellExperiment fitdistrplus MASS
 NULL
