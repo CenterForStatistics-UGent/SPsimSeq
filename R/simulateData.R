@@ -19,6 +19,8 @@
 #' @param model.zero.prob a logical value whether to model the zero probablity separately 
 #' (suitable for single cell data)
 #' @param tot.samples a numerical value for total number of samples to be simulated. 
+#' @param truncated.mv a logical value. If truncated.mv=TRUE, truncated multivariate normal 
+#' distribution will be used for batch simulation given the covariance matrix is positive definite.
 #' @param result.format a character value for the type of format for the output. Choice can  be
 #' 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count,
 #' column information abd row information.
@@ -29,26 +31,32 @@
 #' cell level information in colData, and gene level information in rowData.
 #' 
 #' 
-#' @details This function constructs the actual density of a given bulk or single cell RNA-seq data 
+#' @details This function estimates the density of a given bulk or single cell RNA-seq data 
 #' (passed using \emph{s.data} argument) using a specially designed exponetial family for density
-#' estimation. Afterwards, a new data set is simulated from the estimated density. The objective is 
-#' to maximaly retainthe characterisics of the source data in the simulated data without distributional 
-#' assumption to the gene expression. This is particulaly useful for cases with complex/unknown 
-#' distributions of the data, such as for single cell RNA-seq.
+#' estimation. Afterwards, it simulates a new data set from the estimated density. In a first step, 
+#' the log-CPM outcomes from a given real data  are used for semi-parametrically 
+#' estimating gene-wise distributions. This method is based on a fast log-linear model estimation 
+#' approach developed by Efron et al (1996). Arbitrarily large datasets, with realistically varying 
+#' library sizes, can be sampled from these estimated distributions.
 #' 
-#' For single cell RNA-seq data, the high abundance of zero counts is a special characteristic as
-#' a result of either biological or technical factors. Therefore, this package has a special feature to
-#' model the probability of zero counts given the mean expression and library size  to add excess zeros
-#' representing the technical effectss. This can be achieved by using \emph{model.zero.prob=TRUE}. Note that,
-#' for extremly large size data, this feature may not work and a rrandom sample of cells (up to 400) can
-#' be used to fit the model. To enable sub-set the data, add the argument \emph{subset.data=TRUE} and you 
+#' For single cell RNA-seq data, t, there is an additional step to explicitly account for the high 
+#' abundance of zero counts. This step models the probability of zero counts as a function the mean 
+#' expression of the gene and the library size of the cell (both in log scale) to add excess zeros. 
+#' This can be achieved by using \emph{model.zero.prob=TRUE}. Note that,
+#' for extremly large size data, it is recomended to use a random sample of cells (up to 400) to
+#' reduce computation time. To enable this, add the argument \emph{subset.data=TRUE} and you 
 #' can specify the number of cells to be used using \emph{n.samples} argument. For example \emph{n.samples=300}.
 #' 
+#' Given known groups of samples/cells in the source data, DGE is simulated by independently 
+#' sampling data from distributions constructed in each group. In particular, this procedure is 
+#' applied on a set of genes with fold-change in the source data more than a given threshold (\emph{lfc.thrld}). 
+#' This enables to simulate DGE with difference in both the location and shape of the distribution. 
+#' Moreover, when  the source dataset involves samples/cells processed in different batches, our 
+#' simulation procedure incorporates this batch effect in the simulated data, if required. 
 #' Different experimental designs can be simulated using the group and batch configuration arguments to
-#' simulate biologica/experimental conditions and batchs (instrument or subjects), respectively. However,
-#' the design of the new simulated data strongly depends on the design in the source data. In addition,
-#' batch simulation may lead to unexpected error if the number of batches in the source data is small (e.g.
-#' less than 5) and/or there is no enough data in each batch. 
+#' simulate biologica/experimental conditions and batchs (instrument or subjects), respectively. In addition,
+#' batch simulation is recomended if the number of batches in the source data is at least 5. Also, it is required 
+#' to filter the source data so that gene with suffient expression will be used to estimate the density.
 #' 
 #' 
 #' @references
@@ -58,13 +66,115 @@
 #' 
 #' 
 #' @examples 
-#' ##
+#' #----------------------------------------------------------------
+#' # Example 1: simulating bulk RNA-seq
+#' 
+#' # load the Zhang data (availabl with the package)
+#' data("zhang.data") 
+#' 
+#' # filter genes with sufficient expression (important step to avoid bugs) 
+#' zhang.counts <- zhang.data$counts[rowSums(zhang.data$counts > 0)>=10, ]  
+#' MYCN.status <- zhang.data$MYCN.status+1  
+#' 
+#' # We simulate only a single data (n.sim = 1) with the following property
+#' # - 2000 genes ( n.genes = 2000) 
+#' # - 180 samples (tot.samples = 180) 
+#' # - the samples are equally divided into 2 groups each with 90 samples 
+#' #   (group.config = c(0.5, 0.5))
+#' # - all samples are from a single batch (batch.config = 1)
+#' # - we add 10% DE genes (pDE = 0.1) 
+#' # - we do not model the zeroes separately, they are the part of density 
+#' #    estimation (model.zero.prob = FALSE)
+#' 
+#' sim.data.bulk <- simulateData(n.sim = 1, s.data = zhang.counts, batch = NULL,
+#'                               group = MYCN.status, n.genes = 2000, batch.config = 1,
+#'                               group.config = c(0.5, 0.5), tot.samples = 180, pDE = 0.1,
+#'                               model.zero.prob = FALSE, result.format = "list")
+#'                               
+#' sim.data.bulk1 <- sim.data.bulk[[1]]                              
+#' head(sim.data.bulk1$counts[, 1:5])  # count data
+#' head(sim.data.bulk1$colData)        # sample info
+#' head(sim.data.bulk1$rowData)        # gene info
+#' 
+#' 
+#' #----------------------------------------------------------------
+#' # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
+#' # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
+#' # - 2000 genes (n.genes = 2000) 
+#' # - 100 cells (tot.samples = 100) 
+#' # - the cells are equally divided into 2 groups each with 50 cells (group.config = c(0.5, 0.5))
+#' # - all cells are from a single batch (batch.config = 1)
+#' # - we add 10% DE genes (pDE = 0.1) 
+#' # - we model the zeroes separately (model.zero.prob = TRUE)
+#' # - the ouput will be in SingleCellExperiment class object (result.format = "SCE")
+#' 
+#' 
+#' library(SingleCellExperiment)
+#' 
+#' # load the NGP nutlin data (availabl with the package)
+#' data("scNGP.data")
+#' 
+#' # filter genes with sufficient expression (important step to avoid bugs) 
+#' scNGP.data2 <- scNGP.data[rowSums(counts(scNGP.data) > 0)>=10, ]  
+#' treatment <- ifelse(scNGP.data2$characteristics..treatment=="nutlin",2,1) 
+#' 
+#' # simulate data (we simulate here only a single data, n.sim = 1)
+#' sim.data.sc <- simulateData(n.sim = 1, s.data = scNGP.data2, batch = NULL,
+#'                             group = treatment, n.genes = 2000, batch.config = 1,
+#'                             group.config = c(0.5, 0.5), tot.samples = 100, pDE = 0.1,
+#'                             model.zero.prob = TRUE, result.format = "SCE")
+#'                             
+#' sim.data.sc1 <- sim.data.sc[[1]]
+#' class(sim.data.sc1)
+#' head(counts(sim.data.sc1)[, 1:5])
+#' colData(sim.data.sc1)
+#' rowData(sim.data.sc1)
+#' 
+#' 
+#' 
+#' #----------------------------------------------------------------
+#' # Example 3: simulating single cell RNA-seq from a single batch (UMI counts)
+#' # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
+#' # - 2000 genes (n.genes = 2000) 
+#' # - 200 cells (tot.samples = 200) 
+#' # - the cells are from a single experimental group (group.config = 1)
+#' # - all cells are from a single batch (batch.config = 1)
+#' # - we add 0% DE genes (pDE = 0) 
+#' # - we model the zeroes separately (model.zero.prob = TRUE)
+#' # - since the size of the PBMC data is large, we use the subset of the cells to 
+#' #   fit the zero prob. model (subset.data=TRUE, n.samples=400)
+#' # - the ouput will be in SingleCellExperiment class object (result.format = "SCE") 
+#' 
+#' library(SingleCellExperiment)
+#' 
+#' # load the PBMC data (availabl with the package)
+#' data("PBMC.data") 
+#' 
+#' # filter genes with sufficient expression (important step to avoid bugs) 
+#' PBMCdat2 <- PBMC.10x.data[rowSums(counts(PBMC.10x.data) > 0)>=20, ] 
+#' 
+#' # simulate data (we simulate here only a single data, n.sim = 1)
+#' sim.data.scUMI <- simulateData(n.sim = 1, s.data = PBMCdat2, batch = NULL,
+#'                                group = NULL, n.genes = 2000, batch.config = 1,
+#'                                group.config = 1, tot.samples = 200, pDE = 0,
+#'                                model.zero.prob = TRUE, result.format = "SCE", 
+#'                                subset.data=TRUE, n.samples=400)
+#'                             
+#' sim.data.scUMI1 <- sim.data.scUMI[[1]]
+#' class(sim.data.scUMI1)
+#' head(counts(sim.data.scUMI1)[, 1:5])
+#' colData(sim.data.scUMI1)
+#' rowData(sim.data.scUMI1)
+#' 
+#' 
 #' @export 
 #' @importFrom plyr rbind.fill
+#' @importFrom matrixcalc is.positive.definite
+#' @importFrom tmvtnorm rtmvnorm
 simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,  
                        batch.config= 1,  group.config=c(0.5, 0.5), 
                        tot.samples=150, pDE=0.2, model.zero.prob=FALSE, 
-                       result.format="SCE", verbose=TRUE, ...)
+                       result.format="SCE", verbose=TRUE, truncated.mv=FALSE, ...)
 {
   
   # experiment configurartion
@@ -277,14 +387,31 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
     })
     
     sim.list <- lapply(1:length(sel.genes), function(i){
-      if(!is.null(est.list[[i]]) & !any(sapply(est.list[[i]]$batch.est, is.null))){
+      if(!is.null(est.list[[i]]) & !any(sapply(est.list[[i]]$batch.est, is.null)) & !any(is.na(est.list[[i]]$V.batch))){
         # print(i)
         # sample params from MVN 
         if(DE.ind[i]==0){
-          if(length(n.batch)>1){
-            scl <- ifelse(n.batch<20, log10(log2(n.batch))+0.1, 1)
-            par.sample <- mvrnorm(n = length(sub.batchs), mu= est.list[[i]]$Mu.batch,
-                                  Sigma = scl*est.list[[i]]$V.batch) 
+          if(length(n.batch)>1){ 
+            # scl <- ifelse(length(n.batch)<20, log10(log2(length(n.batch)))+0.1, 1)
+            # scl <- diag(rep(scl, ncol(est.list[[i]]$V.batch)))
+            scl <- diag(rep(1, ncol(est.list[[i]]$V.batch)))
+            
+            if(truncated.mv & is.positive.definite(scl%*%est.list[[i]]$V.batch)){
+              all.est.coefs <- do.call("rbind.fill", lapply(est.list[[i]]$batch.est, 
+                                                            function(b.ests){
+                as.data.frame(t(data.frame(pars=c(b.ests$parm.list$betas, 
+                                                  mu.hat=b.ests$parm.list$mu.hat, 
+                                                  sig.hat=b.ests$parm.list$sig.hat))))
+              }))
+              par.sample <- rtmvnorm(n = length(sub.batchs), mean= est.list[[i]]$Mu.batch,
+                                     sigma = scl%*%est.list[[i]]$V.batch,
+                                     lower= apply(all.est.coefs, 2, min, na.rm=TRUE),
+                                     upper=apply(all.est.coefs, 2, max, na.rm=TRUE)) 
+            }
+            else{ 
+              par.sample <- mvrnorm(n = length(sub.batchs), mu= est.list[[i]]$Mu.batch,
+                                    Sigma = scl%*%est.list[[i]]$V.batch)
+            }
           }
           else if(length(n.batch)==1){
             par.sample <- t(as.matrix(est.list[[i]]$Mu.batch))
@@ -292,7 +419,8 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
         }
         else{ 
           if(length(n.batch)>1){
-            scl <- ifelse(n.batch<20, log10(log2(n.batch))+0.1, 1)
+            #scl <- ifelse(length(n.batch)<20, log10(log2(length(n.batch)))+0.1, 1)
+            scl <- 1
             par.sample <- lapply(sort(unique(group)), function(g){
               mvrnorm(n = length(sub.batchs), mu= est.list[[i]]$Mu.batch[[g]],
                       Sigma = scl*est.list[[i]]$V.batch[[g]]) 
@@ -388,7 +516,9 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             gg1 <- g1[[bb]]
             y.star.b <- sapply(u, function(uu){
               yy  <- gg1$s[which.min(abs(gg1$Gy-uu))]
-              eps <- gg1$s[2]-gg1$s[1] #=mean(diff(gg1$s))
+              difs<- diff(gg1$s)
+              difs<- difs[!(is.na(difs) | is.infinite(difs) | is.nan(difs))]
+              eps <- mean(difs, na.rm=TRUE) #gg1$s[2]-gg1$s[1] 
               yy  <- runif(1, yy-eps/2, yy+eps/2)
               yy
             })
@@ -398,9 +528,15 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             
             if(model.zero.prob & mean(Y0==0)>0.25){
               lLL_b <- log(LL.b)
-              pred.pz  <- predict(fracZero.logit.list[[bb]], type="response",
-                                  newdata=data.frame(x1=mean(Y0), x2=lLL_b))
-              drop.mlt <- sapply(pred.pz, function(p) rbinom(1, 1, p))
+              pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
+                                  newdata=data.frame(x1=mean(Y0), x2=lLL_b)), 
+                              silent = TRUE)
+              if(class(pred.pz) != "try-error"){
+                drop.mlt <- sapply(pred.pz, function(p) rbinom(1, 1, p))
+              }
+              else{
+                drop.mlt <- 0
+              } 
               y.star.b <- y.star.b*(1-drop.mlt)
             }
             as.numeric(y.star.b)
@@ -418,7 +554,9 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
               gg1 <- g1.g[[bb]]
               y.star.b <- sapply(u, function(uu){
                 yy  <- gg1$s[which.min(abs(gg1$Gy-uu))]
-                eps <- gg1$s[2]-gg1$s[1] #=mean(diff(gg1$s))
+                difs<- diff(gg1$s)
+                difs<- difs[!(is.na(difs) | is.infinite(difs) | is.nan(difs))]
+                eps <- mean(difs, na.rm=TRUE) #gg1$s[2]-gg1$s[1] 
                 yy  <- runif(1, yy-eps/2, yy+eps/2)
                 yy
               })
@@ -428,9 +566,15 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
               
               if(model.zero.prob & mean(Y0.g==0)>0.25){
                 lLL.b.g<- log(LL.b.g)
-                pred.pz  <- predict(fracZero.logit.list[[bb]], type="response",
-                                    newdata=data.frame(x1=mean(Y0.g), x2=lLL.b.g))
-                drop.mlt <- sapply(pred.pz, function(p) rbinom(1, 1, p))
+                pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
+                                    newdata=data.frame(x1=mean(Y0.g), x2=lLL.b.g)), 
+                                silent = TRUE)
+                if(class(pred.pz) != "try-error"){
+                  drop.mlt <- sapply(pred.pz, function(p) rbinom(1, 1, p))
+                }
+                else{
+                  drop.mlt <- 0
+                } 
                 y.star.b <- y.star.b*(1-drop.mlt)
               }
               as.numeric(y.star.b)
@@ -447,6 +591,7 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
       }
     }) 
     sim.count <- do.call(rbind, sim.list)
+    sim.count[is.na(sim.count)] <- 0
     rownames(sim.count) <- paste0("Gene_", 1:nrow(sim.count))
     colnames(sim.count) <- paste0("Sample_", 1:ncol(sim.count))
     

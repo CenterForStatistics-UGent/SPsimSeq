@@ -4,13 +4,31 @@
 \alias{calCPM}
 \title{Calculates counts per millions of reads}
 \usage{
-calCPM(X, const.mult = 1e+06, ...)
+calCPM(X, const.mult = 1e+06, norm.lib.size = TRUE,
+  norm.factors = NULL, logt = FALSE, log_base = 2, prior.count = 1,
+  ...)
 }
 \arguments{
 \item{X}{an object with class 'SingleCellExperiment', 'data.frame', or 'matrix' 
 typically containing gene expression data with genes in rows}
 
-\item{const.mult}{a numerical constant indicatin the desired library size for all samples/cells}
+\item{const.mult}{a numerical constant indicatin the desired library size for 
+all samples/cells}
+
+\item{norm.lib.size}{logical value. If TRUE, normalized library size will be used to
+calculate CPM. In particulr, TMM normalization factors will be used unless @param 
+norm.factors is not NULL}
+
+\item{norm.factors}{a numerical vector of normalization factors}
+
+\item{logt}{a logical value. If TRUE, log(base=@param log_base) of the CPM 
+will be returned}
+
+\item{log_base}{an integer for the base of logarithmic transformation.
+It will only be considered if @param log = TRUE.}
+
+\item{prior.count}{a positive integer to be added to the CPM prior to log transformation.
+It will only be considered if @param log = TRUE.}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -21,7 +39,14 @@ a matrix of CPM
 Calculates counts per millions of reads
 }
 \examples{
- 
-dat <- make.example.data(n.gene = 10,n.sample = 20, n.group = 1, n.batch = 1)
+dat <- make.example.data(n.gene = 10,n.sample = 5, n.group = 1, n.batch = 1)
 cpm.dat <- calCPM(dat)
+cpm.dat <- calCPM(dat, norm.lib.size = FALSE)
+
+cpm.dat <- calCPM(dat, logt = TRUE)
+cpm.dat <- calCPM(dat, logt = TRUE, log_base = 10)
+
+cpm.dat <- calCPM(dat, logt = TRUE)
+cpm.dat <- calCPM(dat, logt = TRUE, prior.count = 0.25)
+
 }
