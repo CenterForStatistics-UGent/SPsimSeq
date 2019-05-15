@@ -1,6 +1,6 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data."
+author: "Alemu Takele Assefa"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -15,6 +15,165 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 ```
+# Introduction to SPsimSeq
+
+SPsimSeq is designed to maximally retain the characteristics of a real RNA sequencing data with reasonable flexibility to simulate a wide range of scenarios. In a first step, the log-CPM outcomes from a given real data (aka source data) are used for semi-parametrically estimating gene-wise distributions. This method is based on a fast log-linear model estimation approach developed by Efron et al (1996) ^[Efron, B., & Tibshirani, R. (1996). Using specially designed exponential families for density estimation. The Annals of Statistics, 24(6), 2431-2461.]. Arbitrarily large datasets, with realistically varying library sizes, can be sampled from these estimated distributions. For scRNA-seq data, there is an additional step to explicitly account for the high abundance of zero counts. This step models the probability of zero counts as a function the mean expression of the gene and the library size of the cell (both in $\log$ scale). Zero counts are then added to the simulated data such that the observed relationship (zero probability to mean expression and library size) is maintained. Given known groups ($\ge 2$) of samples/cells in the source data, DGE is simulated by independently sampling data from distributions constructed in each group. In particular, this procedure is applied on a set of genes with fold-change in the source data more than a given threshold. This enables to simulate DGE with difference in both the location and shape of the distribution. Moreover, when the source dataset involves samples/cells processed in different batches, our simulation procedure incorporates this batch effect in the simulated data, if required. 
+
+# Installing SPsimSeq
 
 # Implementation of SPsimSeq
-## Example 1
+## Example 1: simulating bulk RNA-seq
+
+```{r, eval=FALSE}
+ # load the Zhang data (availabl with the package)
+ data("zhang.data") 
+ 
+ # filter genes with sufficient expression (important step to avoid bugs) 
+ zhang.counts <- zhang.data$counts[rowSums(zhang.data$counts > 0)>=10, ]  
+ MYCN.status <- zhang.data$MYCN.status+1  
+ 
+ # We simulate only a single data (n.sim = 1) with the following property
+ # - 2000 genes ( n.genes = 2000) 
+ # - 180 samples (tot.samples = 180) 
+ # - the samples are equally divided into 2 groups each with 90 samples 
+ #   (group.config = c(0.5, 0.5))
+ # - all samples are from a single batch (batch.config = 1)
+ # - we add 10% DE genes (pDE = 0.1) 
+ # - we do not model the zeroes separately, they are the part of density 
+ #    estimation (model.zero.prob = FALSE)
+ 
+ sim.data.bulk <- simulateData(n.sim = 1, s.data = zhang.counts, batch = NULL,
+                               group = MYCN.status, n.genes = 2000, batch.config = 1,
+                               group.config = c(0.5, 0.5), tot.samples = 180, pDE = 0.1,
+                               model.zero.prob = FALSE, result.format = "list")
+                               
+ sim.data.bulk1 <- sim.data.bulk[[1]]                              
+ head(sim.data.bulk1$counts[, 1:5])  # count data
+ head(sim.data.bulk1$colData)        # sample info
+ head(sim.data.bulk1$rowData)        # gene info
+ 
+```
+
+## Example 2: simulating single cell RNA-seq from a single batch (read-counts)
+```{r, eval=FALSE}
+# we simulate only a single scRNA-seq data (n.sim = 1) with the following property
+ # - 2000 genes (n.genes = 2000) 
+ # - 100 cells (tot.samples = 100) 
+ # - the cells are equally divided into 2 groups each with 50 cells (group.config = c(0.5, 0.5))
+ # - all cells are from a single batch (batch.config = 1)
+ # - we add 10% DE genes (pDE = 0.1) 
+ # - we model the zeroes separately (model.zero.prob = TRUE)
+ # - the ouput will be in SingleCellExperiment class object (result.format = "SCE")
+ 
+ 
+ library(SingleCellExperiment)
+ 
+ # load the NGP nutlin data (availabl with the package)
+ data("scNGP.data")
+ 
+ # filter genes with sufficient expression (important step to avoid bugs) 
+ scNGP.data2 <- scNGP.data[rowSums(counts(scNGP.data) > 0)>=10, ]  
+ treatment <- ifelse(scNGP.data2$characteristics..treatment=="nutlin",2,1) 
+ 
+ # simulate data (we simulate here only a single data, n.sim = 1)
+ sim.data.sc <- simulateData(n.sim = 1, s.data = scNGP.data2, batch = NULL,
+                             group = treatment, n.genes = 2000, batch.config = 1,
+                             group.config = c(0.5, 0.5), tot.samples = 100, pDE = 0.1,
+                             model.zero.prob = TRUE, result.format = "SCE")
+                             
+ sim.data.sc1 <- sim.data.sc[[1]]
+ class(sim.data.sc1)
+ head(counts(sim.data.sc1)[, 1:5])
+ colData(sim.data.sc1)
+ rowData(sim.data.sc1)
+```
+
+## Example 3: simulating single cell RNA-seq from a single batch (UMI counts)
+```{r, eval=FALSE}
+ # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
+ # - 2000 genes (n.genes = 2000) 
+ # - 200 cells (tot.samples = 200) 
+ # - the cells are from a single experimental group (group.config = 1)
+ # - all cells are from a single batch (batch.config = 1)
+ # - we add 0% DE genes (pDE = 0) 
+ # - we model the zeroes separately (model.zero.prob = TRUE)
+ # - since the size of the PBMC data is large, we use the subset of the cells to 
+ #   fit the zero prob. model (subset.data=TRUE, n.samples=400)
+ # - the ouput will be in SingleCellExperiment class object (result.format = "SCE") 
+ 
+ library(SingleCellExperiment)
+ 
+ # load the PBMC data (availabl with the package)
+ data("PBMC.data") 
+ 
+ # filter genes with sufficient expression (important step to avoid bugs) 
+ PBMCdat2 <- PBMC.10x.data[rowSums(counts(PBMC.10x.data) > 0)>=20, ] 
+ 
+ # simulate data (we simulate here only a single data, n.sim = 1)
+ sim.data.scUMI <- simulateData(n.sim = 1, s.data = PBMCdat2, batch = NULL,
+                                group = NULL, n.genes = 2000, batch.config = 1,
+                                group.config = 1, tot.samples = 200, pDE = 0,
+                                model.zero.prob = TRUE, result.format = "SCE", 
+                                subset.data=TRUE, n.samples=400)
+                             
+ sim.data.scUMI1 <- sim.data.scUMI[[1]]
+ class(sim.data.scUMI1)
+ head(counts(sim.data.scUMI1)[, 1:5])
+ colData(sim.data.scUMI1)
+ rowData(sim.data.scUMI1)
+```
+
+## Example 4: simulating single cell RNA-seq from a single batch (read-counts) with batch
+For this example we use first simulate batch effect using parametric simulation (Splat, for ultimate flexibility) and then taking that as a source data we simulate a new single cell RNA-seq data with batch effect.
+
+```{r, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10}
+# Simulate a new scRNA-seq datset using Splat simulation method  such that there are 7 batchs each with 50 cells
+library(SingleCellExperiment)
+library(SPsimSeq)
+library(splatter)
+library(scater)
+
+params <- newSplatParams()
+params <- setParams(params, update = list(batch.facLoc=0.5, batch.facScale=0.3, seed=263))
+sim.batches <- splatSimulate(params, 
+                             batchCells = c(50, 50, 50, 50, 50, 50, 50), 
+                             verbose = FALSE)
+
+sim.batches 
+
+#Filter genes with sufficient expression in each batch
+keep <- apply(counts(sim.batches), 1, function(x){
+  all(tapply(x, colData(sim.batches)$Batch, function(y) sum(y>0)>=5))
+})
+#table(keep) 
+sim.batches2 <- sim.batches[keep,]
+
+ # now we simulate only a single scRNA-seq data (n.sim = 1) using SPsimSeq with the following characteristics
+ # - we use the above simulated data as a source data (sim.batches2)
+ # - 2000 genes (n.genes = 2000) 
+ # - 350 cells (tot.samples = 200) 
+ # - the cells are from a single experimental group (group.config = 1)
+ # - cells are from 7 batchs each with equal number of cells (batch.config = rep(1/7, 7))
+ # - we add 0% DE genes (pDE = 0) 
+ # - we model the zeroes separately (model.zero.prob = TRUE) 
+ # - the ouput will be in SingleCellExperiment class object (result.format = "SCE") 
+ 
+
+ batch.factor <- as.numeric(as.factor(colData(sim.batches2)$Batch))
+ SPsimuBatch <- simulateData(s.data = sim.batches2, batch = batch.factor,
+                             n.genes = 2000, batch.config = rep(1/7, 7), group.config=1,
+                             tot.samples=350, model.zero.prob = TRUE)
+ SPsimuBatch[[1]] 
+ 
+ 
+ # clustering of cells
+ sim.batches_norm <- normalize(sim.batches2)
+ p1 <- plotPCA(sim.batches_norm, colour_by = "Batch")
+
+ colData(SPsimuBatch[[1]])$Batch <- as.factor(colData(SPsimuBatch[[1]])$Batch) 
+ SPsimuBatch_norm <- normalize(SPsimuBatch[[1]])
+ p2 <- plotPCA(SPsimuBatch_norm, colour_by = "Batch")
+ 
+ library(gridExtra)
+ grid.arrange(grobs=list(p1, p2), ncol=2, nrow=1)
+```

@@ -54,7 +54,7 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   # simulate library size 
   LL <- lapply(1:length(sub.batchs), function(b){
     L.b <- L[batch==sub.batchs[b]]
-    fit.ln <- fitdist(L.b, distr = "lnorm")$estimate
+    fit.ln <- fitdist(as.numeric(L.b), distr = "lnorm")$estimate
     L.b.pred <- rlnorm(n.batch[b], fit.ln[["meanlog"]], fit.ln[["sdlog"]])
     
     ## randomly split into the groups
