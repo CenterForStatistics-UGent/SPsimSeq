@@ -28,9 +28,10 @@ obtCount <- function(Y, w=NULL, ...){
   lls <- s[1:(length(s)-1)]
   uls <- s[2:(length(s))]
   S   <- (lls+uls)/2
-  Ny  <- sapply(1:length(S), function(x){
-    if(x==1) sum(Y<=uls[x])
-    else sum(Y>lls[x] & Y<= uls[x])
-  })
+  # Ny  <- sapply(1:length(S), function(x){
+  #   if(x==1) sum(Y<=uls[x])
+  #   else sum(Y>lls[x] & Y<= uls[x])
+  # })
+  Ny <- h$counts
   list(S=S, lls=lls, uls=uls, Ny=Ny, Y=Y, mu.hat=mean(Y), sig.hat=sd(Y), w=w) 
 }
