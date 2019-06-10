@@ -20,9 +20,9 @@
 #' @return a list object contating a set of candidate DE and null genes and additional results
 #' @examples
 #'  # example
-#' @export 
-#' @importFrom utils combn
-
+#' @export  
+#' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
+#' @importFrom SingleCellExperiment counts
 chooseCandGenes <- function(s.data, X,  lfc.thrld=0,  
                              llStat.thrld=10, t.thrld=2.5, carrier.dist="normal",
                              max.frac.zero=1, max.frac.zeror.diff=Inf, ...){
@@ -42,7 +42,7 @@ chooseCandGenes <- function(s.data, X,  lfc.thrld=0,
     l.mod  <- lm(y~X)
     t.stat <- max(abs(as.numeric(summary(l.mod)[["coefficients"]][-1, "t value"])))
     fc     <- max(abs(as.numeric(coef(l.mod)[-1])))
-    frac.z.diff <- max(abs(combn(tapply(y, X, function(yy) mean(yy==0)), 2, FUN=diff)))
+    frac.z.diff <- max(abs(combn2(tapply(y, X, function(yy) mean(yy==0)), 2, FUN=diff)))
     c(t.stat=t.stat, fc=fc, frac.z.diff=frac.z.diff)
   })))
   

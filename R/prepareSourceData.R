@@ -5,16 +5,17 @@
 #' @param group a vector containg group indicator for each sample/cell
 #' @param cand.genes a list object contating candidate genes
 #' @param exprmt.design a list contating simulation design configuration 
+#' @param simCtr (integer) seed number
 #' @param  ... further arguments passed to or from other methods.
 #'
 #' @return a list object
 #'
 #' @examples
-#'  # example
-#' @export 
+#'  # example 
+#' @importFrom fitdistrplus fitdist
 
 prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,  
-                              exprmt.design, ...){
+                              exprmt.design, simCtr, ...){
   
   # design element
   n.batch <- exprmt.design$n.batch
@@ -34,6 +35,7 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   # subset batches
   if(!is.null(batch)){ 
     if(length(n.batch) < length(unique(batch))){
+      set.seed(simCtr)
       sub.batchs <- sort(sample(length(unique(batch)), length(n.batch))) 
     }
     else if(length(n.batch) == length(unique(batch))){
@@ -55,6 +57,7 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   LL <- lapply(1:length(sub.batchs), function(b){
     L.b <- L[batch==sub.batchs[b]]
     fit.ln <- fitdist(as.numeric(L.b), distr = "lnorm")$estimate
+    set.seed(simCtr)
     L.b.pred <- rlnorm(n.batch[b], fit.ln[["meanlog"]], fit.ln[["sdlog"]])
     
     ## randomly split into the groups
