@@ -7,6 +7,7 @@
 #' @param subset.data a logical value to subset columns(samples) if the size of the data is too big
 #' for space and computation time saving
 #' @param n.samples an integer indicating the number of samples/cells to sample (if subset.data=TRUE)
+#' @param simCtr (integer) seed number. Used if subset.data=TRUE
 #' @param  ... further arguments passed to or from other methods. 
 #'
 #' @return a GLM class object contating the estimated logistic regression
@@ -21,10 +22,13 @@
 #'  #plot(mean.log.cpm, predict(fracZero.logit, type="response",
 #'  #newdata=data.frame(x1=mean.log.cpm, x2=median(log.L))), ylim=c(0,1))
 #'  
-#' @export 
-zeroProbModel <- function(count.data, n.mean.class=30, subset.data=FALSE, n.samples=400, ...){
+#' @export  
+#' @importFrom stats glm
+#' @importFrom Hmisc cut2
+zeroProbModel <- function(count.data, n.mean.class=30, subset.data=FALSE, n.samples=400, simCtr, ...){
 
   if(subset.data & (ncol(count.data)>n.samples)){
+    set.seed(simCtr)
     count.data <- count.data[, sample(ncol(count.data), n.samples)]
   }
   count.data <- count.data[rowSums(count.data>0)>5, ]

@@ -21,7 +21,5 @@ a list object contating class mid points, counts, and others
 Calculates height and mid points of a distribution
 }
 \examples{
-Y <- rnorm(50)
-obtCount(Y, w=NULL)
-obtCount(Y, w=0.5) 
+#
 }

@@ -9,11 +9,12 @@
 #' @param type type gene expression data, either bulk RNA-seq (type="bulk") or 
 #' single cell RNA-seq (type="sc")
 #' @return a SingleCellExperiment object.
-#' 
-#' @export
-#' @examples
-#' make.example.data()
 #'  
+#' @examples
+#' # make.example.data
+#' @export
+#' @importFrom stats rlnorm rnbinom 
+#' @importFrom SingleCellExperiment counts colData rowData SingleCellExperiment
 
 make.example.data <- function(n.gene=2000, n.sample=30, n.group=2, n.batch=3, p.DEgenes=0.2,
                               common.BCV=0.25, type="bulk"){ 
@@ -53,7 +54,8 @@ make.example.data <- function(n.gene=2000, n.sample=30, n.group=2, n.batch=3, p.
   }))
   rownames(cnt) <- paste0("Gene_", 1:n.gene)
   colnames(cnt) <- paste0("Sample_", 1:ncol(cnt))
-  col.dat <- data.frame(E.LS=LS, Group=group, Batch=batch, row.names = colnames(cnt))
+  col.dat <- data.frame(E.LS=LS, Group=group, Batch=batch, 
+                        row.names = colnames(cnt))
   
   group.fact <- as.data.frame(group.fact)
   colnames(group.fact) <- paste0("DE.fac", 1:n.group)

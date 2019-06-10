@@ -7,11 +7,8 @@
 #' 
 #' @return a list object contating class mid points, counts, and others
 #' @examples 
-#' Y <- rnorm(50)
-#' obtCount(Y, w=NULL)
-#' obtCount(Y, w=0.5) 
-#' @export 
-#' 
+#' #
+#' @importFrom graphics hist
 obtCount <- function(Y, w=NULL, ...){
   
   if(is.null(w)){

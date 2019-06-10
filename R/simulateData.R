@@ -19,12 +19,11 @@
 #' @param model.zero.prob a logical value whether to model the zero probablity separately 
 #' (suitable for single cell data)
 #' @param tot.samples a numerical value for total number of samples to be simulated. 
-#' @param truncated.mv a logical value. If truncated.mv=TRUE, truncated multivariate normal 
-#' distribution will be used for batch simulation given the covariance matrix is positive definite.
 #' @param result.format a character value for the type of format for the output. Choice can  be
 #' 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count,
 #' column information abd row information.
 #' @param verbose a logical value, if TRUE it displays a message about the satatus of the simulation
+#' @param  seed an integer  between 1 and 1e10. It will be used for set.seed() function
 #' @param  ... further arguments passed to or from other methods.
 #' 
 #' @return a list of SingleCellExperiment object each contatining simulated counts (not normalized), 
@@ -69,6 +68,7 @@
 #' #----------------------------------------------------------------
 #' # Example 1: simulating bulk RNA-seq
 #' 
+#' \donttest{ # TAKES LONG
 #' # load the Zhang data (availabl with the package)
 #' data("zhang.data") 
 #' 
@@ -86,7 +86,7 @@
 #' # - we do not model the zeroes separately, they are the part of density 
 #' #    estimation (model.zero.prob = FALSE)
 #' 
-#' sim.data.bulk <- simulateData(n.sim = 1, s.data = zhang.counts, batch = NULL,
+#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts, batch = NULL,
 #'                               group = MYCN.status, n.genes = 2000, batch.config = 1,
 #'                               group.config = c(0.5, 0.5), tot.samples = 180, pDE = 0.1,
 #'                               model.zero.prob = FALSE, result.format = "list")
@@ -119,7 +119,7 @@
 #' treatment <- ifelse(scNGP.data2$characteristics..treatment=="nutlin",2,1) 
 #' 
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' sim.data.sc <- simulateData(n.sim = 1, s.data = scNGP.data2, batch = NULL,
+#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
 #'                             group = treatment, n.genes = 2000, batch.config = 1,
 #'                             group.config = c(0.5, 0.5), tot.samples = 100, pDE = 0.1,
 #'                             model.zero.prob = TRUE, result.format = "SCE")
@@ -154,7 +154,7 @@
 #' PBMCdat2 <- PBMC.10x.data[rowSums(counts(PBMC.10x.data) > 0)>=20, ] 
 #' 
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' sim.data.scUMI <- simulateData(n.sim = 1, s.data = PBMCdat2, batch = NULL,
+#' sim.data.scUMI <- SPsimSeq(n.sim = 1, s.data = PBMCdat2, batch = NULL,
 #'                                group = NULL, n.genes = 2000, batch.config = 1,
 #'                                group.config = 1, tot.samples = 200, pDE = 0,
 #'                                model.zero.prob = TRUE, result.format = "SCE", 
@@ -166,17 +166,18 @@
 #' colData(sim.data.scUMI1)
 #' rowData(sim.data.scUMI1)
 #' 
+#' }
 #' 
-#' @export 
-#' @importFrom plyr rbind.fill
-#' @importFrom matrixcalc is.positive.definite
-#' @importFrom tmvtnorm rtmvnorm
-simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,  
+#' 
+#' @export    
+#' @importFrom MASS mvrnorm
+#' @importFrom stats pnorm runif rbinom predict approx quantile
+#' @importFrom SingleCellExperiment counts colData rowData SingleCellExperiment
+SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,  
                        batch.config= 1,  group.config=c(0.5, 0.5), 
                        tot.samples=150, pDE=0.2, model.zero.prob=FALSE, 
-                       result.format="SCE", verbose=TRUE, truncated.mv=FALSE, ...)
+                       result.format="SCE", verbose=TRUE,  seed=2581988, ...)
 {
-  
   # experiment configurartion
   if(verbose) {message("Configuring design ...")}
   null.group = ifelse(!is.null(group), which.max(table(group))[[1]], 1)
@@ -186,12 +187,17 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
   n.group <- exprmt.design$n.group
   config.mat <- exprmt.design$exprmt.config 
   
+  # sim control
+  setSimContol <- setSimContol(seed, n.sim = n.sim, n.genes = n.genes)
+  
+  
   # prepare source data
   if(verbose) {message("Preparing source data ...")}
   prepare.S.Data <- prepareSourceData(s.data, batch = batch, group = group, 
-                                      exprmt.design=exprmt.design,  ...)
-  LL <- prepare.S.Data$LL
-  cpm.data <- prepare.S.Data$cpm.data
+                                      exprmt.design=exprmt.design, 
+                                      simCtr=setSimContol$seed.sample.single, ...)
+  LL         <- prepare.S.Data$LL
+  cpm.data   <- prepare.S.Data$cpm.data
   sub.batchs <- prepare.S.Data$sub.batchs
   
   if(is.null(group)) group <- rep(1, ncol(s.data))
@@ -202,12 +208,12 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
     if(verbose) {message("Fitting zero probability model ...")}
     if(class(s.data)=="SingleCellExperiment"){
       fracZero.logit.list <- lapply(unique(sub.batchs), function(b){
-        zeroProbModel(counts(s.data)[, batch==b], ...)
+        zeroProbModel(counts(s.data)[, batch==b], simCtr=setSimContol$seed.sample.single, ...)
       }) 
     }
     else if(class(s.data) %in% c("data.frame", "matrix")){
       fracZero.logit.list <- lapply(unique(sub.batchs), function(b){
-        zeroProbModel(s.data[, batch==b], ...)
+        zeroProbModel(s.data[, batch==b], simCtr=setSimContol$seed.sample.single, ...)
       })
     }
   }
@@ -218,8 +224,7 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
   null.genes0     <- prepare.S.Data$cand.genes$null.genes
   nonnull.genes0  <- prepare.S.Data$cand.genes$nonnull.genes
   
-  
-  
+   
   # simulation step
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(1:n.sim, function(h){
@@ -228,22 +233,26 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
     # sample DE and null genes
     if(pDE>0 & !is.null(group) & length(group.config)>1){
       if((1-pDE)*n.genes <= length(null.genes0)){
+        set.seed(setSimContol$seed.sample.genes[h])
         null.genes     <- sample(null.genes0, (1-pDE)*(n.genes), replace = FALSE)
       }
       else{
         message("Note: The number of null genes (not DE) in the source data is ", length(null.genes0), 
                 " and the number of null genes required to be included in the simulated data is ",
                 round((1-pDE)*(n.genes)), ". Therefore, candidiate null genes are sampled with replacement.")
+        set.seed(setSimContol$seed.sample.genes[h])
         null.genes     <- sample(null.genes0, (1-pDE)*(n.genes), replace = TRUE)
       }
       
       if(pDE*n.genes <= length(nonnull.genes0)){
+        set.seed(setSimContol$seed.sample.genes[h]+1)
         nonnull.genes  <- sample(nonnull.genes0, pDE*n.genes, replace = FALSE)
       }
       else{
         message("Note: The number of DE genes detected in the source data is ", length(nonnull.genes0), 
                 " and the number of DE genes required to be included in the simulated data is ",
                 round(pDE*n.genes), ". Therefore, candidiate DE genes are sampled with replacement.")
+        set.seed(setSimContol$seed.sample.genes[h]+1)
         nonnull.genes  <- sample(nonnull.genes0, pDE*n.genes, replace = TRUE)
       }
       
@@ -253,9 +262,11 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
     }
     else{
       if(n.genes <= length(null.genes0)){
+        set.seed(setSimContol$seed.sample.genes[h])
         sel.genes     <- sample(null.genes0, n.genes, replace = FALSE)
       }
       else{
+        set.seed(setSimContol$seed.sample.genes[h])
         sel.genes     <- sample(null.genes0, n.genes, replace = TRUE)
       } 
       DE.ind <- rep(0, length(sel.genes))
@@ -289,7 +300,7 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
     # estimate batch specific parameters
     est.list <- lapply(sel.genes, function(i){
       #print(i)
-      batch.est <- lapply(sort(unique(batch)), function(b){ 
+      batch.est <- lapply(sub.batchs, function(b){ 
         #print(b)
         if(DE.ind[i]==0){
           Y0 <- cpm.data[i, (batch==b & group==null.group)] 
@@ -336,11 +347,12 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
       if(DE.ind[i]==0){
         batch.parms.lst <- lapply(batch.est, function(b){ 
           if(!is.null(b)){
-            c(b$parm.list$betas,  mu.hat=b$parm.list$mu.hat,  sig.hat=b$parm.list$sig.hat)
+            c(b$parm.list$betas,  mu.hat=b$parm.list$mu.hat,  sig.hat=log(b$parm.list$sig.hat+0.001))
+            #b$parm.list$betas
           }
           else{as.matrix(NA)}
         })
-        batch.parms <- rbind.fill(lapply(batch.parms.lst, 
+        batch.parms <- rbind.fill2(lapply(batch.parms.lst, 
                                          function(x) as.data.frame(as.list(x)))) 
         if(any(dim(batch.parms)>1)){
           Mu.batch <- colMeans(batch.parms, na.rm = TRUE)
@@ -356,14 +368,14 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
           b <- lapply(batch.est, function(x) x[[g]])
           b <- lapply(b, function(bb){
             if(!is.null(bb)){
-              c(bb$parm.list$betas, mu.hat=bb$parm.list$mu.hat, 
-                sig.hat=bb$parm.list$sig.hat)
+              c(bb$parm.list$betas, mu.hat=bb$parm.list$mu.hat, sig.hat=log(bb$parm.list$sig.hat+0.001))
+              #bb$parm.list$betas
             }
             else{NULL}
           }) })
         
         batch.parms <- lapply(batch.parms.lst, function(g){
-          rbind.fill(lapply(g, function(x) as.data.frame(as.list(x))))
+          rbind.fill2(lapply(g, function(x) as.data.frame(as.list(x))))
         })
         
         if(!any(sapply(batch.parms, function(x) is.null(unlist(x))))){
@@ -377,59 +389,105 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
       }
       
       if(!is.null(Mu.batch)){
-        list(Mu.batch=Mu.batch, V.batch=V.batch,
-             batch.est=batch.est)
+        list(Mu.batch=Mu.batch, V.batch=V.batch,  batch.est=batch.est)
       }
       else{
         NULL
       }
-      
     })
     
-    sim.list <- lapply(1:length(sel.genes), function(i){
-      if(!is.null(est.list[[i]]) & !any(sapply(est.list[[i]]$batch.est, is.null)) & !any(is.na(est.list[[i]]$V.batch))){
+    sim.list <- lapply(1:length(sel.genes), function(i){ 
+      if(!is.null(est.list[[i]]) & 
+         !any(sapply(est.list[[i]]$batch.est, is.null)) & 
+         !any(is.na(est.list[[i]]$V.batch))){
         # print(i)
         # sample params from MVN 
         if(DE.ind[i]==0){
           if(length(n.batch)>1){ 
             # scl <- ifelse(length(n.batch)<20, log10(log2(length(n.batch)))+0.1, 1)
             # scl <- diag(rep(scl, ncol(est.list[[i]]$V.batch)))
-            scl <- diag(rep(1, ncol(est.list[[i]]$V.batch)))
+            # scl <- diag(rep(1, ncol(est.list[[i]]$V.batch)))
             
-            if(truncated.mv & is.positive.definite(scl%*%est.list[[i]]$V.batch)){
-              all.est.coefs <- do.call("rbind.fill", lapply(est.list[[i]]$batch.est, 
-                                                            function(b.ests){
-                as.data.frame(t(data.frame(pars=c(b.ests$parm.list$betas, 
-                                                  mu.hat=b.ests$parm.list$mu.hat, 
-                                                  sig.hat=b.ests$parm.list$sig.hat))))
-              }))
-              par.sample <- rtmvnorm(n = length(sub.batchs), mean= est.list[[i]]$Mu.batch,
-                                     sigma = scl%*%est.list[[i]]$V.batch,
-                                     lower= apply(all.est.coefs, 2, min, na.rm=TRUE),
-                                     upper=apply(all.est.coefs, 2, max, na.rm=TRUE)) 
-            }
-            else{ 
-              par.sample <- mvrnorm(n = length(sub.batchs), mu= est.list[[i]]$Mu.batch,
-                                    Sigma = scl%*%est.list[[i]]$V.batch)
-            }
+            # if(truncated.mv & isPosDefMat(scl%*%est.list[[i]]$V.batch)){
+            #   all.est.coefs <- do.call("rbind.fill2", lapply(est.list[[i]]$batch.est, 
+            #                                                 function(b.ests){
+            #     as.data.frame(t(data.frame(pars=c(b.ests$parm.list$betas, 
+            #                                       mu.hat=b.ests$parm.list$mu.hat, 
+            #                                       sig.hat=b.ests$parm.list$sig.hat))))
+            #   }))
+            #   Sigma.i <- est.list[[i]]$V.batch
+            #   diag(Sigma.i) <-  diag(Sigma.i)
+            #   par.sample <- rtmvnorm(n = length(sub.batchs), mean= est.list[[i]]$Mu.batch,
+            #                          #sigma = scl%*%est.list[[i]]$V.batch,
+            #                          sigma = Sigma.i,
+            #                          lower= apply(all.est.coefs, 2, 
+            #                                       function(x) quantile(x, 0, na.rm = TRUE)),
+            #                          upper=apply(all.est.coefs, 2, 
+            #                                      function(x) quantile(x, 1, na.rm = TRUE)))
+            #   par.sample[, "sig.hat"] <- exp(par.sample[, "sig.hat"])-0.001
+            #   
+            # }
+            # else{ 
+            #   Sigma.i <- est.list[[i]]$V.batch
+            #   diag(Sigma.i) <-  diag(Sigma.i)*100
+            #   par.sample <- mvrnorm(n = length(sub.batchs), mu= est.list[[i]]$Mu.batch,
+            #                         Sigma = Sigma.i)
+            #   par.sample[, "sig.hat"] <- exp(par.sample[, "sig.hat"])-0.001
+            #   #par.sample <- apply(par.sample, 2, sort)
+            #   #mu.hat  <- mean(sapply(est.list[[i]]$batch.est, function(x) x$parm.list$mu.hat))
+            #   #sig.hat <- mean(sapply(est.list[[i]]$batch.est, function(x) x$parm.list$sig.hat))
+            #   #par.sample <- cbind(par.sample, mu.hat, sig.hat)
+            #   
+            # }
+             
+            parm.seed <- setSimContol$seed.batch.pars[i]
+            par.sample <- as.matrix(do.call("rbind.fill2", lapply(est.list[[i]]$batch.est, function(bt){
+              v.mat     <- bt$parm.list$v
+              betas.vec <- bt$parm.list$betas
+              set.seed(parm.seed)
+              data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= betas.vec, Sigma = v.mat), 
+                mu.hat=bt$parm.list$mu.hat, sig.hat=bt$parm.list$sig.hat))))
+            }))) 
           }
           else if(length(n.batch)==1){
             par.sample <- t(as.matrix(est.list[[i]]$Mu.batch))
+            #mu.hat  <- est.list[[i]]$batch.est$parm.list$mu.hat
+            #sig.hat <- est.list[[i]]$batch.est$parm.list$sig.hat
+            #par.sample <- cbind(par.sample, mu.hat, sig.hat)
           } 
         }
         else{ 
           if(length(n.batch)>1){
-            #scl <- ifelse(length(n.batch)<20, log10(log2(length(n.batch)))+0.1, 1)
-            scl <- 1
+            parm.seed <- setSimContol$seed.batch.pars[i]
             par.sample <- lapply(sort(unique(group)), function(g){
-              mvrnorm(n = length(sub.batchs), mu= est.list[[i]]$Mu.batch[[g]],
-                      Sigma = scl*est.list[[i]]$V.batch[[g]]) 
+              # par.sample.g <- mvrnorm(n = length(sub.batchs), mu= est.list[[i]]$Mu.batch[[g]],
+              #         Sigma = scl*est.list[[i]]$V.batch[[g]]) 
+              # 
+              #mu.hat.g  <- mean(sapply(est.list[[i]]$batch.est, function(x) x$parm.list$mu.hat[[g]]))
+              #sig.hat.g <- mean(sapply(est.list[[i]]$batch.est, function(x) x$parm.list$sig.hat[[g]]))
+              #par.sample.g <- cbind(par.sample.g, mu.hat.g, sig.hat.g)
+              
+              par.sample.g <- as.matrix(do.call("rbind.fill2", 
+                            lapply(est.list[[i]]$batch.est[[g]], function(bt){
+                              set.seed(parm.seed)
+                              data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= bt$parm.list$betas, 
+                                                               Sigma = bt$parm.list$v), 
+                                                       mu.hat=bt$parm.list$mu.hat,
+                                                       sig.hat=bt$parm.list$sig.hat)))) 
+              })))
+              
+              par.sample.g 
             })
             #names(par.sample) <- paste0("grp_", sort(unique(group)))
           }
           else if(length(n.batch)==1){
             par.sample <- lapply(sort(unique(group)), function(g){
-              t(as.matrix(est.list[[i]]$Mu.batch[[g]]))
+              par.sample.g <-t(as.matrix(est.list[[i]]$Mu.batch[[g]]))
+              #mu.hat.g  <- est.list[[i]]$batch.est$parm.list$mu.hat[[g]]
+              #sig.hat.g <- est.list[[i]]$batch.est$parm.list$sig.hat[[g]]
+              #par.sample.g <- cbind(par.sample.g, mu.hat.g, sig.hat.g)
+              
+              par.sample.g 
             })
             #names(par.sample) <- paste0("grp_", sort(unique(group)))
           } 
@@ -439,9 +497,12 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
         # estimate carrier density (g0)
         if(DE.ind[i]==0){
           g0 <- lapply(1:nrow(par.sample), function(bb){
-            b.data <- est.list[[i]]$batch.est[[bb]]
-            gg0 <- (pnorm(b.data$yy$uls, par.sample[bb, "mu.hat"][[1]], par.sample[bb, "sig.hat"][[1]]) -
-                      pnorm(b.data$yy$lls, par.sample[bb, "mu.hat"][[1]], par.sample[bb, "sig.hat"][[1]]))
+            b.data <- est.list[[i]]$batch.est[[bb]] 
+            gg0 <- (pnorm(b.data$yy$uls, as.matrix(par.sample)[bb, "mu.hat"],
+                          as.matrix(par.sample)[bb, "sig.hat"]) -
+                      pnorm(b.data$yy$lls,as.matrix(par.sample)[bb, "mu.hat"], 
+                            as.matrix(par.sample)[bb, "sig.hat"]))
+            
             gg0[is.nan(gg0)] <- 0
             gg0
           })
@@ -464,7 +525,7 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
         
         # estimate the density g1(y)
         if(DE.ind[i]==0){
-          g1 <- lapply(1:nrow(par.sample), function(bb){
+          g1 <- lapply(1:nrow(par.sample), function(bb){ 
             b.data <- est.list[[i]]$batch.est[[bb]]
             gg0 <- g0[[bb]]*sum(b.data$yy$Ny) +1
             
@@ -473,7 +534,7 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             for(i in 1:ncol(s.mat)){
               s.mat[, i] <- s^(i-1)
             }
-            gg1 <- exp(s.mat %*% as.matrix(par.sample[bb, 1:ncol(s.mat)]))*gg0
+            gg1 <- exp(s.mat %*% par.sample[bb, 1:ncol(s.mat)])*gg0
             gg1 <- data.frame(gy=gg1, s=s, lls=b.data$yy$lls, uls=b.data$yy$uls)
             gg1$gy[is.infinite(gg1$gy)] <- max(gg1$gy[!is.infinite(gg1$gy)]) 
             gg1$Gy <- cumsum(gg1$gy)/sum(gg1$gy)
@@ -509,9 +570,11 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
         }
         
         # simulate data 
+        sim.seed <- setSimContol$seed.sample.Y[i]
         if(DE.ind[i]==0){ 
           Y.star <- lapply(1:nrow(par.sample), function(bb){
             Y0 <- cpm.data[sel.genes[i], (batch==bb & group==null.group)] 
+            set.seed(sim.seed)
             u <- runif(n.batch[[bb]])
             gg1 <- g1[[bb]]
             y.star.b <- sapply(u, function(uu){
@@ -519,6 +582,7 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
               difs<- diff(gg1$s)
               difs<- difs[!(is.na(difs) | is.infinite(difs) | is.nan(difs))]
               eps <- mean(difs, na.rm=TRUE) #gg1$s[2]-gg1$s[1] 
+              set.seed(sim.seed+1)
               yy  <- runif(1, yy-eps/2, yy+eps/2)
               yy
             })
@@ -532,7 +596,10 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
                                   newdata=data.frame(x1=mean(Y0), x2=lLL_b)), 
                               silent = TRUE)
               if(class(pred.pz) != "try-error"){
-                drop.mlt <- sapply(pred.pz, function(p) rbinom(1, 1, p))
+                drop.mlt <- sapply(pred.pz, function(p){
+                  set.seed(sim.seed+2)
+                  rbinom(1, 1, p)
+                  })
               }
               else{
                 drop.mlt <- 0
@@ -550,6 +617,7 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             g1.g <- g1[[g]] #g1[[paste0("grp_", g)]]
             y.star.g <- lapply(1:nrow(par.sample.g), function(bb){
               Y0.g <- cpm.data[sel.genes[i], batch==bb & group==g]
+              set.seed(sim.seed+bb)
               u <- runif(config.mat[bb, g])#runif(n.batch[[bb]]/length(n.group))
               gg1 <- g1.g[[bb]]
               y.star.b <- sapply(u, function(uu){
@@ -557,6 +625,7 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
                 difs<- diff(gg1$s)
                 difs<- difs[!(is.na(difs) | is.infinite(difs) | is.nan(difs))]
                 eps <- mean(difs, na.rm=TRUE) #gg1$s[2]-gg1$s[1] 
+                set.seed(sim.seed+bb+1)
                 yy  <- runif(1, yy-eps/2, yy+eps/2)
                 yy
               })
@@ -570,7 +639,10 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
                                     newdata=data.frame(x1=mean(Y0.g), x2=lLL.b.g)), 
                                 silent = TRUE)
                 if(class(pred.pz) != "try-error"){
-                  drop.mlt <- sapply(pred.pz, function(p) rbinom(1, 1, p))
+                  drop.mlt <- sapply(pred.pz, function(p){
+                    set.seed(sim.seed+bb+2)
+                    rbinom(1, 1, p)
+                    })
                 }
                 else{
                   drop.mlt <- 0
@@ -590,15 +662,15 @@ simulateData <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
         Y.star
       }
     }) 
+    
     sim.count <- do.call(rbind, sim.list)
     sim.count[is.na(sim.count)] <- 0
     rownames(sim.count) <- paste0("Gene_", 1:nrow(sim.count))
     colnames(sim.count) <- paste0("Sample_", 1:ncol(sim.count))
-    
+     
     col.data <- data.frame(Batch=rep(rep(1:length(n.batch), times=length(n.group)), config.mat),
                            Group=rep(rep(1:length(n.group), each=length(n.batch)), config.mat), 
-                           sim.Lib.Size=do.call("c", do.call("c", LL)),
-                           LS = colSums(sim.count, na.rm=TRUE), 
+                           sim.Lib.Size=do.call("c", do.call("c", LL)),  
                            row.names = colnames(sim.count))
     row.data <- data.frame(DE.ind=DE.ind, 
                            source.ID=sel.genes,

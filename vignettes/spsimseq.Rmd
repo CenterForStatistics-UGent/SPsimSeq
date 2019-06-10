@@ -13,7 +13,9 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
-)
+) 
+
+library(SPsimSeq)
 ```
 # Introduction to SPsimSeq
 
@@ -24,9 +26,10 @@ SPsimSeq is designed to maximally retain the characteristics of a real RNA seque
 # Implementation of SPsimSeq
 ## Example 1: simulating bulk RNA-seq
 
-```{r, eval=FALSE}
+```{r, eval=TRUE, warning=FALSE}
  # load the Zhang data (availabl with the package)
- data("zhang.data") 
+
+data("zhang.data") 
  
  # filter genes with sufficient expression (important step to avoid bugs) 
  zhang.counts <- zhang.data$counts[rowSums(zhang.data$counts > 0)>=10, ]  
@@ -42,10 +45,10 @@ SPsimSeq is designed to maximally retain the characteristics of a real RNA seque
  # - we do not model the zeroes separately, they are the part of density 
  #    estimation (model.zero.prob = FALSE)
  
- sim.data.bulk <- simulateData(n.sim = 1, s.data = zhang.counts, batch = NULL,
+ sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts, batch = NULL,
                                group = MYCN.status, n.genes = 2000, batch.config = 1,
                                group.config = c(0.5, 0.5), tot.samples = 180, pDE = 0.1,
-                               model.zero.prob = FALSE, result.format = "list")
+                               model.zero.prob = FALSE, result.format = "list", seed = 2581988)
                                
  sim.data.bulk1 <- sim.data.bulk[[1]]                              
  head(sim.data.bulk1$counts[, 1:5])  # count data
@@ -55,7 +58,7 @@ SPsimSeq is designed to maximally retain the characteristics of a real RNA seque
 ```
 
 ## Example 2: simulating single cell RNA-seq from a single batch (read-counts)
-```{r, eval=FALSE}
+```{r, eval=TRUE, warning=FALSE}
 # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
  # - 2000 genes (n.genes = 2000) 
  # - 100 cells (tot.samples = 100) 
@@ -69,17 +72,17 @@ SPsimSeq is designed to maximally retain the characteristics of a real RNA seque
  library(SingleCellExperiment)
  
  # load the NGP nutlin data (availabl with the package)
- data("scNGP.data")
+data("scNGP.data")
  
  # filter genes with sufficient expression (important step to avoid bugs) 
  scNGP.data2 <- scNGP.data[rowSums(counts(scNGP.data) > 0)>=10, ]  
  treatment <- ifelse(scNGP.data2$characteristics..treatment=="nutlin",2,1) 
  
  # simulate data (we simulate here only a single data, n.sim = 1)
- sim.data.sc <- simulateData(n.sim = 1, s.data = scNGP.data2, batch = NULL,
+ sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
                              group = treatment, n.genes = 2000, batch.config = 1,
                              group.config = c(0.5, 0.5), tot.samples = 100, pDE = 0.1,
-                             model.zero.prob = TRUE, result.format = "SCE")
+                             model.zero.prob = TRUE, result.format = "SCE", seed = 2581988)
                              
  sim.data.sc1 <- sim.data.sc[[1]]
  class(sim.data.sc1)
@@ -89,7 +92,7 @@ SPsimSeq is designed to maximally retain the characteristics of a real RNA seque
 ```
 
 ## Example 3: simulating single cell RNA-seq from a single batch (UMI counts)
-```{r, eval=FALSE}
+```{r, eval=TRUE, warning=FALSE}
  # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
  # - 2000 genes (n.genes = 2000) 
  # - 200 cells (tot.samples = 200) 
@@ -110,11 +113,11 @@ SPsimSeq is designed to maximally retain the characteristics of a real RNA seque
  PBMCdat2 <- PBMC.10x.data[rowSums(counts(PBMC.10x.data) > 0)>=20, ] 
  
  # simulate data (we simulate here only a single data, n.sim = 1)
- sim.data.scUMI <- simulateData(n.sim = 1, s.data = PBMCdat2, batch = NULL,
+ sim.data.scUMI <- SPsimSeq(n.sim = 1, s.data = PBMCdat2, batch = NULL,
                                 group = NULL, n.genes = 2000, batch.config = 1,
                                 group.config = 1, tot.samples = 200, pDE = 0,
                                 model.zero.prob = TRUE, result.format = "SCE", 
-                                subset.data=TRUE, n.samples=400)
+                                subset.data=TRUE, n.samples=400, seed = 2581988)
                              
  sim.data.scUMI1 <- sim.data.scUMI[[1]]
  class(sim.data.scUMI1)
@@ -134,9 +137,9 @@ library(splatter)
 library(scater)
 
 params <- newSplatParams()
-params <- setParams(params, update = list(batch.facLoc=0.5, batch.facScale=0.3, seed=263))
+params <- setParams(params, update = list(batch.facLoc=0.2, batch.facScale=0.3, seed=263))
 sim.batches <- splatSimulate(params, 
-                             batchCells = c(50, 50, 50, 50, 50, 50, 50), 
+                             batchCells = c(200, 200, 200, 200, 200), 
                              verbose = FALSE)
 
 sim.batches 
@@ -153,16 +156,16 @@ sim.batches2 <- sim.batches[keep,]
  # - 2000 genes (n.genes = 2000) 
  # - 350 cells (tot.samples = 200) 
  # - the cells are from a single experimental group (group.config = 1)
- # - cells are from 7 batchs each with equal number of cells (batch.config = rep(1/7, 7))
+ # - cells are from 5 batchs each with equal number of cells (batch.config = rep(1/5, 5))
  # - we add 0% DE genes (pDE = 0) 
  # - we model the zeroes separately (model.zero.prob = TRUE) 
  # - the ouput will be in SingleCellExperiment class object (result.format = "SCE") 
  
 
  batch.factor <- as.numeric(as.factor(colData(sim.batches2)$Batch))
- SPsimuBatch <- simulateData(s.data = sim.batches2, batch = batch.factor,
-                             n.genes = 2000, batch.config = rep(1/7, 7), group.config=1,
-                             tot.samples=350, model.zero.prob = TRUE)
+ SPsimuBatch <- SPsimSeq(s.data = sim.batches2, batch = batch.factor,
+                             n.genes = 2000, batch.config = rep(1/5, 5), group.config=1,
+                             tot.samples=500, model.zero.prob = TRUE, seed = 2581988)
  SPsimuBatch[[1]] 
  
  
@@ -170,7 +173,7 @@ sim.batches2 <- sim.batches[keep,]
  sim.batches_norm <- normalize(sim.batches2)
  p1 <- plotPCA(sim.batches_norm, colour_by = "Batch")
 
- colData(SPsimuBatch[[1]])$Batch <- as.factor(colData(SPsimuBatch[[1]])$Batch) 
+ colData(SPsimuBatch[[1]])$Batch <- as.factor(paste0("Batch", colData(SPsimuBatch[[1]])$Batch)) 
  SPsimuBatch_norm <- normalize(SPsimuBatch[[1]])
  p2 <- plotPCA(SPsimuBatch_norm, colour_by = "Batch")
  
