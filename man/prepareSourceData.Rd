@@ -5,7 +5,7 @@
 \title{Prepare source data for simulation.}
 \usage{
 prepareSourceData(s.data, batch = NULL, group = NULL,
-  cand.genes = NULL, exprmt.design, ...)
+  cand.genes = NULL, exprmt.design, simCtr, ...)
 }
 \arguments{
 \item{s.data}{a source data (a SingleCellExperiment object)}
@@ -18,6 +18,8 @@ prepareSourceData(s.data, batch = NULL, group = NULL,
 
 \item{exprmt.design}{a list contating simulation design configuration}
 
+\item{simCtr}{(integer) seed number}
+
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
@@ -27,5 +29,5 @@ a list object
 Prepare source data for simulation.
 }
 \examples{
- # example
+ # example 
 }

@@ -9,9 +9,9 @@
 #' @param  ... further arguments passed to or from other methods.
 #' 
 #' @return a list object contating the number of groups and batches to be simukated, 
-#' and the experiment configurartion
-#' @export
+#' and the experiment configurartion 
 #' @examples 
+#' \donttest{
 #' #---- a design with a total of 10 samples/cells from 1 batch and 1 group
 #' expriment.config(batch.config=1, group.config=1, tot.samples=10)
 #' 
@@ -27,7 +27,7 @@
 #' # and group 2 has 15, and  three batchs with batch 1,2, and 3 have 5, 10, and 15 samples/cells, 
 #' # respectively.
 #' expriment.config(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
-#' 
+#' }
 expriment.config <- function(batch.config=c(0.25, 0.35, 0.4), group.config=c(0.6, 0.4),
                              tot.samples=150, ...){
   if(sum(batch.config)!=1) stop("Batch configuration fractions do not sum to 1.")

@@ -5,7 +5,7 @@
 \title{predict zero probability using logistic rgression}
 \usage{
 zeroProbModel(count.data, n.mean.class = 30, subset.data = FALSE,
-  n.samples = 400, ...)
+  n.samples = 400, simCtr, ...)
 }
 \arguments{
 \item{count.data}{a count data matrix with rows represent genes and columns represent cells/samples}
@@ -16,6 +16,8 @@ zeroProbModel(count.data, n.mean.class = 30, subset.data = FALSE,
 for space and computation time saving}
 
 \item{n.samples}{an integer indicating the number of samples/cells to sample (if subset.data=TRUE)}
+
+\item{simCtr}{(integer) seed number. Used if subset.data=TRUE}
 
 \item{...}{further arguments passed to or from other methods.}
 }

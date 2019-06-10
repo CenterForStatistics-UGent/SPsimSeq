@@ -2,7 +2,7 @@
 #'
 #' Contains 2700 single cells sequenced on an Illumina NextSeq 500 using UMIs. The data is
 #' generated using the 10x Genomics Chromium V2 protocol.
-#'
+#' 
 #' @format A SingleCellExperiment object
 #' \describe{
 #'   \item{SingleCellExpeiment}{contains the count data, and gene and cell level 

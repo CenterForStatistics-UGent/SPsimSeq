@@ -13,16 +13,12 @@ Encoding: UTF-8
 LazyData: true
 Imports: 
          stats,  
-         SingleCellExperiment, 
          MASS,
-         fitdistrplus,
-         Hmisc,
-         plyr,
-         utils,
-         graphics, 
-         tmvtnorm,
-         matrixcalc,
-         edgeR
+         SingleCellExperiment,  
+         fitdistrplus, 
+         graphics,  
+         edgeR,
+         Hmisc
 RoxygenNote: 6.1.1
 Suggests: 
     testthat,
