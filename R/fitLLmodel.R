@@ -6,7 +6,7 @@
 #' @return a list object contating the fitted log linear model
 #' @examples 
 #' # 
-#' @import stats
+#' @importFrom stats glm pnorm coef vcov
 
 fitLLmodel <- function(yy, ...){
   Ny=yy$Ny

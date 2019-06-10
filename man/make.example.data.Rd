@@ -30,6 +30,5 @@ a SingleCellExperiment object.
 Make an example RNA-seq data.
 }
 \examples{
-make.example.data()
- 
+# make.example.data
 }

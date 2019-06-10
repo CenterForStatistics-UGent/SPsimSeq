@@ -39,6 +39,7 @@ a matrix of CPM
 Calculates counts per millions of reads
 }
 \examples{
+\donttest{
 dat <- make.example.data(n.gene = 10,n.sample = 5, n.group = 1, n.batch = 1)
 cpm.dat <- calCPM(dat)
 cpm.dat <- calCPM(dat, norm.lib.size = FALSE)
@@ -48,5 +49,6 @@ cpm.dat <- calCPM(dat, logt = TRUE, log_base = 10)
 
 cpm.dat <- calCPM(dat, logt = TRUE)
 cpm.dat <- calCPM(dat, logt = TRUE, prior.count = 0.25)
+}
 
 }

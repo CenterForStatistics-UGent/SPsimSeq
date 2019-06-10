@@ -27,6 +27,7 @@ and the experiment configurartion
 Configure experiment
 }
 \examples{
+\donttest{
 #---- a design with a total of 10 samples/cells from 1 batch and 1 group
 expriment.config(batch.config=1, group.config=1, tot.samples=10)
 
@@ -42,5 +43,5 @@ expriment.config(batch.config=1, group.config=c(0.5, 0.5), tot.samples=20)
 # and group 2 has 15, and  three batchs with batch 1,2, and 3 have 5, 10, and 15 samples/cells, 
 # respectively.
 expriment.config(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
-
+}
 }

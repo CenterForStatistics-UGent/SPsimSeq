@@ -19,6 +19,7 @@
 #' @return a matrix of CPM
 #' @export
 #' @examples
+#' \donttest{
 #' dat <- make.example.data(n.gene = 10,n.sample = 5, n.group = 1, n.batch = 1)
 #' cpm.dat <- calCPM(dat)
 #' cpm.dat <- calCPM(dat, norm.lib.size = FALSE)
@@ -28,8 +29,10 @@
 #' 
 #' cpm.dat <- calCPM(dat, logt = TRUE)
 #' cpm.dat <- calCPM(dat, logt = TRUE, prior.count = 0.25)
+#' }
 #' 
 #' @importFrom edgeR calcNormFactors
+#' @importFrom SingleCellExperiment counts SingleCellExperiment
 
 calCPM <- function(X, const.mult=1e6, norm.lib.size=TRUE, norm.factors=NULL, logt=FALSE,
                    log_base=2, prior.count=1, ...){
