@@ -30,5 +30,5 @@ a SingleCellExperiment object.
 Make an example RNA-seq data.
 }
 \examples{
-# make.example.data
+make.example.data(n.gene=20, n.sample=6, n.group=2, n.batch=1)
 }

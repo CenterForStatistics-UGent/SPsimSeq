@@ -1,10 +1,11 @@
-#' SPsim package
+#' SPsimSeq package
 #'
 #'
-#' It uses specially designed exponential family for density estimation
-#' from which RNA sequencing data will be simulated. The first step of is
-#' estimting the actual density of a real sequencing data using log-linear
-#' model and new data set is sampled from the estimated density.
+#' Using a specially designed exponential family for density estimation 
+#' it constructs the distribution of gene expression from a given real RNA 
+#' sequencing data (single and bulk). Subsequently, it simulates a new 
+#' dataset from the estimated density. It allows simulation of multiple 
+#' groups and batches with any required sample size and library size.
 #'
 #'
 #' @docType package
