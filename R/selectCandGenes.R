@@ -1,48 +1,49 @@
-#' select candidate genes
+#' Select candidate genes
 #'
-#' More detailed description
-#'
-#' @param s.data a source data (a SingleCellExperiment object)
+#' This function can be used independently to select candidate genes from a given real RNA-srq data (bulk/single)
+#' for the SPsimSeq simulation. It chooses genes with cetrail chracteristics, such as log-fold-change 
+#' above a certain thereshold. 
+#' 
+#' @param cpm.data CPM matrix
 #' @param X a vector of indicators for group memebership of cells/samples 
 #' @param lfc.thrld a numeric value for the minimum fold change for DE genes
-#' @param t.thrld a numeric value for the minimum t statistic for DE genes
-#' ('mean.diff'= difference in the mean log CPM, 'rank.sum'= a U-statistic for the log CPM)
+#' @param t.thrld a numeric value for the minimum t statistic for DE genes 
 #' @param llStat.thrld a numeric value for the minimum squared test statistics from a log-linear model
 #' containing X as a covariate to select DE genes
 #' @param carrier.dist a character indicating the type of
-#' carrier density (carrier.dist="normal" or carrier.dist="kernel")
-#' @param max.frac.zero a numeric value between 0 and 1 indicating the maximum fraction of
-#'  zero counts that a DE gene should have
-#' @param max.frac.zeror.diff a numeric value between 0 and 1 indicating the maximum  absolute
-#' difference in the fraction of zero counts between the groups for DE genes
+#' carrier density (carrier.dist="normal" or carrier.dist="kernel") 
+#' @param max.frac.zeror.diff a numeric value >=0 indicating the maximum  absolute
+#' difference in the fraction of zero counts between the groups for DE genes. Default in Inf
+#' @param const a small constant (>0) added to the CPM before log transformation, to avoid  log(0).
+#' default is 1e-5, see in 
 #' @param  ... further arguments passed to or from other methods.
 #'
-#' @return a list object contating a set of candidate DE and null genes and additional results
+#' @return a list object contating a set of candidate null and non-null genes and additional results
 #' @examples
 #'  # example
 #' @export  
 #' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
 #' @importFrom SingleCellExperiment counts
-chooseCandGenes <- function(s.data, X,  lfc.thrld=0,  
+chooseCandGenes <- function(cpm.data, X,  lfc.thrld=1,  
                              llStat.thrld=10, t.thrld=2.5, carrier.dist="normal",
-                             max.frac.zero=1, max.frac.zeror.diff=Inf, ...){
+                             max.frac.zeror.diff=Inf, const=1e-5,...){
   n.cells   <- table(X)
   sim.group <- length(n.cells)
   
   # calculate log CPM
-  if(class(s.data)=="SingleCellExperiment"){
-    cpm.data <- log(calCPM(counts(s.data))+1) 
-  }
-  else if(class(s.data) %in% c("data.frame", "matrix")){
-    cpm.data <- log(calCPM(s.data)+1) 
-  } 
+  # if(class(s.data)=="SingleCellExperiment"){
+  #   cpm.data <- log(calCPM(counts(s.data))+1) 
+  # }
+  # else if(class(s.data) %in% c("data.frame", "matrix")){
+  #   cpm.data <- log(calCPM(s.data)+1) 
+  # } 
 
   # calculate fold-changes
   m.diff  <- as.data.frame(t(apply(cpm.data, 1, function(y){ 
     l.mod  <- lm(y~X)
     t.stat <- max(abs(as.numeric(summary(l.mod)[["coefficients"]][-1, "t value"])))
     fc     <- max(abs(as.numeric(coef(l.mod)[-1])))
-    frac.z.diff <- max(abs(combn2(tapply(y, X, function(yy) mean(yy==0)), 2, FUN=diff)))
+    frac.z.diff <- max(abs(combn2(tapply(y, X, function(yy) mean(yy==log(const))), 2, FUN=diff)))
     c(t.stat=t.stat, fc=fc, frac.z.diff=frac.z.diff)
   })))
   
@@ -54,44 +55,6 @@ chooseCandGenes <- function(s.data, X,  lfc.thrld=0,
     Y <- lapply(names(n.cells), function(x){
       as.numeric(cpm.data[j, X==x])
     })
-
-    # s <- lapply(1:length(Y), function(l){
-    #   if(!is.null(w)){
-    #     ww=w
-    #     while(round(ww*length(Y[[l]]))<3 & ww<1){
-    #       ww <- ww+0.05
-    #     }
-    #     h <- hist(Y[[l]], nclass = round(ww*length(Y[[l]])), plot = FALSE, right = TRUE)
-    #   }
-    #   else{
-    #     h <- hist(Y[[l]], plot = FALSE, right = TRUE)
-    #   }
-    # 
-    #   h$breaks
-    # })
-    # 
-    # lls <- lapply(1:length(Y), function(l){
-    #   t=s[[l]]
-    #   t[1:(length(t)-1)]
-    # })
-    # uls <- lapply(1:length(Y), function(l){
-    #   t=s[[l]]
-    #   t[2:length(t)]
-    # })
-    # ss <- lapply(1:length(Y), function(l){
-    #   t1 <- lls[[l]]
-    #   t2 <- uls[[l]]
-    #   (t1+t2)/2
-    # })
-    # Ny <- lapply(1:length(Y), function(l){
-    #   t  <- ss[[l]]
-    #   t1 <- lls[[l]]
-    #   t2 <- uls[[l]]
-    #   sapply(1:length(t), function(x){
-    #     if(x==1) sum(Y[[l]]<=t2[x])
-    #     else sum(Y[[l]]>t1[x] & Y[[l]]<=t2[x])
-    #   })
-    # }) 
     
     S.list <- lapply(Y, obtCount)
     ss     <- lapply(S.list, function(x) x$S)
@@ -111,31 +74,14 @@ chooseCandGenes <- function(s.data, X,  lfc.thrld=0,
       })
     }
     else if(carrier.dist=="normal"){
-      gg0 <- lapply(1:length(Y), function(l){
-        # est.parms <- try(fitdist(Y[[l]], distr = "norm", method = "mle"), silent = TRUE)
-        # if(class(est.parms)=="try-error"){
-        #   est.parms <- fitdist(Y[[l]], distr = "norm", method = "mme")
-        # }
-        # est.parms <- est.parms$estimate
-        # mu.hat <- est.parms[["mean"]]
-        # sig.hat<- est.parms[["sd"]]
+      gg0 <- lapply(1:length(Y), function(l){ 
         mu.hat <- mean(Y[[l]])
         sig.hat<- sd(Y[[l]]) 
         (pnorm(uls[[l]], mu.hat, sig.hat)-pnorm(lls[[l]], mu.hat, sig.hat))*N[[l]]
       })
     }
-
-    # plot(ss[[1]], Ny[[1]], type="l") ; lines(ss[[2]], Ny[[2]], type="l", col=2)
-    # lines(ss[[1]], gg0[[1]], type="l", lty=3, lwd=3) ; lines(ss[[2]], gg0[[2]], type="l", col=2, lty=3, lwd=3)
-    #
-
+     
     Xy <- lapply(1:length(Y), function(l) rep(l-1, length(ss[[l]])))
-
-    # ss  <- lapply(1:length(Y),  function(l) ss[[l]][Ny[[l]]>0] )
-    # gg0 <- lapply(1:length(Y), function(l) gg0[[l]][Ny[[l]]>0] )
-    # Xy  <- lapply(1:length(Y),  function(l) Xy[[l]][Ny[[l]]>0] )
-    # Ny  <- lapply(1:length(Y),  function(l) Ny[[l]][Ny[[l]]>0] )
-
 
     ofs <- 1
 
@@ -145,30 +91,43 @@ chooseCandGenes <- function(s.data, X,  lfc.thrld=0,
     Xy <- do.call('c', Xy)
 
 
-    l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy),
-                       family = "poisson", offset = log(gg0+ofs)),
-                   silent = TRUE)
-    if(all(class(l.mod.x) != "try-error")){
-      if(l.mod.x$rank != ncol(l.mod.x$R)){
-        l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
-                           family = "poisson", offset = log(gg0+ofs)),
-                       silent = TRUE)
-        if(all(class(l.mod.x) != "try-error")){
-          if(l.mod.x$rank != ncol(l.mod.x$R)){
-            l.mod.x <- try(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
-                               family = "poisson", offset = log(gg0+ofs)),
-                           silent = TRUE)
-          } 
-        }
+    # l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy),
+    #                    family = "poisson", offset = log(gg0+ofs)),
+    #                silent = TRUE)
+    # if(all(class(l.mod.x) != "try-error")){
+    #   if(l.mod.x$rank != ncol(l.mod.x$R)){
+    #     l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
+    #                        family = "poisson", offset = log(gg0+ofs)),
+    #                    silent = TRUE)
+    #     if(all(class(l.mod.x) != "try-error")){
+    #       if(l.mod.x$rank != ncol(l.mod.x$R)){
+    #         l.mod.x <- try(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
+    #                            family = "poisson", offset = log(gg0+ofs)),
+    #                        silent = TRUE)
+    #       } 
+    #     }
+    #   } 
+    # }
+    
+    l.mod.x <- tryCatch(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy), 
+                                   family = "poisson", offset = log(gg0+ofs)),
+                    error=function(e){}, warning=function(w){})
+    if(is.null(l.mod.x)){
+      l.mod.x <- tryCatch(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
+                                     family = "poisson", offset = log(gg0+ofs)),
+                      error=function(e){}, warning=function(w){})
+      if(is.null(l.mod.x)){
+        l.mod.x <- tryCatch(suppressWarnings(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
+                                                       family = "poisson", 
+                                                       offset = log(gg0+ofs))),
+                        error=function(e){})
+        if(is.null(l.mod.x)){
+          l.mod.x <- NULL
+        } 
       } 
-    }
-
-    # pred1 <- predict(l.mod.x, type="response", newdata = data.frame(ss=ss[Xy==0], Xy=0, gg0=gg0[Xy==0]))
-    # pred2 <- predict(l.mod.x, type="response", newdata = data.frame(ss=ss[Xy==1], Xy=1, gg0=gg0[Xy==1]))
-    #
-    # lines(ss[Xy==0], pred1, type="l", lty=1, lwd=3) ; lines(ss[Xy==1], pred2, type="l", col=2, lty=1, lwd=3)
-    #
-    if(all(class(l.mod.x) != "try-error" )){
+    } 
+ 
+    if(!is.null(l.mod.x)){
       #coef.X <- coef(l.mod.x)[grep("Xy", names(coef(l.mod.x)))]
       #sum.square.coef.X <- sum(coef.X^2, na.rm = TRUE)
       if(l.mod.x$rank == ncol(l.mod.x$R)){
@@ -177,13 +136,9 @@ chooseCandGenes <- function(s.data, X,  lfc.thrld=0,
         sum.square.Z.X <- sum(Z.X^2, na.rm = TRUE)
         sum.square.Z.X
       }
-      else{
-        0
-      }
-
+      else{0} 
     }
-    else {0}
-
+    else {0} 
   })
 
   compr.stat2  <- compr.stat[nonnull.genes0, ]

@@ -22,8 +22,10 @@
 #' @param result.format a character value for the type of format for the output. Choice can  be
 #' 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count,
 #' column information abd row information.
+#' @param const a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0).
+#' default is 1e-5
 #' @param verbose a logical value, if TRUE it displays a message about the satatus of the simulation
-#' @param  seed an integer  between 1 and 1e10. It will be used for set.seed() function
+#' @param  seed an integer  between 1 and 1e10. It will be used for #set.seed() function
 #' @param  ... further arguments passed to or from other methods.
 #' 
 #' @return a list of SingleCellExperiment object each contatining simulated counts (not normalized), 
@@ -38,24 +40,24 @@
 #' approach developed by Efron et al (1996). Arbitrarily large datasets, with realistically varying 
 #' library sizes, can be sampled from these estimated distributions.
 #' 
-#' For single cell RNA-seq data, t, there is an additional step to explicitly account for the high 
+#' For simulation of single cell RNA-seq data, it involves an additional step to explicitly account for the high 
 #' abundance of zero counts. This step models the probability of zero counts as a function the mean 
 #' expression of the gene and the library size of the cell (both in log scale) to add excess zeros. 
-#' This can be achieved by using \emph{model.zero.prob=TRUE}. Note that,
-#' for extremly large size data, it is recomended to use a random sample of cells (up to 400) to
+#' This can be done by using \emph{model.zero.prob=TRUE}. Note that,
+#' for extremly large size data, it is recomended to use a random sample of cells to
 #' reduce computation time. To enable this, add the argument \emph{subset.data=TRUE} and you 
-#' can specify the number of cells to be used using \emph{n.samples} argument. For example \emph{n.samples=300}.
+#' can specify the number of cells to be used using \emph{n.samples} argument. 
+#' For example \emph{n.samples=400}.
 #' 
 #' Given known groups of samples/cells in the source data, DGE is simulated by independently 
 #' sampling data from distributions constructed in each group. In particular, this procedure is 
 #' applied on a set of genes with fold-change in the source data more than a given threshold (\emph{lfc.thrld}). 
-#' This enables to simulate DGE with difference in both the location and shape of the distribution. 
 #' Moreover, when  the source dataset involves samples/cells processed in different batches, our 
 #' simulation procedure incorporates this batch effect in the simulated data, if required. 
 #' Different experimental designs can be simulated using the group and batch configuration arguments to
-#' simulate biologica/experimental conditions and batchs (instrument or subjects), respectively. In addition,
-#' batch simulation is recomended if the number of batches in the source data is at least 5. Also, it is required 
-#' to filter the source data so that gene with suffient expression will be used to estimate the density.
+#' simulate biologica/experimental conditions and batchs (instrument or subjects), respectively. 
+#' Also, it is important to filter the source data so that gene with suffient expression will be used to 
+#' estimate the density.
 #' 
 #' 
 #' @references
@@ -171,11 +173,17 @@
 #' 
 #' @export    
 #' @importFrom MASS mvrnorm
-#' @importFrom stats pnorm runif rbinom predict approx quantile
+#' @importFrom stats pnorm runif rbinom predict approx quantile glm rlnorm rnbinom 
 #' @importFrom SingleCellExperiment counts colData rowData SingleCellExperiment
+#' @importFrom Hmisc cut2
+#' @importFrom fitdistrplus fitdist
+#' @importFrom stats glm pnorm coef vcov
+#' @importFrom edgeR calcNormFactors
+#' @importFrom SingleCellExperiment counts SingleCellExperiment colData rowData
+#' @importFrom graphics hist
 SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,  
                        batch.config= 1,  group.config=c(0.5, 0.5), 
-                       tot.samples=150, pDE=0.2, model.zero.prob=FALSE, 
+                       tot.samples=150, pDE=0.2, model.zero.prob=FALSE, const=1e-5,
                        result.format="SCE", verbose=TRUE,  seed=2581988, ...)
 {
   # experiment configurartion
@@ -188,14 +196,14 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
   config.mat <- exprmt.design$exprmt.config 
   
   # sim control
-  setSimContol <- setSimContol(seed, n.sim = n.sim, n.genes = n.genes)
-  
+  #setSimContol <- setSimContol(seed, n.sim = n.sim, n.genes = n.genes)
+  if(!is.null(seed)){set.seed(seed)} 
   
   # prepare source data
   if(verbose) {message("Preparing source data ...")}
   prepare.S.Data <- prepareSourceData(s.data, batch = batch, group = group, 
-                                      exprmt.design=exprmt.design, 
-                                      simCtr=setSimContol$seed.sample.single, ...)
+                                      exprmt.design=exprmt.design, const=const,
+                                      simCtr=NULL, ...)
   LL         <- prepare.S.Data$LL
   cpm.data   <- prepare.S.Data$cpm.data
   sub.batchs <- prepare.S.Data$sub.batchs
@@ -208,12 +216,14 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
     if(verbose) {message("Fitting zero probability model ...")}
     if(class(s.data)=="SingleCellExperiment"){
       fracZero.logit.list <- lapply(unique(sub.batchs), function(b){
-        zeroProbModel(counts(s.data)[, batch==b], simCtr=setSimContol$seed.sample.single, ...)
+        zeroProbModel(cpm.data = cpm.data[, batch==b], L=colSums(counts(s.data)[, batch==b]),
+                      simCtr=NULL, const=const, ...)
       }) 
     }
     else if(class(s.data) %in% c("data.frame", "matrix")){
       fracZero.logit.list <- lapply(unique(sub.batchs), function(b){
-        zeroProbModel(s.data[, batch==b], simCtr=setSimContol$seed.sample.single, ...)
+        zeroProbModel(cpm.data = cpm.data[, batch==b], L=colSums(s.data[, batch==b]), 
+                      simCtr=NULL, const,...)
       })
     }
   }
@@ -230,176 +240,28 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
   sim.data.list <- lapply(1:n.sim, function(h){
     if(verbose) {message(" ...", h, " of ", n.sim)}
     
-    # sample DE and null genes
-    if(pDE>0 & !is.null(group) & length(group.config)>1){
-      if((1-pDE)*n.genes <= length(null.genes0)){
-        set.seed(setSimContol$seed.sample.genes[h])
-        null.genes     <- sample(null.genes0, (1-pDE)*(n.genes), replace = FALSE)
-      }
-      else{
-        message("Note: The number of null genes (not DE) in the source data is ", length(null.genes0), 
-                " and the number of null genes required to be included in the simulated data is ",
-                round((1-pDE)*(n.genes)), ". Therefore, candidiate null genes are sampled with replacement.")
-        set.seed(setSimContol$seed.sample.genes[h])
-        null.genes     <- sample(null.genes0, (1-pDE)*(n.genes), replace = TRUE)
-      }
-      
-      if(pDE*n.genes <= length(nonnull.genes0)){
-        set.seed(setSimContol$seed.sample.genes[h]+1)
-        nonnull.genes  <- sample(nonnull.genes0, pDE*n.genes, replace = FALSE)
-      }
-      else{
-        message("Note: The number of DE genes detected in the source data is ", length(nonnull.genes0), 
-                " and the number of DE genes required to be included in the simulated data is ",
-                round(pDE*n.genes), ". Therefore, candidiate DE genes are sampled with replacement.")
-        set.seed(setSimContol$seed.sample.genes[h]+1)
-        nonnull.genes  <- sample(nonnull.genes0, pDE*n.genes, replace = TRUE)
-      }
-      
-      sel.genes <- c(nonnull.genes, null.genes)
-      DE.ind <- ifelse(sel.genes %in% null.genes, 0, 1)
-      names(DE.ind) <- sel.genes
-    }
-    else{
-      if(n.genes <= length(null.genes0)){
-        set.seed(setSimContol$seed.sample.genes[h])
-        sel.genes     <- sample(null.genes0, n.genes, replace = FALSE)
-      }
-      else{
-        set.seed(setSimContol$seed.sample.genes[h])
-        sel.genes     <- sample(null.genes0, n.genes, replace = TRUE)
-      } 
-      DE.ind <- rep(0, length(sel.genes))
-      names(DE.ind) <- sel.genes
-    } 
-    
-    # if(class(s.data)=="SingleCellExperiment"){
-    #   sub.dat <- s.data[sel.genes, ]
-    #   L <- colSums(counts(sub.dat))
-    #   #cpm.data <- log2(calCPM(sub.dat)+1)
-    # }
-    # else if(class(s.data) %in% c("data.frame", "matrix")){
-    #   sub.dat <- s.data[sel.genes, ]
-    #   L <- colSums(sub.dat)
-    #   #cpm.data <- log2(calCPM(sub.dat)+1)
-    # }
-    # LL <- lapply(1:length(sub.batchs), function(b){
-    #   L.b <- L[batch==sub.batchs[b]]
-    #   fit.ln <- fitdist(L.b, distr = "lnorm")$estimate
-    #   L.b.pred <- rlnorm(n.batch[b], fit.ln[["meanlog"]], fit.ln[["sdlog"]])
-    #   
-    #   ## randomly split into the groups
-    #   gr <- rep(1:length(n.group), config.mat[b, ])
-    #   split(L.b.pred, gr)
-    #   #LL.splited <- lapply(sort(unique(group)), function(g) L.b.pred[group==g & batch==b])
-    #   #names(LL.splited) <- paste0("grp_", sort(unique(group)))
-    #   #LL.splited
-    # }) 
+    # sample DE and null genes 
+    selctGenes <- selectGenesSim(pDE = pDE, group = group, n.genes = n.genes, null.genes0 = null.genes0,
+                  nonnull.genes0 = nonnull.genes0, group.config = group.config)
+    DE.ind <- selctGenes$DE.ind
+    sel.genes <- selctGenes$sel.genes
     
     
+    min.val <- log(const)
     # estimate batch specific parameters
     est.list <- lapply(sel.genes, function(i){
       #print(i)
-      batch.est <- lapply(sub.batchs, function(b){ 
-        #print(b)
-        if(DE.ind[i]==0){
-          Y0 <- cpm.data[i, (batch==b & group==null.group)] 
-          if(model.zero.prob & mean(Y0==0)>0.25) Y <- Y0[Y0>0]
-          else Y <- Y0
-          
-          if(sum(Y>0)>3){
-            countY   <- obtCount(Y)
-            # plot(countY$S, countY$Ny, type="b") 
-            parm.est <- fitLLmodel(countY)
-            if(!is.null(parm.est$parm.list$betas) & length(countY$S)>=3){
-              parm.est
-            } 
-            else{NULL}  
-          } 
-          else{NULL}
-        }
-        else{
-          Y0 <- split(cpm.data[i, batch==b], group[batch==b])
-          #Y0 <- lapply(sort(unique(group)), function(g) cpm.data[i, batch==b & group==g])
-          #names(Y0) <-  paste0("grp_", sort(unique(group)))
-          
-          Y <- lapply(Y0, function(y0){
-            if(model.zero.prob & mean(y0==0)>0.25) {y0[y0>0]}
-            else {y0}
-          }) 
-          if(all(sapply(Y, function(y) sum(y>0)>3))){
-            countY   <- lapply(Y,  obtCount)
-            parm.est <- lapply(countY, fitLLmodel)
-            
-            cond1 = all(sapply(parm.est, function(x) !is.null(x$parm.list$betas)))
-            cond2 = all(sapply(countY, function(x) length(x$S)>=3))
-            if(cond1 & cond2){  
-              parm.est
-            } 
-            else{NULL}
-          } 
-          else{NULL}
-          # plot(countY$`1`$S, countY$`1`$Ny, type="l", xlim=range(cpm.data[i, batch==b])) 
-          # lines(countY$`2`$S, countY$`2`$Ny, col=2)    
-        }
-      }) 
-      
-      if(DE.ind[i]==0){
-        batch.parms.lst <- lapply(batch.est, function(b){ 
-          if(!is.null(b)){
-            c(b$parm.list$betas,  mu.hat=b$parm.list$mu.hat,  sig.hat=log(b$parm.list$sig.hat+0.001))
-            #b$parm.list$betas
-          }
-          else{as.matrix(NA)}
-        })
-        batch.parms <- rbind.fill2(lapply(batch.parms.lst, 
-                                         function(x) as.data.frame(as.list(x)))) 
-        if(any(dim(batch.parms)>1)){
-          Mu.batch <- colMeans(batch.parms, na.rm = TRUE)
-          V.batch  <- var(batch.parms, na.rm = TRUE) 
-        }
-        else{
-          Mu.batch <- NULL
-          V.batch  <- NULL
-        }
-      }
-      else{
-        batch.parms.lst <- lapply(sort(unique(group)), function(g){
-          b <- lapply(batch.est, function(x) x[[g]])
-          b <- lapply(b, function(bb){
-            if(!is.null(bb)){
-              c(bb$parm.list$betas, mu.hat=bb$parm.list$mu.hat, sig.hat=log(bb$parm.list$sig.hat+0.001))
-              #bb$parm.list$betas
-            }
-            else{NULL}
-          }) })
-        
-        batch.parms <- lapply(batch.parms.lst, function(g){
-          rbind.fill2(lapply(g, function(x) as.data.frame(as.list(x))))
-        })
-        
-        if(!any(sapply(batch.parms, function(x) is.null(unlist(x))))){
-          Mu.batch <- lapply(batch.parms, colMeans, na.rm = TRUE)
-          V.batch  <- lapply(batch.parms, var, na.rm = TRUE)
-        }
-        else{
-          Mu.batch <- NULL
-          V.batch  <- NULL
-        }
-      }
-      
-      if(!is.null(Mu.batch)){
-        list(Mu.batch=Mu.batch, V.batch=V.batch,  batch.est=batch.est)
-      }
-      else{
-        NULL
-      }
+      gene.parm.est(cpm.data.i = cpm.data[i, ], batch = batch, group = group, 
+                    null.group = null.group, sub.batchs = sub.batchs, de.ind = DE.ind[i], 
+                    model.zero.prob = model.zero.prob, min.val = min.val, ...)
     })
     
-    sim.list <- lapply(1:length(sel.genes), function(i){ 
+    sim.list <- lapply(1:length(sel.genes), function(i){
+      #print(i)
       if(!is.null(est.list[[i]]) & 
-         !any(sapply(est.list[[i]]$batch.est, is.null)) & 
-         !any(is.na(est.list[[i]]$V.batch))){
+         !any(sapply(est.list[[i]]$batch.est, is.null))) # & 
+         #!any(is.na(est.list[[i]]$V.batch)))
+        {
         # print(i)
         # sample params from MVN 
         if(DE.ind[i]==0){
@@ -440,13 +302,14 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             #   
             # }
              
-            parm.seed <- setSimContol$seed.batch.pars[i]
+            #parm.seed <- setSimContol$seed.batch.pars[i]
             par.sample <- as.matrix(do.call("rbind.fill2", lapply(est.list[[i]]$batch.est, function(bt){
               v.mat     <- bt$parm.list$v
               betas.vec <- bt$parm.list$betas
-              set.seed(parm.seed)
+              #set.seed(parm.seed)
               data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= betas.vec, Sigma = v.mat), 
                 mu.hat=bt$parm.list$mu.hat, sig.hat=bt$parm.list$sig.hat))))
+              #set.seed(NULL)
             }))) 
           }
           else if(length(n.batch)==1){
@@ -458,7 +321,7 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
         }
         else{ 
           if(length(n.batch)>1){
-            parm.seed <- setSimContol$seed.batch.pars[i]
+            #parm.seed <- setSimContol$seed.batch.pars[i]
             par.sample <- lapply(sort(unique(group)), function(g){
               # par.sample.g <- mvrnorm(n = length(sub.batchs), mu= est.list[[i]]$Mu.batch[[g]],
               #         Sigma = scl*est.list[[i]]$V.batch[[g]]) 
@@ -469,7 +332,7 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
               
               par.sample.g <- as.matrix(do.call("rbind.fill2", 
                             lapply(est.list[[i]]$batch.est[[g]], function(bt){
-                              set.seed(parm.seed)
+                              #set.seed(parm.seed)
                               data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= bt$parm.list$betas, 
                                                                Sigma = bt$parm.list$v), 
                                                        mu.hat=bt$parm.list$mu.hat,
@@ -478,6 +341,7 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
               
               par.sample.g 
             })
+            #set.seed(NULL)
             #names(par.sample) <- paste0("grp_", sort(unique(group)))
           }
           else if(length(n.batch)==1){
@@ -512,8 +376,10 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             par.sample.g <- par.sample[[g]] #par.sample[[paste0("grp_", g)]]
             lapply(1:nrow(par.sample.g), function(bb){  
               b.data <- est.list[[i]]$batch.est[[bb]][[g]]
-              gg0 <- (pnorm(b.data$yy$uls, par.sample.g[bb, "mu.hat"][[1]], par.sample.g[bb, "sig.hat"][[1]]) -
-                        pnorm(b.data$yy$lls, par.sample.g[bb, "mu.hat"][[1]], par.sample.g[bb, "sig.hat"][[1]]))
+              gg0 <- (pnorm(b.data$yy$uls, par.sample.g[bb, "mu.hat"][[1]], 
+                            par.sample.g[bb, "sig.hat"][[1]]) -
+                        pnorm(b.data$yy$lls, par.sample.g[bb, "mu.hat"][[1]], 
+                              par.sample.g[bb, "sig.hat"][[1]]))
               gg0[is.nan(gg0)] <- 0
               gg0 
             })
@@ -570,35 +436,35 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
         }
         
         # simulate data 
-        sim.seed <- setSimContol$seed.sample.Y[i]
+        #sim.seed <- setSimContol$seed.sample.Y[i]
         if(DE.ind[i]==0){ 
           Y.star <- lapply(1:nrow(par.sample), function(bb){
             Y0 <- cpm.data[sel.genes[i], (batch==bb & group==null.group)] 
-            set.seed(sim.seed)
-            u <- runif(n.batch[[bb]])
+            #set.seed(sim.seed)
+            u <- runif(n.batch[[bb]]) 
             gg1 <- g1[[bb]]
+            #set.seed(sim.seed+1)
             y.star.b <- sapply(u, function(uu){
               yy  <- gg1$s[which.min(abs(gg1$Gy-uu))]
               difs<- diff(gg1$s)
               difs<- difs[!(is.na(difs) | is.infinite(difs) | is.nan(difs))]
-              eps <- mean(difs, na.rm=TRUE) #gg1$s[2]-gg1$s[1] 
-              set.seed(sim.seed+1)
-              yy  <- runif(1, yy-eps/2, yy+eps/2)
+              eps <- abs(mean(difs, na.rm=TRUE)) #gg1$s[2]-gg1$s[1]  
+              yy  <- suppressWarnings(runif(1, yy-eps/2, yy+eps/2)) 
               yy
             })
             LL.b <- as.numeric(do.call("c", LL[[bb]]))
-            y.star.b <- round(((exp(y.star.b)-1)*LL.b)/1e6)
+            y.star.b <- round(((exp(y.star.b)-const)*LL.b)/1e6)
             y.star.b[y.star.b<0] <- 0
             
-            if(model.zero.prob & mean(Y0==0)>0.25){
+            if(model.zero.prob & mean(Y0==min.val)>0.25){
               lLL_b <- log(LL.b)
               pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
                                   newdata=data.frame(x1=mean(Y0), x2=lLL_b)), 
                               silent = TRUE)
               if(class(pred.pz) != "try-error"){
-                drop.mlt <- sapply(pred.pz, function(p){
-                  set.seed(sim.seed+2)
-                  rbinom(1, 1, p)
+                #set.seed(sim.seed+2)
+                drop.mlt <- sapply(pred.pz, function(p){ 
+                  rbinom(1, 1, p) 
                   })
               }
               else{
@@ -617,30 +483,31 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             g1.g <- g1[[g]] #g1[[paste0("grp_", g)]]
             y.star.g <- lapply(1:nrow(par.sample.g), function(bb){
               Y0.g <- cpm.data[sel.genes[i], batch==bb & group==g]
-              set.seed(sim.seed+bb)
+              #set.seed(sim.seed+bb)
               u <- runif(config.mat[bb, g])#runif(n.batch[[bb]]/length(n.group))
               gg1 <- g1.g[[bb]]
+              #set.seed(sim.seed+bb+1)
               y.star.b <- sapply(u, function(uu){
                 yy  <- gg1$s[which.min(abs(gg1$Gy-uu))]
                 difs<- diff(gg1$s)
                 difs<- difs[!(is.na(difs) | is.infinite(difs) | is.nan(difs))]
-                eps <- mean(difs, na.rm=TRUE) #gg1$s[2]-gg1$s[1] 
-                set.seed(sim.seed+bb+1)
-                yy  <- runif(1, yy-eps/2, yy+eps/2)
+                eps <- abs(mean(difs, na.rm=TRUE)) #gg1$s[2]-gg1$s[1]  
+                yy  <- suppressWarnings(runif(1, yy-eps/2, yy+eps/2))
                 yy
               })
               LL.b.g <- LL[[bb]][[g]]
-              y.star.b <- round(((exp(y.star.b)-1)*LL.b.g)/1e6)
+              y.star.b <- round(((exp(y.star.b)-const)*LL.b.g)/1e6)
               y.star.b[y.star.b<0] <- 0
               
-              if(model.zero.prob & mean(Y0.g==0)>0.25){
+              if(model.zero.prob & mean(Y0.g==min.val)>0.25){
                 lLL.b.g<- log(LL.b.g)
                 pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
                                     newdata=data.frame(x1=mean(Y0.g), x2=lLL.b.g)), 
                                 silent = TRUE)
                 if(class(pred.pz) != "try-error"){
+                  #set.seed(sim.seed+bb+2)
                   drop.mlt <- sapply(pred.pz, function(p){
-                    set.seed(sim.seed+bb+2)
+                    ##set.seed(sim.seed+bb+2)
                     rbinom(1, 1, p)
                     })
                 }

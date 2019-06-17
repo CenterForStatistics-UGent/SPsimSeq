@@ -4,12 +4,13 @@
 \name{SPsimSeq}
 \alias{SPsimSeq}
 \alias{SPsimSeq-package}
-\title{SPsim package}
+\title{SPsimSeq package}
 \usage{
 SPsimSeq(n.sim = 1, s.data, batch = NULL, group = NULL,
   n.genes = 1000, batch.config = 1, group.config = c(0.5, 0.5),
   tot.samples = 150, pDE = 0.2, model.zero.prob = FALSE,
-  result.format = "SCE", verbose = TRUE, seed = 2581988, ...)
+  const = 1e-05, result.format = "SCE", verbose = TRUE,
+  seed = 2581988, ...)
 }
 \arguments{
 \item{n.sim}{a numerical value for the number of simulated data to be  generated}
@@ -38,13 +39,16 @@ in a single simulated data}
 \item{model.zero.prob}{a logical value whether to model the zero probablity separately 
 (suitable for single cell data)}
 
+\item{const}{a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0).
+default is 1e-5}
+
 \item{result.format}{a character value for the type of format for the output. Choice can  be
 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count,
 column information abd row information.}
 
 \item{verbose}{a logical value, if TRUE it displays a message about the satatus of the simulation}
 
-\item{seed}{an integer  between 1 and 1e10. It will be used for set.seed() function}
+\item{seed}{an integer  between 1 and 1e10. It will be used for #set.seed() function}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -53,10 +57,11 @@ a list of SingleCellExperiment object each contatining simulated counts (not nor
 cell level information in colData, and gene level information in rowData.
 }
 \description{
-It uses specially designed exponential family for density estimation
-from which RNA sequencing data will be simulated. The first step of is
-estimting the actual density of a real sequencing data using log-linear
-model and new data set is sampled from the estimated density.
+Using a specially designed exponential family for density estimation 
+it constructs the distribution of gene expression from a given real RNA 
+sequencing data (single and bulk). Subsequently, it simulates a new 
+dataset from the estimated density. It allows simulation of multiple 
+groups and batches with any required sample size and library size.
 
 This function simulates RNA sequencing data given a real RNA-seq data using
 semi-parametric density estimation.
@@ -70,24 +75,24 @@ estimating gene-wise distributions. This method is based on a fast log-linear mo
 approach developed by Efron et al (1996). Arbitrarily large datasets, with realistically varying 
 library sizes, can be sampled from these estimated distributions.
 
-For single cell RNA-seq data, t, there is an additional step to explicitly account for the high 
+For simulation of single cell RNA-seq data, it involves an additional step to explicitly account for the high 
 abundance of zero counts. This step models the probability of zero counts as a function the mean 
 expression of the gene and the library size of the cell (both in log scale) to add excess zeros. 
-This can be achieved by using \emph{model.zero.prob=TRUE}. Note that,
-for extremly large size data, it is recomended to use a random sample of cells (up to 400) to
+This can be done by using \emph{model.zero.prob=TRUE}. Note that,
+for extremly large size data, it is recomended to use a random sample of cells to
 reduce computation time. To enable this, add the argument \emph{subset.data=TRUE} and you 
-can specify the number of cells to be used using \emph{n.samples} argument. For example \emph{n.samples=300}.
+can specify the number of cells to be used using \emph{n.samples} argument. 
+For example \emph{n.samples=400}.
 
 Given known groups of samples/cells in the source data, DGE is simulated by independently 
 sampling data from distributions constructed in each group. In particular, this procedure is 
 applied on a set of genes with fold-change in the source data more than a given threshold (\emph{lfc.thrld}). 
-This enables to simulate DGE with difference in both the location and shape of the distribution. 
 Moreover, when  the source dataset involves samples/cells processed in different batches, our 
 simulation procedure incorporates this batch effect in the simulated data, if required. 
 Different experimental designs can be simulated using the group and batch configuration arguments to
-simulate biologica/experimental conditions and batchs (instrument or subjects), respectively. In addition,
-batch simulation is recomended if the number of batches in the source data is at least 5. Also, it is required 
-to filter the source data so that gene with suffient expression will be used to estimate the density.
+simulate biologica/experimental conditions and batchs (instrument or subjects), respectively. 
+Also, it is important to filter the source data so that gene with suffient expression will be used to 
+estimate the density.
 }
 \examples{
 #----------------------------------------------------------------
