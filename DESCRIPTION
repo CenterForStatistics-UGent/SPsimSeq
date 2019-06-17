@@ -1,16 +1,28 @@
 Package: SPsimSeq
 Title: Semi-parametric simulation for single cell and bulk RNA sequencing data
-Version: 0.0.0.9000
+Version: 1.0.0
 Authors@R: 
-    person(given = "Alemu Takele",
+    c(person(given = "Alemu Takele",
            family = "Assefa",
-           role = c("aut", "cre"),
-           email = "alemutak@hotmail.com")
-Description: It uses specially designed exponential family for density estimation 
-             from which RNA sequencing data will be simulated. 
+           role = c("aut"),
+           email = "alemutak@hotmail.com"),
+    person(given = "Olivier",
+           family = "Thas",
+           role = c("aut"),
+           email = "Olivier.Thas@ugent.be"),
+    person(given = "Joris",
+           family = "Meys",
+           role = c("cre"),
+           email = "Joris.Meys@ugent.be"))
+Description: Using a specially designed exponential family for density estimation 
+             it constructs the distribution of gene expression from a given real RNA 
+             sequencing data (single and bulk). Subsequently, it simulates a new 
+             dataset from the estimated density. It allows simulation of multiple 
+             groups and batches with any required sample size and library size.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
+URL: https://github.com/CenterForStatistics-UGent/SPsimSeq
 Imports: 
          stats,  
          MASS,
@@ -20,12 +32,8 @@ Imports:
          edgeR,
          Hmisc
 RoxygenNote: 6.1.1
-Suggests: 
-    testthat,
-    knitr,
-    rmarkdown,
-    splatter,
-    gridExtra,
-    scater,
+Suggests:  
+    knitr,  
+    gridExtra, 
 VignetteBuilder: knitr
 Depends: R (>= 3.3.0)

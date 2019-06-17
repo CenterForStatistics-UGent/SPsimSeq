@@ -1,34 +1,36 @@
-#' Prepare source data for simulation.
-#' 
-#' @param s.data a source data (a SingleCellExperiment object)
-#' @param batch a vector containg btach indicator for each sample/cell
-#' @param group a vector containg group indicator for each sample/cell
-#' @param cand.genes a list object contating candidate genes
-#' @param exprmt.design a list contating simulation design configuration 
-#' @param simCtr (integer) seed number
-#' @param  ... further arguments passed to or from other methods.
-#'
-#' @return a list object
-#'
-#' @examples
-#'  # example 
-#' @importFrom fitdistrplus fitdist
+# Prepare source data for simulation.
+# 
+# @param s.data a source data (a SingleCellExperiment object)
+# @param batch a vector containg btach indicator for each sample/cell
+# @param group a vector containg group indicator for each sample/cell
+# @param cand.genes a list object contating candidate genes
+# @param exprmt.design a list contating simulation design configuration 
+# @param const a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0).
+# default is 1e-5
+# @param simCtr (integer) seed number
+# @param  ... further arguments passed to or from other methods.
+#
+# @return a list object
+#
+# @examples
+#  # example 
+# @importFrom fitdistrplus fitdist
 
 prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,  
-                              exprmt.design, simCtr, ...){
+                              exprmt.design, simCtr, const,...){
   
   # design element
   n.batch <- exprmt.design$n.batch
   n.group <- exprmt.design$n.group
   config.mat <- exprmt.design$exprmt.config
   
-  # calculate log CPM
-  if(class(s.data)=="SingleCellExperiment"){
-    cpm.data <- log(calCPM(counts(s.data))+1)
+  # calculate log CPM 
+  if(class(s.data)=="SingleCellExperiment"){ 
+    cpm.data <- log(calCPM(counts(s.data))+const)
     L <- colSums(counts(s.data))
   }
   else if(class(s.data) %in% c("data.frame", "matrix")){
-    cpm.data <- log(calCPM(s.data)+1)
+    cpm.data <- log(calCPM(s.data)+const)
     L <- colSums(s.data)
   }
   
@@ -57,7 +59,7 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   LL <- lapply(1:length(sub.batchs), function(b){
     L.b <- L[batch==sub.batchs[b]]
     fit.ln <- fitdist(as.numeric(L.b), distr = "lnorm")$estimate
-    set.seed(simCtr)
+    #set.seed(simCtr)
     L.b.pred <- rlnorm(n.batch[b], fit.ln[["meanlog"]], fit.ln[["sdlog"]])
     
     ## randomly split into the groups
@@ -72,7 +74,7 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   # select candidate genes
   if(is.null(cand.genes) & !is.null(group) & length(unique(group))>1){ 
     X <- group
-    cand.genes <- chooseCandGenes(s.data=s.data, X=X, ...)
+    cand.genes <- chooseCandGenes(cpm.data=cpm.data, X=X, const=const,...)
   } 
   else if(is.null(cand.genes) & (is.null(group) | length(unique(group))==1)){
     cand.genes <- list(null.genes= rownames(s.data))
