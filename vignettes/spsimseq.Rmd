@@ -7,6 +7,7 @@ vignette: >
   %\VignetteIndexEntry{Vignette Title}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib
 ---
 
 ```{r setup, include = FALSE}
@@ -19,24 +20,31 @@ library(SPsimSeq)
 ```
 # Introduction to SPsimSeq
 
-SPsimSeq is designed to maximally retain the characteristics of a real RNA sequencing data with reasonable flexibility to simulate a wide range of scenarios. In a first step, the log-CPM outcomes from a given real data (aka source data) are used for semi-parametrically estimating gene-wise distributions. This method is based on a fast log-linear model estimation approach developed by Efron et al (1996) ^[Efron, B., & Tibshirani, R. (1996). Using specially designed exponential families for density estimation. The Annals of Statistics, 24(6), 2431-2461.]. Arbitrarily large datasets, with realistically varying library sizes, can be sampled from these estimated distributions. For scRNA-seq data, there is an additional step to explicitly account for the high abundance of zero counts. This step models the probability of zero counts as a function the mean expression of the gene and the library size of the cell (both in $\log$ scale). Zero counts are then added to the simulated data such that the observed relationship (zero probability to mean expression and library size) is maintained. Given known groups ($\ge 2$) of samples/cells in the source data, DGE is simulated by independently sampling data from distributions constructed in each group. In particular, this procedure is applied on a set of genes with fold-change in the source data more than a given threshold. This enables to simulate DGE with difference in both the location and shape of the distribution. Moreover, when the source dataset involves samples/cells processed in different batches, our simulation procedure incorporates this batch effect in the simulated data, if required. 
+SPsimSeq is designed to maximally retain the characteristics of a real RNA sequencing data with reasonable flexibility to simulate a wide range of scenarios. In a first step, the log-CPM outcomes from a given real data (aka source data) are used for semi-parametrically estimating gene-wise distributions. This method is based on a fast log-linear model estimation approach developed by @efron1996using and @lindsey1974construction. Arbitrarily large datasets, with realistically varying library sizes, can be sampled from these estimated distributions. For scRNA-seq data, there is an additional step to explicitly account for the high abundance of zero counts. This step models the probability of zero counts as a function the mean expression of the gene and the library size of the cell (both in $\log$ scale). Zero counts are then added to the simulated data such that the observed relationship (zero probability to mean expression and library size) is maintained. Given known groups ($\ge 2$) of samples/cells in the source data, DGE is simulated by independently sampling data from distributions constructed in each group. In particular, this procedure is applied on a set of genes with fold-change in the source data more than a given threshold. Moreover, when the source dataset involves samples/cells processed in different batches, our simulation procedure incorporates this batch effect in the simulated data, if required. 
 
 # Installing SPsimSeq
+The package can be installed and loaded using the following commands:
+
+```{r load-packages, eval=FALSE, warning=FALSE, message=FALSE, echo=TRUE}
+remotes::install_github("CenterForStatistics-UGent/SPsimSeq")
+```
+
 
 # Implementation of SPsimSeq
 ## Example 1: simulating bulk RNA-seq
+**Zhang RNA-seq data [@Zhang241190]:** It was retrieved from GEO (accession number GSE49711) and contains 498 neuroblastoma tumors. In short, unstranded poly(A)+ RNA sequencing was performed on the HiSeq 2000 instrument (Illumina). Paired-end reads with a length of 100 nucleotides were obtained. To quantify the full transcriptome, raw fastq files were processed with Kallisto v0.42.4 (index build with GRCh38-Ensembl v85). The pseudo-alignment tool Kallisto [@bray2016near] was chosen above other quantification methods as it is performing equally good but faster. For this demonstration, we used the subset of the as used by @Assefa2018 , i.e. a subset of 172 patients with high-risk disease were selected, forming two groups: the MYCN amplified ($n_1$ = 91) and MYCN non-amplified ($n_2$ = 81) tumors.
 
-```{r, eval=TRUE, warning=FALSE}
+```{r, eval=TRUE, warning=FALSE, fig.width=7, fig.height=5}
  # load the Zhang data (availabl with the package)
 
 data("zhang.data") 
  
  # filter genes with sufficient expression (important step to avoid bugs) 
- zhang.counts <- zhang.data$counts[rowSums(zhang.data$counts > 0)>=10, ]  
+ zhang.counts <- zhang.data$counts[rowSums(zhang.data$counts > 0)>=5, ]  
  MYCN.status <- zhang.data$MYCN.status+1  
  
  # We simulate only a single data (n.sim = 1) with the following property
- # - 2000 genes ( n.genes = 2000) 
+ # - 5000 genes ( n.genes = 5000) 
  # - 180 samples (tot.samples = 180) 
  # - the samples are equally divided into 2 groups each with 90 samples 
  #   (group.config = c(0.5, 0.5))
@@ -46,21 +54,66 @@ data("zhang.data")
  #    estimation (model.zero.prob = FALSE)
  
  sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts, batch = NULL,
-                               group = MYCN.status, n.genes = 2000, batch.config = 1,
+                               group = MYCN.status, n.genes = 5000, batch.config = 1,
                                group.config = c(0.5, 0.5), tot.samples = 180, pDE = 0.1,
-                               model.zero.prob = FALSE, result.format = "list", seed = 2581988)
+                               model.zero.prob = FALSE, w=NULL, 
+                           result.format = "list", seed = 2581988)
                                
  sim.data.bulk1 <- sim.data.bulk[[1]]                              
  head(sim.data.bulk1$counts[, 1:5])  # count data
  head(sim.data.bulk1$colData)        # sample info
  head(sim.data.bulk1$rowData)        # gene info
  
+  
+
+ 
+par(mfrow=c(1, 2))
+boxplot(list(real.data=colSums(zhang.counts), 
+             simulated.data=sim.data.bulk1$colData$sim.Lib.Size), 
+        main="distribution of library size") 
+ 
+zhang.counts.equi <- zhang.counts[as.character(sim.data.bulk1$rowData$source.ID), MYCN.status==2]
+frac.zero.src <- rowMeans(zhang.counts.equi ==0)
+frac.zero.sim <- rowMeans(sim.data.bulk1$counts==0)
+plot(frac.zero.src, frac.zero.sim,  xlab="real data", 
+     ylab="simulated data", main="fraction of zero counts per gene")
+abline(0, 1)
+
+
+par(mfrow=c(1, 2)) 
+hist(rowMeans(zhang.counts.equi==0), main = "real data", 
+     xlab="fraction of zero counts per gene")
+hist(rowMeans(sim.data.bulk1$counts==0), main = "Simulated data",
+     xlab="fraction of zero counts per gene")
+
+
+par(mfrow=c(1, 2)) 
+x <- log(rowMeans(zhang.counts.equi)+1)
+y <- apply(zhang.counts.equi, 1, function(y) sd(y)/mean(y))
+smoothScatter(x, sqrt(y), xlab="log-mean-counts", ylab="CV", main = "real data")
+
+x <- log(rowMeans(sim.data.bulk1$counts)+1)
+y <- apply(sim.data.bulk1$counts, 1, function(y) sd(y)/mean(y))
+smoothScatter(x, sqrt(y), xlab="log-mean-counts", ylab="CV", main = "simulated data")
+
+
+par(mfrow=c(1, 2)) 
+w <- log(rowMeans(zhang.counts.equi)+1)
+z <- rowMeans(zhang.counts.equi==0)
+smoothScatter(w, z, xlab="log-mean-counts", ylab="fraction of zeroes", main = "real data")
+
+w <- log(rowMeans(sim.data.bulk1$counts)+1)
+z <- rowMeans(sim.data.bulk1$counts==0)
+smoothScatter(w, z, xlab="log-mean-counts", ylab="fraction of zeroes", main = "simulated data")
 ```
 
-## Example 2: simulating single cell RNA-seq from a single batch (read-counts)
-```{r, eval=TRUE, warning=FALSE}
+
+## Example 2: simulating single cell RNA-seq (containing read-counts)
+**Neuroblastoma NGP cells scRNA-seq data (NGP data):** This data contains 83 NGP neuroblastoma cells (31 nutlin-3 treated and 52 controls). The data is generated using SMARTer/C1 protocol, and it was obtained from @Verboom430090 study (GEO accession GSE119984).
+
+```{r, eval=TRUE, warning=FALSE, fig.width=7, fig.height=5}
 # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
- # - 2000 genes (n.genes = 2000) 
+ # - 5000 genes (n.genes = 5000) 
  # - 100 cells (tot.samples = 100) 
  # - the cells are equally divided into 2 groups each with 50 cells (group.config = c(0.5, 0.5))
  # - all cells are from a single batch (batch.config = 1)
@@ -71,7 +124,7 @@ data("zhang.data")
  
  library(SingleCellExperiment)
  
- # load the NGP nutlin data (availabl with the package)
+ # load the NGP nutlin data (availabl with the package, processed with SMARTer/C1 protocol, and contains read-counts)
 data("scNGP.data")
  
  # filter genes with sufficient expression (important step to avoid bugs) 
@@ -80,7 +133,7 @@ data("scNGP.data")
  
  # simulate data (we simulate here only a single data, n.sim = 1)
  sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
-                             group = treatment, n.genes = 2000, batch.config = 1,
+                             group = treatment, n.genes = 5000, batch.config = 1,
                              group.config = c(0.5, 0.5), tot.samples = 100, pDE = 0.1,
                              model.zero.prob = TRUE, result.format = "SCE", seed = 2581988)
                              
@@ -89,13 +142,55 @@ data("scNGP.data")
  head(counts(sim.data.sc1)[, 1:5])
  colData(sim.data.sc1)
  rowData(sim.data.sc1)
+ 
+par(mfrow=c(1, 2))
+boxplot(list(real.data=colSums(counts(scNGP.data2)), 
+             simulated.data=colData(sim.data.sc1)$sim.Lib.Size), 
+        main="distribution of library size") 
+ 
+scNGP.data2.equi <- scNGP.data2[as.character(rowData(sim.data.sc1)$source.ID), treatment==1]
+frac.zero.src <- rowMeans(counts(scNGP.data2.equi) ==0)
+frac.zero.sim <- rowMeans(counts(sim.data.sc1)==0)
+plot(frac.zero.src, frac.zero.sim, xlab="real data", 
+     ylab="simulated data", main="fraction of zero counts per gene")
+abline(0, 1)
+
+
+par(mfrow=c(1, 2)) 
+hist(rowMeans(counts(scNGP.data2.equi)==0), main = "real data", 
+     xlab="fraction of zero counts per gene")
+hist(rowMeans(counts(sim.data.sc1)==0), main = "Simulated data",
+     xlab="fraction of zero counts per gene")
+
+
+par(mfrow=c(1, 2)) 
+x <- log(rowMeans(counts(scNGP.data2.equi))+1)
+y <- apply(counts(scNGP.data2.equi), 1, function(y) sd(y)/mean(y))
+smoothScatter(x, y, xlab="log-mean-counts", ylab="CV", main = "real data")
+
+x <- log(rowMeans(counts(sim.data.sc1))+1)
+y <- apply(counts(sim.data.sc1), 1, function(y) sd(y)/mean(y))
+smoothScatter(x, y, xlab="log-mean-counts", ylab="CV", main = "simulated data")
+
+
+par(mfrow=c(1, 2)) 
+w <- log(rowMeans(counts(scNGP.data2.equi))+1)
+z <- rowMeans(counts(scNGP.data2.equi)==0)
+smoothScatter(w, z, xlab="log-mean-counts", ylab="fraction of zeroes", main = "real data")
+
+w <- log(rowMeans(counts(sim.data.sc1))+1)
+z <- rowMeans(counts(sim.data.sc1)==0)
+smoothScatter(w, z, xlab="log-mean-counts", ylab="fraction of zeroes", main = "simulated data")
 ```
 
 ## Example 3: simulating single cell RNA-seq from a single batch (UMI counts)
-```{r, eval=TRUE, warning=FALSE}
+**Peripheral blood mononuclear cell (PBMC) data:** Contains 2700 single cells sequenced on an Illumina NextSeq 500 using unique moleculare identifiers (UMI). The data is generated using the 10x Genomics Chromium V2 protocol. The data is downloaded from 
+\url{https://s3-us-west-2.amazonaws.com/10x.files/samples/cell/pbmc3k/pbmc3k_filtered_gene_bc_matrices.tar.gz} 
+
+```{r, eval=TRUE, warning=FALSE, fig.width=7, fig.height=5}
  # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
- # - 2000 genes (n.genes = 2000) 
- # - 200 cells (tot.samples = 200) 
+ # - 5000 genes (n.genes = 5000) 
+ # - 300 cells (tot.samples = 300) 
  # - the cells are from a single experimental group (group.config = 1)
  # - all cells are from a single batch (batch.config = 1)
  # - we add 0% DE genes (pDE = 0) 
@@ -110,13 +205,13 @@ data("scNGP.data")
  data("PBMC.data") 
  
  # filter genes with sufficient expression (important step to avoid bugs) 
- PBMCdat2 <- PBMC.10x.data[rowSums(counts(PBMC.10x.data) > 0)>=20, ] 
+ PBMCdat2 <- PBMC.10x.data[rowSums(counts(PBMC.10x.data) > 0)>=10, ] 
  
  # simulate data (we simulate here only a single data, n.sim = 1)
  sim.data.scUMI <- SPsimSeq(n.sim = 1, s.data = PBMCdat2, batch = NULL,
-                                group = NULL, n.genes = 2000, batch.config = 1,
-                                group.config = 1, tot.samples = 200, pDE = 0,
-                                model.zero.prob = TRUE, result.format = "SCE", 
+                                group = NULL, n.genes = 5000, batch.config = 1,
+                                group.config = 1, tot.samples = 300, pDE = 0,
+                                model.zero.prob = TRUE, result.format = "SCE", const = 1,
                                 subset.data=TRUE, n.samples=400, seed = 2581988)
                              
  sim.data.scUMI1 <- sim.data.scUMI[[1]]
@@ -124,59 +219,45 @@ data("scNGP.data")
  head(counts(sim.data.scUMI1)[, 1:5])
  colData(sim.data.scUMI1)
  rowData(sim.data.scUMI1)
-```
-
-## Example 4: simulating single cell RNA-seq from a single batch (read-counts) with batch
-For this example we use first simulate batch effect using parametric simulation (Splat, for ultimate flexibility) and then taking that as a source data we simulate a new single cell RNA-seq data with batch effect.
-
-```{r, eval=TRUE, message=FALSE, warning=FALSE, fig.width=10}
-# Simulate a new scRNA-seq datset using Splat simulation method  such that there are 7 batchs each with 50 cells
-library(SingleCellExperiment)
-library(SPsimSeq)
-library(splatter)
-library(scater)
-
-params <- newSplatParams()
-params <- setParams(params, update = list(batch.facLoc=0.2, batch.facScale=0.3, seed=263))
-sim.batches <- splatSimulate(params, 
-                             batchCells = c(200, 200, 200, 200, 200), 
-                             verbose = FALSE)
-
-sim.batches 
-
-#Filter genes with sufficient expression in each batch
-keep <- apply(counts(sim.batches), 1, function(x){
-  all(tapply(x, colData(sim.batches)$Batch, function(y) sum(y>0)>=5))
-})
-#table(keep) 
-sim.batches2 <- sim.batches[keep,]
-
- # now we simulate only a single scRNA-seq data (n.sim = 1) using SPsimSeq with the following characteristics
- # - we use the above simulated data as a source data (sim.batches2)
- # - 2000 genes (n.genes = 2000) 
- # - 350 cells (tot.samples = 200) 
- # - the cells are from a single experimental group (group.config = 1)
- # - cells are from 5 batchs each with equal number of cells (batch.config = rep(1/5, 5))
- # - we add 0% DE genes (pDE = 0) 
- # - we model the zeroes separately (model.zero.prob = TRUE) 
- # - the ouput will be in SingleCellExperiment class object (result.format = "SCE") 
- 
-
- batch.factor <- as.numeric(as.factor(colData(sim.batches2)$Batch))
- SPsimuBatch <- SPsimSeq(s.data = sim.batches2, batch = batch.factor,
-                             n.genes = 2000, batch.config = rep(1/5, 5), group.config=1,
-                             tot.samples=500, model.zero.prob = TRUE, seed = 2581988)
- SPsimuBatch[[1]] 
  
  
- # clustering of cells
- sim.batches_norm <- normalize(sim.batches2)
- p1 <- plotPCA(sim.batches_norm, colour_by = "Batch")
-
- colData(SPsimuBatch[[1]])$Batch <- as.factor(paste0("Batch", colData(SPsimuBatch[[1]])$Batch)) 
- SPsimuBatch_norm <- normalize(SPsimuBatch[[1]])
- p2 <- plotPCA(SPsimuBatch_norm, colour_by = "Batch")
+par(mfrow=c(1, 2))
+boxplot(list(real.data=colSums(counts(PBMCdat2)), 
+             simulated.data=colData(sim.data.scUMI1)$sim.Lib.Size), 
+        main="distribution of library size") 
  
- library(gridExtra)
- grid.arrange(grobs=list(p1, p2), ncol=2, nrow=1)
+PBMCdat2.equi <- PBMCdat2[as.character(rowData(sim.data.scUMI1)$source.ID), 
+                          sample(1:ncol(PBMCdat2), 300)]
+frac.zero.src <- rowMeans(counts(PBMCdat2.equi) ==0)
+frac.zero.sim <- rowMeans(counts(sim.data.scUMI1)==0)
+plot(frac.zero.src, frac.zero.sim, xlab="real data", 
+     ylab="simulated data", main="fraction of zero counts per gene")
+abline(0, 1)
+
+
+par(mfrow=c(1, 2)) 
+hist(rowMeans(counts(PBMCdat2.equi)==0), main = "real data", 
+     xlab="fraction of zero counts per gene")
+hist(rowMeans(counts(sim.data.scUMI1)==0), main = "Simulated data",
+     xlab="fraction of zero counts per gene")
+
+
+par(mfrow=c(1, 2)) 
+x <- log(rowMeans(counts(PBMCdat2.equi))+1)
+y <- apply(counts(PBMCdat2.equi), 1, function(y) sd(y)/mean(y))
+smoothScatter(x, y, xlab="log-mean-counts", ylab="CV", main = "real data")
+
+x <- log(rowMeans(counts(sim.data.scUMI1))+1)
+y <- apply(counts(sim.data.scUMI1), 1, function(y) sd(y)/mean(y))
+smoothScatter(x, y, xlab="log-mean-counts", ylab="CV", main = "simulated data")
+
+
+par(mfrow=c(1, 2)) 
+w <- log(rowMeans(counts(PBMCdat2.equi))+1)
+z <- rowMeans(counts(PBMCdat2.equi)==0)
+smoothScatter(w, z, xlab="log-mean-counts", ylab="fraction of zeroes", main = "real data")
+
+w <- log(rowMeans(counts(sim.data.scUMI1))+1)
+z <- rowMeans(counts(sim.data.scUMI1)==0)
+smoothScatter(w, z, xlab="log-mean-counts", ylab="fraction of zeroes", main = "simulated data")
 ```

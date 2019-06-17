@@ -1,14 +1,14 @@
-#' Calculates height and mid points of a distribution
-#' 
-#' @param Y a vector of gene expression data for a particular gene (in log CPM)
-#' @param w a numeric value between 0 and 1 or NULL refering the number of classes to be created
-#' for the outcome data (if NULL the algorithm in graphics::hist() function will be used)
-#' @param  ... further arguments passed to or from other methods.
-#' 
-#' @return a list object contating class mid points, counts, and others
-#' @examples 
-#' #
-#' @importFrom graphics hist
+# Calculates height and mid points of a distribution
+# 
+# @param Y a vector of gene expression data for a particular gene (in log CPM)
+# @param w a numeric value between 0 and 1 or NULL refering the number of classes to be created
+# for the outcome data (if NULL the algorithm in graphics::hist() function will be used)
+# @param  ... further arguments passed to or from other methods.
+# 
+# @return a list object contating class mid points, counts, and others
+# @examples 
+# #
+# @importFrom graphics hist
 obtCount <- function(Y, w=NULL, ...){
   
   if(is.null(w)){

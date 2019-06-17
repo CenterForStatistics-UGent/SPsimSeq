@@ -2,14 +2,14 @@
 % Please edit documentation in R/selectCandGenes.R
 \name{chooseCandGenes}
 \alias{chooseCandGenes}
-\title{select candidate genes}
+\title{Select candidate genes}
 \usage{
-chooseCandGenes(s.data, X, lfc.thrld = 0, llStat.thrld = 10,
-  t.thrld = 2.5, carrier.dist = "normal", max.frac.zero = 1,
-  max.frac.zeror.diff = Inf, ...)
+chooseCandGenes(cpm.data, X, lfc.thrld = 1, llStat.thrld = 10,
+  t.thrld = 2.5, carrier.dist = "normal", max.frac.zeror.diff = Inf,
+  const = 1e-05, ...)
 }
 \arguments{
-\item{s.data}{a source data (a SingleCellExperiment object)}
+\item{cpm.data}{CPM matrix}
 
 \item{X}{a vector of indicators for group memebership of cells/samples}
 
@@ -18,25 +18,26 @@ chooseCandGenes(s.data, X, lfc.thrld = 0, llStat.thrld = 10,
 \item{llStat.thrld}{a numeric value for the minimum squared test statistics from a log-linear model
 containing X as a covariate to select DE genes}
 
-\item{t.thrld}{a numeric value for the minimum t statistic for DE genes
-('mean.diff'= difference in the mean log CPM, 'rank.sum'= a U-statistic for the log CPM)}
+\item{t.thrld}{a numeric value for the minimum t statistic for DE genes}
 
 \item{carrier.dist}{a character indicating the type of
 carrier density (carrier.dist="normal" or carrier.dist="kernel")}
 
-\item{max.frac.zero}{a numeric value between 0 and 1 indicating the maximum fraction of
-zero counts that a DE gene should have}
+\item{max.frac.zeror.diff}{a numeric value >=0 indicating the maximum  absolute
+difference in the fraction of zero counts between the groups for DE genes. Default in Inf}
 
-\item{max.frac.zeror.diff}{a numeric value between 0 and 1 indicating the maximum  absolute
-difference in the fraction of zero counts between the groups for DE genes}
+\item{const}{a small constant (>0) added to the CPM before log transformation, to avoid  log(0).
+default is 1e-5, see in}
 
 \item{...}{further arguments passed to or from other methods.}
 }
 \value{
-a list object contating a set of candidate DE and null genes and additional results
+a list object contating a set of candidate null and non-null genes and additional results
 }
 \description{
-More detailed description
+This function can be used independently to select candidate genes from a given real RNA-srq data (bulk/single)
+for the SPsimSeq simulation. It chooses genes with cetrail chracteristics, such as log-fold-change 
+above a certain thereshold.
 }
 \examples{
  # example

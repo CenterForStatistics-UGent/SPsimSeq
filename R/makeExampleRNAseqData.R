@@ -11,7 +11,7 @@
 #' @return a SingleCellExperiment object.
 #'  
 #' @examples
-#' # make.example.data
+#' make.example.data(n.gene=20, n.sample=6, n.group=2, n.batch=1)
 #' @export
 #' @importFrom stats rlnorm rnbinom 
 #' @importFrom SingleCellExperiment counts colData rowData SingleCellExperiment
