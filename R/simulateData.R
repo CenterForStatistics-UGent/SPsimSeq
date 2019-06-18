@@ -1,16 +1,16 @@
 #' A function to simulate bulk or single cell RNA sequencing data
 #' 
-#' @description This function simulates RNA sequencing data given a real RNA-seq data using
-#' semi-parametric density estimation.
+#' @description This function simulates (bulk/single cell) RNA sequencing data given a real dataset using
+#' semi-parametric density estimation method.
 #' 
 #' @param n.sim a numerical value for the number of simulated data to be  generated
-#' @param s.data a source data (a SingleCellExperiment class object or a matrix/data.frame of counts with genes in 
+#' @param s.data source real data (a SingleCellExperiment class or a matrix/data.frame of counts with genes in 
 #' rows and samples in columns)
-#' @param batch a vector containg btach indicator for each sample/cell
-#' @param group a vector containg group indicator for each sample/cell 
+#' @param batch a vector containing btach indicator for each sample/cell
+#' @param group a vector containing group indicator for each sample/cell 
 #' @param n.genes a numeric value for the total number of genes to be simulated
 #' @param pDE a numeric value between 0 and 1 indicating the fraction of DE genes 
-#' in a single simulated data
+#' in the single simulated data
 #' @param batch.config a numerical vector for the marginal fraction of samples in each batch. 
 #' The number of batches to be simulated is equal to the size of the vector.
 #' All values must sum to 1.
@@ -18,17 +18,17 @@
 #' The number of groups to be simulated is equal to the size of the vector. All values must sum to 1.
 #' @param model.zero.prob a logical value whether to model the zero probablity separately 
 #' (suitable for single cell data)
-#' @param tot.samples a numerical value for total number of samples to be simulated. 
+#' @param tot.samples a numerical value for total number of samples/cells to be simulated. 
 #' @param result.format a character value for the type of format for the output. Choice can  be
 #' 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count,
-#' column information abd row information.
+#' column information and row information.
 #' @param const a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0).
 #' default is 1e-5
 #' @param verbose a logical value, if TRUE it displays a message about the satatus of the simulation
-#' @param  seed an integer  between 1 and 1e10. It will be used for #set.seed() function
+#' @param  seed an integer  between 1 and 1e10 for reproducible simulation. It will be used with #set.seed() function
 #' @param  ... further arguments passed to or from other methods.
 #' 
-#' @return a list of SingleCellExperiment object each contatining simulated counts (not normalized), 
+#' @return a list of SingleCellExperiment/list object each contatining simulated counts (not normalized), 
 #' cell level information in colData, and gene level information in rowData.
 #' 
 #' 
