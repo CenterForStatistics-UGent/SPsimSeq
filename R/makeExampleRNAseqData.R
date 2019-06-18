@@ -7,7 +7,7 @@
 #' @param p.DEgenes fraction of genes with DE between simulated groups
 #' @param common.BCV common biological coefficient of variation
 #' @param type type gene expression data, either bulk RNA-seq (type="bulk") or 
-#' single cell RNA-seq (type="sc")
+#' single cell RNA-seq (type="sc"). This is not functional temporarily.
 #' @return a SingleCellExperiment object.
 #'  
 #' @examples
