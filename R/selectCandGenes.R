@@ -1,7 +1,7 @@
 #' Select candidate genes
 #'
-#' This function can be used independently to select candidate genes from a given real RNA-srq data (bulk/single)
-#' for the SPsimSeq simulation. It chooses genes with cetrail chracteristics, such as log-fold-change 
+#' This function can be used to independently select candidate genes from a given real RNA-srq data (bulk/single)
+#' for the SPsimSeq simulation. It chooses genes with various chracteristics, such as log-fold-change 
 #' above a certain thereshold. 
 #' 
 #' @param cpm.data CPM matrix
