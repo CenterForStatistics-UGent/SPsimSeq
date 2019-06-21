@@ -2,7 +2,7 @@
 #' 
 #' @description This function simulates (bulk/single cell) RNA sequencing data given a real dataset using
 #' semi-parametric density estimation method.
-#' 
+#'  
 #' @param n.sim a numerical value for the number of simulated data to be generated
 #' @param s.data source real data (a SingleCellExperiment class or a matrix/data.frame of counts with genes in 
 #' rows and samples in columns)
