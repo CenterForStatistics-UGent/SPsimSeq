@@ -5,8 +5,7 @@
 \title{Select candidate genes}
 \usage{
 chooseCandGenes(cpm.data, X, lfc.thrld = 1, llStat.thrld = 10,
-  t.thrld = 2.5, carrier.dist = "normal", max.frac.zeror.diff = Inf,
-  const = 1e-05, ...)
+  t.thrld = 2.5, max.frac.zeror.diff = Inf, const = 1e-05, ...)
 }
 \arguments{
 \item{cpm.data}{CPM matrix}
@@ -19,9 +18,6 @@ chooseCandGenes(cpm.data, X, lfc.thrld = 1, llStat.thrld = 10,
 containing X as a covariate to select DE genes}
 
 \item{t.thrld}{a numeric value for the minimum t statistic for DE genes}
-
-\item{carrier.dist}{a character indicating the type of
-carrier density (carrier.dist="normal" or carrier.dist="kernel")}
 
 \item{max.frac.zeror.diff}{a numeric value >=0 indicating the maximum  absolute
 difference in the fraction of zero counts between the groups for DE genes. Default in Inf}

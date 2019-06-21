@@ -17,7 +17,8 @@
 # @importFrom fitdistrplus fitdist
 
 prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,  
-                              exprmt.design, simCtr, const,...){
+                              exprmt.design, simCtr, lfc.thrld, llStat.thrld,
+                              const,...){
   
   # design element
   n.batch <- exprmt.design$n.batch
@@ -74,7 +75,8 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   # select candidate genes
   if(is.null(cand.genes) & !is.null(group) & length(unique(group))>1){ 
     X <- group
-    cand.genes <- chooseCandGenes(cpm.data=cpm.data, X=X, const=const,...)
+    cand.genes <- chooseCandGenes(cpm.data=cpm.data, X=X, const=const,
+                                  lfc.thrld=lfc.thrld, llStat.thrld=llStat.thrld, ...)
   } 
   else if(is.null(cand.genes) & (is.null(group) | length(unique(group))==1)){
     cand.genes <- list(null.genes= rownames(s.data))
