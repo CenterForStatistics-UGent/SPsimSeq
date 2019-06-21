@@ -9,9 +9,7 @@
 #' @param lfc.thrld a numeric value for the minimum fold change for DE genes
 #' @param t.thrld a numeric value for the minimum t statistic for DE genes 
 #' @param llStat.thrld a numeric value for the minimum squared test statistics from a log-linear model
-#' containing X as a covariate to select DE genes
-#' @param carrier.dist a character indicating the type of
-#' carrier density (carrier.dist="normal" or carrier.dist="kernel") 
+#' containing X as a covariate to select DE genes 
 #' @param max.frac.zeror.diff a numeric value >=0 indicating the maximum  absolute
 #' difference in the fraction of zero counts between the groups for DE genes. Default in Inf
 #' @param const a small constant (>0) added to the CPM before log transformation, to avoid  log(0).
@@ -25,7 +23,7 @@
 #' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
 #' @importFrom SingleCellExperiment counts
 chooseCandGenes <- function(cpm.data, X,  lfc.thrld=1,  
-                             llStat.thrld=10, t.thrld=2.5, carrier.dist="normal",
+                             llStat.thrld=10, t.thrld=2.5,
                              max.frac.zeror.diff=Inf, const=1e-5,...){
   n.cells   <- table(X)
   sim.group <- length(n.cells)
@@ -51,95 +49,97 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld=1,
   nonnull.genes0   <- rownames(m.diff)[(m.diff$t.stat>=t.thrld) & (m.diff$fc>=lfc.thrld) & (m.diff$frac.z.diff <= max.frac.zeror.diff)]
   
   compr.stat <- m.diff 
-  statLLmodel <- sapply(nonnull.genes0, function(j){
-    Y <- lapply(names(n.cells), function(x){
-      as.numeric(cpm.data[j, X==x])
-    })
-    
-    S.list <- lapply(Y, obtCount)
-    ss     <- lapply(S.list, function(x) x$S)
-    lls    <- lapply(S.list, function(x) x$lls)
-    uls    <- lapply(S.list, function(x) x$uls)
-    Ny     <- lapply(S.list, function(x) x$Ny)
-    w      <- sapply(S.list, function(x) x$w)[[1]]
-
-    N=sapply(Ny, sum)
-
-    if(carrier.dist=="kernel"){
-      g0 <- lapply(1:length(Y), function(l){
-        density(Y[[l]], from=min(ss[[l]])-w/2, to=max(ss[[l]])+w/2)
+  
+  if(llStat.thrld>0 & length(nonnull.genes0)>=1){
+    statLLmodel <- sapply(nonnull.genes0, function(j){
+      Y <- lapply(names(n.cells), function(x){
+        as.numeric(cpm.data[j, X==x])
       })
-      gg0 <- lapply(1:length(Y), function(l){
-        sapply(ss[[l]], function(s) g0[[l]]$y[which.min(abs(g0[[l]]$x-s))])*N[[l]]
-      })
-    }
-    else if(carrier.dist=="normal"){
+      
+      S.list <- lapply(Y, obtCount)
+      ss     <- lapply(S.list, function(x) x$S)
+      lls    <- lapply(S.list, function(x) x$lls)
+      uls    <- lapply(S.list, function(x) x$uls)
+      Ny     <- lapply(S.list, function(x) x$Ny)
+      w      <- sapply(S.list, function(x) x$w)[[1]]
+      
+      N=sapply(Ny, sum)
+      
       gg0 <- lapply(1:length(Y), function(l){ 
         mu.hat <- mean(Y[[l]])
         sig.hat<- sd(Y[[l]]) 
         (pnorm(uls[[l]], mu.hat, sig.hat)-pnorm(lls[[l]], mu.hat, sig.hat))*N[[l]]
       })
-    }
-     
-    Xy <- lapply(1:length(Y), function(l) rep(l-1, length(ss[[l]])))
-
-    ofs <- 1
-
-    Ny <- do.call('c', Ny)
-    gg0<- do.call('c', gg0)
-    ss <- do.call('c', ss)
-    Xy <- do.call('c', Xy)
-
-
-    # l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy),
-    #                    family = "poisson", offset = log(gg0+ofs)),
-    #                silent = TRUE)
-    # if(all(class(l.mod.x) != "try-error")){
-    #   if(l.mod.x$rank != ncol(l.mod.x$R)){
-    #     l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
-    #                        family = "poisson", offset = log(gg0+ofs)),
-    #                    silent = TRUE)
-    #     if(all(class(l.mod.x) != "try-error")){
-    #       if(l.mod.x$rank != ncol(l.mod.x$R)){
-    #         l.mod.x <- try(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
-    #                            family = "poisson", offset = log(gg0+ofs)),
-    #                        silent = TRUE)
-    #       } 
-    #     }
-    #   } 
-    # }
-    
-    l.mod.x <- tryCatch(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy), 
-                                   family = "poisson", offset = log(gg0+ofs)),
-                    error=function(e){}, warning=function(w){})
-    if(is.null(l.mod.x)){
-      l.mod.x <- tryCatch(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
-                                     family = "poisson", offset = log(gg0+ofs)),
-                      error=function(e){}, warning=function(w){})
+      
+      Xy <- lapply(1:length(Y), function(l) rep(l-1, length(ss[[l]])))
+      
+      ofs <- 1
+      
+      Ny <- do.call('c', Ny)
+      gg0<- do.call('c', gg0)
+      ss <- do.call('c', ss)
+      Xy <- do.call('c', Xy)
+      
+      
+      # l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy),
+      #                    family = "poisson", offset = log(gg0+ofs)),
+      #                silent = TRUE)
+      # if(all(class(l.mod.x) != "try-error")){
+      #   if(l.mod.x$rank != ncol(l.mod.x$R)){
+      #     l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
+      #                        family = "poisson", offset = log(gg0+ofs)),
+      #                    silent = TRUE)
+      #     if(all(class(l.mod.x) != "try-error")){
+      #       if(l.mod.x$rank != ncol(l.mod.x$R)){
+      #         l.mod.x <- try(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
+      #                            family = "poisson", offset = log(gg0+ofs)),
+      #                        silent = TRUE)
+      #       } 
+      #     }
+      #   } 
+      # }
+      
+      l.mod.x <- tryCatch(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy), 
+                              family = "poisson", offset = log(gg0+ofs)),
+                          error=function(e){}, warning=function(w){})
       if(is.null(l.mod.x)){
-        l.mod.x <- tryCatch(suppressWarnings(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
-                                                       family = "poisson", 
-                                                       offset = log(gg0+ofs))),
-                        error=function(e){})
+        l.mod.x <- tryCatch(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
+                                family = "poisson", offset = log(gg0+ofs)),
+                            error=function(e){}, warning=function(w){})
         if(is.null(l.mod.x)){
-          l.mod.x <- NULL
+          l.mod.x <- tryCatch(suppressWarnings(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
+                                                   family = "poisson", 
+                                                   offset = log(gg0+ofs))),
+                              error=function(e){})
+          if(is.null(l.mod.x)){
+            l.mod.x <- NULL
+          } 
         } 
       } 
-    } 
- 
-    if(!is.null(l.mod.x)){
-      #coef.X <- coef(l.mod.x)[grep("Xy", names(coef(l.mod.x)))]
-      #sum.square.coef.X <- sum(coef.X^2, na.rm = TRUE)
-      if(l.mod.x$rank == ncol(l.mod.x$R)){
-        Z.X <- summary(l.mod.x)$coefficients[, 3]
-        Z.X <- Z.X[names(Z.X) %in% c("I(Xy)", "I(ss * Xy)", "I((ss^2) * Xy)")]
-        sum.square.Z.X <- sum(Z.X^2, na.rm = TRUE)
-        sum.square.Z.X
+      
+      if(!is.null(l.mod.x)){
+        #coef.X <- coef(l.mod.x)[grep("Xy", names(coef(l.mod.x)))]
+        #sum.square.coef.X <- sum(coef.X^2, na.rm = TRUE)
+        if(l.mod.x$rank == ncol(l.mod.x$R)){
+          Z.X <- summary(l.mod.x)$coefficients[, 3]
+          Z.X <- Z.X[names(Z.X) %in% c("I(Xy)", "I(ss * Xy)", "I((ss^2) * Xy)")]
+          sum.square.Z.X <- sum(Z.X^2, na.rm = TRUE)
+          sum.square.Z.X
+        }
+        else{0} 
       }
-      else{0} 
-    }
-    else {0} 
-  })
+      else {0} 
+    })
+  }
+  else if(llStat.thrld==0 & length(nonnull.genes0)>=1){
+    statLLmodel <- rep(0, length(nonnull.genes0))
+  }
+  else{
+    statLLmodel <- 0
+    warning("Unable to find candidate non-null genes with. Consider to lower the fold-change threshold \n
+            or llStat threshold.")
+  }
+  
 
   compr.stat2  <- compr.stat[nonnull.genes0, ]
   compr.stat2$statLL <- statLLmodel[rownames(compr.stat2)]
