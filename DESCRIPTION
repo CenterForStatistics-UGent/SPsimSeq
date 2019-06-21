@@ -33,7 +33,8 @@ Imports:
          Hmisc
 RoxygenNote: 6.1.1
 Suggests:  
-    knitr,  
-    gridExtra, 
+    knitr,    
+    rmarkdown,
+    KernSmooth
 VignetteBuilder: knitr
 Depends: R (>= 3.3.0)

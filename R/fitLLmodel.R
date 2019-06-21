@@ -34,7 +34,13 @@ fitLLmodel <- function(yy, ...){
   # } 
   # else{
   #   llm <- NULL
-  # }  
+  # # }  
+  # Ny <- rpois(3, 5)
+  # x <- 1:3
+  # ny=20
+  # g0 <- rep(1, 3)
+  # ofs=1 
+  
   trm <- tryCatch(llm <- glm(Ny~I(x)+I(x^2)+I(x^3)+I(x^4), family = "poisson", offset = log(g0*ny+ofs)), 
              error=function(e){}, warning=function(w){}) 
   if(is.null(trm)){
@@ -52,7 +58,16 @@ fitLLmodel <- function(yy, ...){
         } 
       } 
     }
-  } 
+  }else if(llm$rank != ncol(llm$R)){
+    llm <- suppressWarnings(glm(Ny~I(x)+I(x^2)+I(x^3), family = "poisson", offset = log(g0*ny+ofs)))
+    if(llm$rank != ncol(llm$R)){
+      llm <- suppressWarnings(glm(Ny~I(x)+I(x^2), family = "poisson", offset = log(g0*ny+ofs)))
+      if(llm$rank != ncol(llm$R)){
+        llm <- suppressWarnings(glm(Ny~I(x), family = "poisson", offset = log(g0*ny+ofs)))
+      }
+    }
+  }
+  
   
   if(!is.null(llm)){
     parm.list=list(betas=coef(llm), v=vcov(llm), mu.hat=yy$mu.hat, sig.hat=yy$sig.hat)

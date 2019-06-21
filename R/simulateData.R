@@ -1,36 +1,40 @@
 #' A function to simulate bulk or single cell RNA sequencing data
 #' 
-#' @description This function simulates RNA sequencing data given a real RNA-seq data using
-#' semi-parametric density estimation.
+#' @description This function simulates (bulk/single cell) RNA sequencing data given a real dataset using
+#' semi-parametric density estimation method.
 #' 
-#' @param n.sim a numerical value for the number of simulated data to be  generated
-#' @param s.data a source data (a SingleCellExperiment class object or a matrix/data.frame of counts with genes in 
+#' @param n.sim a numerical value for the number of simulated data to be generated
+#' @param s.data source real data (a SingleCellExperiment class or a matrix/data.frame of counts with genes in 
 #' rows and samples in columns)
-#' @param batch a vector containg btach indicator for each sample/cell
-#' @param group a vector containg group indicator for each sample/cell 
+#' @param batch a vector containing btach indicator for each sample/cell
+#' @param group a vector containing group indicator for each sample/cell 
 #' @param n.genes a numeric value for the total number of genes to be simulated
 #' @param pDE a numeric value between 0 and 1 indicating the fraction of DE genes 
-#' in a single simulated data
+#' in the single simulated data
 #' @param batch.config a numerical vector for the marginal fraction of samples in each batch. 
 #' The number of batches to be simulated is equal to the size of the vector.
 #' All values must sum to 1.
 #' @param group.config a numerical vector for the marginal fraction of samples in each group.
 #' The number of groups to be simulated is equal to the size of the vector. All values must sum to 1.
-#' @param model.zero.prob a logical value whether to model the zero probablity separately 
-#' (suitable for single cell data)
-#' @param tot.samples a numerical value for total number of samples to be simulated. 
-#' @param result.format a character value for the type of format for the output. Choice can  be
+#' @param lfc.thrld a positive numeric value for the minimum log fold change for candidate DE genes 
+#' from the source data (applies when group is not NULL and pDE>0)
+#' @param llStat.thrld a positive numeric value for the minimum squared test statistics from the 
+#' log-linear model to select candidate DE genes (applies when group is not NULL and  pDE>0)
+#' @param model.zero.prob a logical value whether to model the zero probability separately 
+#' (suitable for single cell data simulation)
+#' @param tot.samples a numerical value for total number of samples/cells to be simulated. 
+#' @param result.format a character value for the type of format for the output. Choice can be
 #' 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count,
-#' column information abd row information.
-#' @param const a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0).
+#' column information and row information.
+#' @param const a small constant (>0) to be added to the CPM before log transformation, to avoid log(0).
 #' default is 1e-5
-#' @param verbose a logical value, if TRUE it displays a message about the satatus of the simulation
-#' @param  seed an integer  between 1 and 1e10. It will be used for #set.seed() function
+#' @param verbose a logical value, if TRUE it displays a message about the status of the simulation
+#' @param  seed an integer  between 1 and 1e10 for reproducible simulation. It will be used with #set.seed() function
 #' @param  ... further arguments passed to or from other methods.
 #' 
-#' @return a list of SingleCellExperiment object each contatining simulated counts (not normalized), 
+#' @return a list of SingleCellExperiment/list object each containing simulated counts (not normalized), 
 #' cell level information in colData, and gene level information in rowData.
-#' 
+#'
 #' 
 #' @details This function estimates the density of a given bulk or single cell RNA-seq data 
 #' (passed using \emph{s.data} argument) using a specially designed exponetial family for density
@@ -182,9 +186,9 @@
 #' @importFrom SingleCellExperiment counts SingleCellExperiment colData rowData
 #' @importFrom graphics hist
 SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,  
-                       batch.config= 1,  group.config=c(0.5, 0.5), 
-                       tot.samples=150, pDE=0.2, model.zero.prob=FALSE, const=1e-5,
-                       result.format="SCE", verbose=TRUE,  seed=2581988, ...)
+                     batch.config= 1,  group.config=c(0.5, 0.5), lfc.thrld=0.5,  
+                     llStat.thrld=5, tot.samples=150, pDE=0.2, model.zero.prob=FALSE, const=1e-5,
+                     result.format="SCE", verbose=TRUE,  seed=2581988, ...)
 {
   # experiment configurartion
   if(verbose) {message("Configuring design ...")}
@@ -203,6 +207,7 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
   if(verbose) {message("Preparing source data ...")}
   prepare.S.Data <- prepareSourceData(s.data, batch = batch, group = group, 
                                       exprmt.design=exprmt.design, const=const,
+                                      lfc.thrld=lfc.thrld, llStat.thrld=llStat.thrld,
                                       simCtr=NULL, ...)
   LL         <- prepare.S.Data$LL
   cpm.data   <- prepare.S.Data$cpm.data
@@ -234,7 +239,7 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
   null.genes0     <- prepare.S.Data$cand.genes$null.genes
   nonnull.genes0  <- prepare.S.Data$cand.genes$nonnull.genes
   
-   
+  
   # simulation step
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(1:n.sim, function(h){
@@ -242,7 +247,7 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
     
     # sample DE and null genes 
     selctGenes <- selectGenesSim(pDE = pDE, group = group, n.genes = n.genes, null.genes0 = null.genes0,
-                  nonnull.genes0 = nonnull.genes0, group.config = group.config)
+                                 nonnull.genes0 = nonnull.genes0, group.config = group.config)
     DE.ind <- selctGenes$DE.ind
     sel.genes <- selctGenes$sel.genes
     
@@ -260,8 +265,8 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
       #print(i)
       if(!is.null(est.list[[i]]) & 
          !any(sapply(est.list[[i]]$batch.est, is.null))) # & 
-         #!any(is.na(est.list[[i]]$V.batch)))
-        {
+        #!any(is.na(est.list[[i]]$V.batch)))
+      {
         # print(i)
         # sample params from MVN 
         if(DE.ind[i]==0){
@@ -301,14 +306,14 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             #   #par.sample <- cbind(par.sample, mu.hat, sig.hat)
             #   
             # }
-             
+            
             #parm.seed <- setSimContol$seed.batch.pars[i]
             par.sample <- as.matrix(do.call("rbind.fill2", lapply(est.list[[i]]$batch.est, function(bt){
               v.mat     <- bt$parm.list$v
               betas.vec <- bt$parm.list$betas
               #set.seed(parm.seed)
               data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= betas.vec, Sigma = v.mat), 
-                mu.hat=bt$parm.list$mu.hat, sig.hat=bt$parm.list$sig.hat))))
+                                       mu.hat=bt$parm.list$mu.hat, sig.hat=bt$parm.list$sig.hat))))
               #set.seed(NULL)
             }))) 
           }
@@ -331,13 +336,13 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
               #par.sample.g <- cbind(par.sample.g, mu.hat.g, sig.hat.g)
               
               par.sample.g <- as.matrix(do.call("rbind.fill2", 
-                            lapply(est.list[[i]]$batch.est[[g]], function(bt){
-                              #set.seed(parm.seed)
-                              data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= bt$parm.list$betas, 
-                                                               Sigma = bt$parm.list$v), 
-                                                       mu.hat=bt$parm.list$mu.hat,
-                                                       sig.hat=bt$parm.list$sig.hat)))) 
-              })))
+                                                lapply(est.list[[i]]$batch.est[[g]], function(bt){
+                                                  #set.seed(parm.seed)
+                                                  data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= bt$parm.list$betas, 
+                                                                                   Sigma = bt$parm.list$v), 
+                                                                           mu.hat=bt$parm.list$mu.hat,
+                                                                           sig.hat=bt$parm.list$sig.hat)))) 
+                                                })))
               
               par.sample.g 
             })
@@ -459,13 +464,13 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
             if(model.zero.prob & mean(Y0==min.val)>0.25){
               lLL_b <- log(LL.b)
               pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
-                                  newdata=data.frame(x1=mean(Y0), x2=lLL_b)), 
+                                      newdata=data.frame(x1=mean(Y0), x2=lLL_b)), 
                               silent = TRUE)
               if(class(pred.pz) != "try-error"){
                 #set.seed(sim.seed+2)
                 drop.mlt <- sapply(pred.pz, function(p){ 
                   rbinom(1, 1, p) 
-                  })
+                })
               }
               else{
                 drop.mlt <- 0
@@ -502,14 +507,14 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
               if(model.zero.prob & mean(Y0.g==min.val)>0.25){
                 lLL.b.g<- log(LL.b.g)
                 pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
-                                    newdata=data.frame(x1=mean(Y0.g), x2=lLL.b.g)), 
+                                        newdata=data.frame(x1=mean(Y0.g), x2=lLL.b.g)), 
                                 silent = TRUE)
                 if(class(pred.pz) != "try-error"){
                   #set.seed(sim.seed+bb+2)
                   drop.mlt <- sapply(pred.pz, function(p){
                     ##set.seed(sim.seed+bb+2)
                     rbinom(1, 1, p)
-                    })
+                  })
                 }
                 else{
                   drop.mlt <- 0
@@ -534,7 +539,7 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
     sim.count[is.na(sim.count)] <- 0
     rownames(sim.count) <- paste0("Gene_", 1:nrow(sim.count))
     colnames(sim.count) <- paste0("Sample_", 1:ncol(sim.count))
-     
+    
     col.data <- data.frame(Batch=rep(rep(1:length(n.batch), times=length(n.group)), config.mat),
                            Group=rep(rep(1:length(n.group), each=length(n.batch)), config.mat), 
                            sim.Lib.Size=do.call("c", do.call("c", LL)),  
@@ -555,4 +560,3 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000,
   })
   sim.data.list
 }
-
