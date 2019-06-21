@@ -21,7 +21,7 @@ make.example.data(n.gene = 2000, n.sample = 30, n.group = 2,
 \item{common.BCV}{common biological coefficient of variation}
 
 \item{type}{type gene expression data, either bulk RNA-seq (type="bulk") or 
-single cell RNA-seq (type="sc")}
+single cell RNA-seq (type="sc"). This is not functional temporarily.}
 }
 \value{
 a SingleCellExperiment object.

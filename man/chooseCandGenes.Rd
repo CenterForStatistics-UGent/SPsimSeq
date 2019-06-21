@@ -31,8 +31,8 @@ default is 1e-5, see in}
 a list object contating a set of candidate null and non-null genes and additional results
 }
 \description{
-This function can be used independently to select candidate genes from a given real RNA-srq data (bulk/single)
-for the SPsimSeq simulation. It chooses genes with cetrail chracteristics, such as log-fold-change 
+This function can be used to independently select candidate genes from a given real RNA-srq data (bulk/single)
+for the SPsimSeq simulation. It chooses genes with various chracteristics, such as log-fold-change 
 above a certain thereshold.
 }
 \examples{
