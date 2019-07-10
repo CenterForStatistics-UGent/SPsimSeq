@@ -8,5 +8,5 @@
 #' \describe{
 #'   \item{SingleCellExperiment}{counts + gene info+cell infro} 
 #' }
-#' @source \url{http://dx.doi.org/10.1101/430090}
+#' @source \url{https://doi.org/10.1101/430090}
 "scNGP.data"
