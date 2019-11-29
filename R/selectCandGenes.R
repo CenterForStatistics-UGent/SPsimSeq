@@ -1,40 +1,32 @@
-#' Select candidate genes
-#'
-#' This function can be used to independently select candidate genes from a given real RNA-srq data (bulk/single)
-#' for the SPsimSeq simulation. It chooses genes with various chracteristics, such as log-fold-change 
-#' above a certain thereshold. 
-#' 
-#' @param cpm.data CPM matrix
-#' @param X a vector of indicators for group memebership of cells/samples 
-#' @param lfc.thrld a numeric value for the minimum fold change for DE genes
-#' @param t.thrld a numeric value for the minimum t statistic for DE genes 
-#' @param llStat.thrld a numeric value for the minimum squared test statistics from a log-linear model
-#' containing X as a covariate to select DE genes 
-#' @param max.frac.zeror.diff a numeric value >=0 indicating the maximum  absolute
-#' difference in the fraction of zero counts between the groups for DE genes. Default in Inf
-#' @param const a small constant (>0) added to the CPM before log transformation, to avoid  log(0).
-#' default is 1e-5, see in 
-#' @param  ... further arguments passed to or from other methods.
-#'
-#' @return a list object contating a set of candidate null and non-null genes and additional results
-#' @examples
-#'  # example
-#' @export  
-#' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
-#' @importFrom SingleCellExperiment counts
-chooseCandGenes <- function(cpm.data, X,  lfc.thrld=1,  
-                             llStat.thrld=10, t.thrld=2.5,
-                             max.frac.zeror.diff=Inf, const=1e-5,...){
+#Select candidate genes
+##
+#This function can be used to independently select candidate genes from a given real RNA-srq data (bulk/single)
+#for the SPsimSeq simulation. It chooses genes with various chracteristics, such as log-fold-change 
+# above a certain thereshold. 
+# 
+# @param cpm.data logCPM transformed matrix (if log.CPM.transform=FALSE, then it is the source gene expression data)
+# @param X a vector of indicators for group memebership of cells/samples 
+# @param lfc.thrld a positive numeric value for the minimum absolute log-fold-change for selecting candidate DE genes in the source data (when group is not NULL and pDE>0)
+# @param t.thrld a positive numeric value for the minimum absolute t-test statistic for the log-fold-changes of genes for selecting candidate DE genes in the source data (when group is not NULL and  pDE>0)
+# @param llStat.thrld a positive numeric value for the minimum squared test statistics from the log-linear model to select candidate DE genes in the source data (when group is not NULL and  pDE>0)
+# containing X as a covariate to select DE genes 
+# @param max.frac.zeror.diff a numeric value >=0 indicating the maximum  absolute
+# difference in the fraction of zero counts between the groups for DE genes. Default in Infinitive
+# @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
+# @param const a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
+# @param  ... further arguments passed to or from other methods.
+##
+# @return a list object contating a set of candidate null and non-null genes and additional results
+# @examples
+#  # example: see ?SPsimSeq
+  
+# @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
+# @importFrom SingleCellExperiment counts
+chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
+                             max.frac.zeror.diff=Inf, const, w, ...){
   n.cells   <- table(X)
   sim.group <- length(n.cells)
-  
-  # calculate log CPM
-  # if(class(s.data)=="SingleCellExperiment"){
-  #   cpm.data <- log(calCPM(counts(s.data))+1) 
-  # }
-  # else if(class(s.data) %in% c("data.frame", "matrix")){
-  #   cpm.data <- log(calCPM(s.data)+1) 
-  # } 
+   
 
   # calculate fold-changes
   m.diff  <- as.data.frame(t(apply(cpm.data, 1, function(y){ 
@@ -56,7 +48,7 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld=1,
         as.numeric(cpm.data[j, X==x])
       })
       
-      S.list <- lapply(Y, obtCount)
+      S.list <- lapply(Y, FUN = obtCount, w=w)
       ss     <- lapply(S.list, function(x) x$S)
       lls    <- lapply(S.list, function(x) x$lls)
       uls    <- lapply(S.list, function(x) x$uls)
@@ -65,13 +57,13 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld=1,
       
       N=sapply(Ny, sum)
       
-      gg0 <- lapply(1:length(Y), function(l){ 
+      gg0 <- lapply(seq_len(length(Y)), function(l){ 
         mu.hat <- mean(Y[[l]])
         sig.hat<- sd(Y[[l]]) 
         (pnorm(uls[[l]], mu.hat, sig.hat)-pnorm(lls[[l]], mu.hat, sig.hat))*N[[l]]
       })
       
-      Xy <- lapply(1:length(Y), function(l) rep(l-1, length(ss[[l]])))
+      Xy <- lapply(seq_len(length(Y)), function(l) rep(l-1, length(ss[[l]])))
       
       ofs <- 1
       
@@ -81,23 +73,6 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld=1,
       Xy <- do.call('c', Xy)
       
       
-      # l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy),
-      #                    family = "poisson", offset = log(gg0+ofs)),
-      #                silent = TRUE)
-      # if(all(class(l.mod.x) != "try-error")){
-      #   if(l.mod.x$rank != ncol(l.mod.x$R)){
-      #     l.mod.x <- try(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy),
-      #                        family = "poisson", offset = log(gg0+ofs)),
-      #                    silent = TRUE)
-      #     if(all(class(l.mod.x) != "try-error")){
-      #       if(l.mod.x$rank != ncol(l.mod.x$R)){
-      #         l.mod.x <- try(glm(Ny~I(ss)+ I(Xy) + I(ss*Xy),
-      #                            family = "poisson", offset = log(gg0+ofs)),
-      #                        silent = TRUE)
-      #       } 
-      #     }
-      #   } 
-      # }
       
       l.mod.x <- tryCatch(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy), 
                               family = "poisson", offset = log(gg0+ofs)),
@@ -136,8 +111,7 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld=1,
   }
   else{
     statLLmodel <- 0
-    warning("Unable to find candidate non-null genes with. Consider to lower the fold-change threshold \n
-            or llStat threshold.")
+    warning("Unable to find candidate non-null genes with. Consider to lower the fold-change threshold or llStat threshold.")
   }
   
 
