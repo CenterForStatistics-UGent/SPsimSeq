@@ -1,6 +1,6 @@
 Package: SPsimSeq
-Title: Semi-parametric simulation for single cell and bulk RNA sequencing data
-Version: 1.0.0
+Title: Semi-parametric simulation tool for bulk and single-cell RNA sequencing data
+Version: 2.0.0
 Authors@R: 
     c(person(given = "Alemu Takele",
            family = "Assefa",
@@ -14,27 +14,33 @@ Authors@R:
            family = "Meys",
            role = c("cre"),
            email = "Joris.Meys@ugent.be"))
-Description: Using a specially designed exponential family for density estimation 
-             it constructs the distribution of gene expression from a given real RNA 
-             sequencing data (single and bulk). Subsequently, it simulates a new 
-             dataset from the estimated density. It allows simulation of multiple 
-             groups and batches with any required sample size and library size.
+Description:  SPsimSeq uses a specially designed exponential family for density estimation 
+              to constructs the distribution of gene expression levels from a given real 
+              RNA sequencing data (single-cell or bulk), and subsequently, simulates a new 
+              dataset from the estimated marginal distributions using Gaussian-copulas to 
+              retain the dependence between genes. It allows simulation of multiple groups 
+              and batches with any required sample size and library size.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/CenterForStatistics-UGent/SPsimSeq
 Imports: 
-         stats,  
+         stats, 
+         methods,
          MASS,
          SingleCellExperiment,  
          fitdistrplus, 
          graphics,  
          edgeR,
-         Hmisc
+         Hmisc,
+         WGCNA,
+         limma,
+         mvtnorm
+biocViews: GeneExpression, RNASeq, SingleCell 
 RoxygenNote: 6.1.1
 Suggests:  
     knitr,    
     rmarkdown,
-    KernSmooth
+    LSD
 VignetteBuilder: knitr
-Depends: R (>= 3.3.0)
+Depends: R (>= 3.6.0)
