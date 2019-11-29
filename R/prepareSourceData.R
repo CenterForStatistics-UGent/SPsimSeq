@@ -18,7 +18,7 @@
 
 prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,  
                               exprmt.design, simCtr, lfc.thrld, llStat.thrld,
-                              const,...){
+                              const, w, log.CPM.transform, lib.size.params=NULL, ...){
   
   # design element
   n.batch <- exprmt.design$n.batch
@@ -26,14 +26,27 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   config.mat <- exprmt.design$exprmt.config
   
   # calculate log CPM 
-  if(class(s.data)=="SingleCellExperiment"){ 
-    cpm.data <- log(calCPM(counts(s.data))+const)
-    L <- colSums(counts(s.data))
+  if(log.CPM.transform){
+    if(is(s.data, "SingleCellExperiment")){ 
+      cpm.data <- log(calCPM(counts(s.data))+const)
+      L <- colSums(counts(s.data))
+    }
+    else if(is(s.data, "data.frame") | is(s.data, "matrix")){
+      cpm.data <- log(calCPM(s.data)+const)
+      L <- colSums(s.data)
+    }
   }
-  else if(class(s.data) %in% c("data.frame", "matrix")){
-    cpm.data <- log(calCPM(s.data)+const)
-    L <- colSums(s.data)
+  else{
+    if(is(s.data, "SingleCellExperiment")){ 
+      cpm.data <- counts(s.data)
+      L <- colSums(counts(s.data))
+    }
+    else if(is(s.data, "data.frame") | is(s.data, "matrix")){
+      cpm.data <- s.data
+      L <- colSums(s.data)
+    }
   }
+  
   
   # subset batches
   if(!is.null(batch)){ 
@@ -42,7 +55,7 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
       sub.batchs <- sort(sample(length(unique(batch)), length(n.batch))) 
     }
     else if(length(n.batch) == length(unique(batch))){
-      sub.batchs <- 1:length(n.batch)
+      sub.batchs <- seq_len(length(n.batch))
     }
     else{
       stop("Invalid number of batches passed: length(n.batch) > length(unique(batch))")
@@ -57,18 +70,25 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   }
   
   # simulate library size 
-  LL <- lapply(1:length(sub.batchs), function(b){
-    L.b <- L[batch==sub.batchs[b]]
-    fit.ln <- fitdist(as.numeric(L.b), distr = "lnorm")$estimate
-    #set.seed(simCtr)
-    L.b.pred <- rlnorm(n.batch[b], fit.ln[["meanlog"]], fit.ln[["sdlog"]])
+  LL <- lapply(seq_len(length(sub.batchs)), function(b){
+    if(is.null(lib.size.params)){
+      L.b      <- L[batch==sub.batchs[b]]
+      fit.ln   <- fitdist(as.numeric(L.b), distr = "lnorm")$estimate 
+      L.b.pred <- rlnorm(n.batch[b], fit.ln[["meanlog"]], fit.ln[["sdlog"]])
+    }
+    else{
+      if(length(lib.size.params) != 2 | is.null(names(lib.size.params))){
+        stop("The log-normal parameters for the distribution of library sizes must be submitted in a named vector of size 2. 
+             Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm()")
+      }else{
+        L.b.pred <- rlnorm(n.batch[b], lib.size.params[["meanlog"]], lib.size.params[["sdlog"]])
+      } 
+    }
+    
     
     ## randomly split into the groups
-    gr <- rep(1:length(n.group), config.mat[b, ])
-    split(L.b.pred, gr)
-    #LL.splited <- lapply(sort(unique(group)), function(g) L.b.pred[group==g & batch==b])
-    #names(LL.splited) <- paste0("grp_", sort(unique(group)))
-    #LL.splited
+    gr <- rep(seq_len(length(n.group)), config.mat[b, ])
+    split(L.b.pred, gr) 
   }) 
   
   
@@ -76,7 +96,7 @@ prepareSourceData <- function(s.data, batch=NULL, group=NULL, cand.genes=NULL,
   if(is.null(cand.genes) & !is.null(group) & length(unique(group))>1){ 
     X <- group
     cand.genes <- chooseCandGenes(cpm.data=cpm.data, X=X, const=const,
-                                  lfc.thrld=lfc.thrld, llStat.thrld=llStat.thrld, ...)
+                                  lfc.thrld=lfc.thrld, llStat.thrld=llStat.thrld, w=w, ...)
   } 
   else if(is.null(cand.genes) & (is.null(group) | length(unique(group))==1)){
     cand.genes <- list(null.genes= rownames(s.data))
