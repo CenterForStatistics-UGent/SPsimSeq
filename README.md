@@ -9,12 +9,13 @@ This is the github repo for the SPsimSeq R package.
 SPsimSeq uses a specially designed exponential family for density estimation to constructs the distribution of gene expression levels from a given real  RNA sequencing data (single-cell or bulk), and subsequently, simulates a new dataset from the estimated marginal distributions using Gaussian-copulas to retain the dependence between genes. It allows simulation of multiple groups and batches with any required sample size and library size.
 
 
+
+
  
 # Installation
- 
 
-```{r, eval=FALSE}
-# first install dependencies 
+```
+### first install dependencies 
 pkg.depnd  <- c("SingleCellExperiment", "fitdistrplus",  
                "edgeR", "Hmisc", "WGCNA", "limma", "mvtnorm")
 pkg.source <- c(1,2,1,2,2,1,2)
@@ -28,25 +29,22 @@ sapply(1:length(pkg.depnd), function(i){
       install.packages(pkg.depnd[i])
     } 
   }
-})
-  
-## then install SPsimSeq
+}) 
+
+
+### then install SPsimSeq
 remotes::install_github("CenterForStatistics-UGent/SPsimSeq")
 
 
-# load package
+### load package
 library(SPsimSeq) 
 ```
-
-
-
-
-
+ 
 # Demonstrations
  
 ## Example 1: simulating bulk RNA-seq
 
-```{r, eval=FALSE} 
+``` 
 # load the Zhang bulk RNA-seq data (availabl with the package) 
 data("zhang.data.sub") 
 
@@ -85,7 +83,7 @@ head(sim.data.bulk1$rowData)               # gene info
 
 ## Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 
-```{r, eval=FALSE}
+```
 # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
 # - 2000 genes (n.genes = 2000) 
 # - 100 cells (tot.samples = 100) 
