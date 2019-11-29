@@ -66,7 +66,7 @@
 #' 
 #' 
 #' @examples 
-#' #\donttest{ 
+#' \donttest{ 
 #' #----------------------------------------------------------------
 #' # Example 1: simulating bulk RNA-seq
 #'  
@@ -145,7 +145,7 @@
 #' colData(sim.data.sc1)
 #' rowData(sim.data.sc1)
 #' 
-#' #}
+#' }
 #' 
 #' 
 #' @export     
