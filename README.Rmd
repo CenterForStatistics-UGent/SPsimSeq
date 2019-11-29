@@ -1,5 +1,5 @@
 ---
-title: "SPsimSeq"
+title: "SPsimSeq (v2.0.0)"
 output: "github_document"
 ---
 
@@ -36,11 +36,11 @@ remotes::install_github("CenterForStatistics-UGent/SPsimSeq")
 
 # load package
 library(SPsimSeq) 
+
 ```
 
 
-
-
+ 
 
 # Demonstrations
  
