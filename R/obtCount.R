@@ -9,7 +9,7 @@
 # @examples 
 # #
 # @importFrom graphics hist
-obtCount <- function(Y, w=NULL, ...){
+obtCount <- function(Y, w, ...){
   
   if(is.null(w)){
     h   <- hist(Y, plot = FALSE, right = TRUE)
@@ -22,7 +22,7 @@ obtCount <- function(Y, w=NULL, ...){
   }
   
   s   <- h$breaks
-  lls <- s[1:(length(s)-1)]
+  lls <- s[seq_len(length(s)-1)]
   uls <- s[2:(length(s))]
   S   <- (lls+uls)/2
   # Ny  <- sapply(1:length(S), function(x){
