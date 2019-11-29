@@ -36,7 +36,7 @@
 
 calCPM <- function(X, const.mult=1e6, norm.lib.size=TRUE, norm.factors=NULL, logt=FALSE,
                    log_base=2, prior.count=1, ...){
-  if(class(X) %in% c("SingleCellExperiment", "data.frame", "matrix")){ 
+  if(is(X, "SingleCellExperiment") | is(X, "matrix") | is(X, "data.frame")){ 
     if(!all(dim(X)>1)){
       stop("Calculating CPM for a non matrix data!")
     }
@@ -53,7 +53,7 @@ calCPM <- function(X, const.mult=1e6, norm.lib.size=TRUE, norm.factors=NULL, log
     stop("Calculating CPM for a data with class not in 'SingleCellExperiment', 'data.frame', 'matrix'!")
   }
   
-  if(class(X)=="SingleCellExperiment"){
+  if(is(X, "SingleCellExperiment")){
     x <- counts(X)
   }
   else{

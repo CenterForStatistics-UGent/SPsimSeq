@@ -1,7 +1,7 @@
 # Gene level param estimates for density estimation
 gene.parm.est <- function(cpm.data.i, batch, group, null.group,
                           sub.batchs, de.ind, model.zero.prob,
-                          min.val, ...){
+                          min.val, w,...){
   batch.est <- lapply(sub.batchs, function(b){ 
     #print(b)
     if(de.ind==0){
@@ -10,7 +10,7 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
       else Y <- Y0
       
       if(sum(Y>min.val)>3){
-        countY   <- obtCount(Y)
+        countY   <- obtCount(Y=Y, w=w)
         # plot(countY$S, countY$Ny, type="b") 
         parm.est <- fitLLmodel(countY)
         if(!is.null(parm.est$parm.list$betas) & length(countY$S)>=3){
@@ -30,7 +30,7 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
         else {y0}
       }) 
       if(all(sapply(Y, function(y) sum(y>min.val)>3))){
-        countY   <- lapply(Y,  obtCount)
+        countY   <- lapply(Y,  FUN = obtCount, w=w)
         parm.est <- lapply(countY, function(g){
           fitLLmodel(g, ...)
         })
