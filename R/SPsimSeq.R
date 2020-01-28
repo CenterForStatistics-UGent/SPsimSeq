@@ -7,16 +7,26 @@
 #' @param batch NULL or a vector containing batch indicators for each sample/cell in the source data
 #' @param group NULL or a vector containing group indicators for each sample/cell in the source data
 #' @param n.genes a numeric value for the total number of genes to be simulated
+#' @param cand.DE.genes a list object contatining canidiate null and non-null (DE/predictor) genes.
+#' If NULL (the default), an internal function determines candidate genes based on log-fold-change and other statistics. 
+#' The user can also pass a list of canidate null and non-null genes (they must be disjoint). In particular, the list should contain
+#' two character vectors (for the name of the features/genes in the source data) with names 'null.genes' and 'nonnull.genes'.
+#' For example, cand.DE.genes=list(null.genes=c('A', 'B'), nonnull.genes=c('C', 'D')). 
 #' @param pDE a numeric value between 0 and 1 indicating the desired fraction of DE genes in the simulated data
 #' @param batch.config a numerical vector containing fractions  for the composition of samples/cells per batch. The fractions must sum to 1. The number of batches to be simulated is equal to the size of the vector. (Example, batch.config=c(0.6, 0.4)   means simulate 2 batches with 60\% of the simulated samples/cells in batch 1 and the rest 40\% in the second batch. Another example,  batch.config=c(0.3, 0.35, 0.25) means simulate 3 batches with the first, second and third batches contain 30\%, 35\% and 25\% of the samples/cells, respectively). 
 #' @param group.config a numerical vector containing fractions  for the composition of samples/cells per group. Similar definition to 'batch.config'. The number of groups to be simulated is equal to the size of the vector. The fractions must sum to 1.
-#' @param lfc.thrld a positive numeric value for the minimum absolute log-fold-change for selecting candidate DE genes in the source data (when group is not NULL and pDE>0)
-#' @param t.thrld a positive numeric value for the minimum absolute t-test statistic for the log-fold-changes of genes for selecting candidate DE genes in the source data (when group is not NULL and  pDE>0)
-#' @param llStat.thrld a positive numeric value for the minimum squared test statistics from the log-linear model to select candidate DE genes in the source data (when group is not NULL and  pDE>0)
+#' @param lfc.thrld a positive numeric value for the minimum absolute log-fold-change for selecting 
+#' candidate DE genes in the source data (when group is not NULL, pDE>0 and cand.DE.genes is NULL)
+#' @param t.thrld a positive numeric value for the minimum absolute t-test statistic for the 
+#' log-fold-changes of genes for selecting candidate DE genes in the source data (when group 
+#' is not NULL, pDE>0 and cand.DE.genes is NULL)
+#' @param llStat.thrld a positive numeric value for the minimum squared test statistics from 
+#' the log-linear model to select candidate DE genes in the source data (when group is not NULL, 
+#' pDE>0 and cand.DE.genes is NULL)
 #' @param model.zero.prob a logical value whether to model the zero expression probability separately (suitable for simulating of single-cell RNA-seq data or zero-inflated data)
 #' @param tot.samples a numerical value for the total number of samples/cells to be simulated. 
 #' @param result.format a character value for the type of format for the output. Choice can be 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count, column information and row information.
-#' @param geneTogenesCor a logical value, if TRUE (default) the simulation will retain the gene-to-gene correlation structure of the source data using Gausian-copulas . Note that if it is TRUE, the program will be slow or it may fail for a limited memory size. 
+#' @param genewiseCor a logical value, if TRUE (default) the simulation will retain the gene-to-gene correlation structure of the source data using Gausian-copulas . Note that if it is TRUE, the program will be slow or it may fail for a limited memory size. 
 #' @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
 #' @param const a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
 #' @param log.CPM.transform a logical value. If TRUE, the source data will be transformed into log-(CPM+const) before estimating the probability distributions
@@ -65,8 +75,7 @@
 #' }
 #' 
 #' 
-#' @examples 
-#' \donttest{ 
+#' @examples  
 #' #----------------------------------------------------------------
 #' # Example 1: simulating bulk RNA-seq
 #'  
@@ -77,7 +86,6 @@
 #' zhang.counts <- zhang.data.sub$counts[rowSums(zhang.data.sub$counts > 0)>=5, ]  
 #' MYCN.status  <- zhang.data.sub$MYCN.status 
 #' 
-
 #' # We simulate only a single data (n.sim = 1) with the following property
 #' # - 2000 genes ( n.genes = 2000) 
 #' # - 20 samples (tot.samples = 20) 
@@ -145,12 +153,10 @@
 #' colData(sim.data.sc1)
 #' rowData(sim.data.sc1)
 #' 
-#' }
-#' 
 #' 
 #' @export     
 #' @importFrom MASS mvrnorm
-#' @importFrom stats pnorm runif rbinom predict approx quantile glm rlnorm lm sd var
+#' @importFrom stats pnorm dnorm runif rbinom predict approx quantile glm rlnorm lm sd var
 #' @importFrom methods is
 #' @importFrom SingleCellExperiment counts colData rowData SingleCellExperiment
 #' @importFrom Hmisc cut2
@@ -161,11 +167,13 @@
 #' @importFrom graphics hist
 #' @importFrom mvtnorm rmvnorm
 #' @importFrom WGCNA cor
-#' @importFrom limma voom
-SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batch.config= 1,  group.config=1, 
-                     lfc.thrld=0.5, t.thrld=2.5, llStat.thrld=5, tot.samples=150, pDE=0.2, model.zero.prob=FALSE, 
-                     const=1, w=NULL, geneTogenesCor=TRUE,  log.CPM.transform=TRUE, lib.size.params=NULL,
-                     result.format="SCE", verbose=TRUE,  seed=2581988, ...)
+#' @importFrom limma voom 
+#' @importFrom plyr rbind.fill
+SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batch.config= 1,  
+                     group.config=1, pDE=0.1, cand.DE.genes=NULL, lfc.thrld=0.5, t.thrld=2.5, 
+                     llStat.thrld=5, tot.samples=150, model.zero.prob=FALSE, genewiseCor=TRUE, 
+                     log.CPM.transform=TRUE, lib.size.params=NULL, w=NULL, const=1, 
+                     result.format="SCE", seed=2581988, verbose=TRUE, ...)
 {
   # Quick checks for error in the inputs
   checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch, 
@@ -210,11 +218,10 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
   
   # prepare source data
   if(verbose) {message("Preparing source data ...")}
-  prepare.S.Data <- prepareSourceData(s.data, batch = batch, group = group, 
-                                      exprmt.design=exprmt.design, const=const,
-                                      lfc.thrld=lfc.thrld, t.thrld=t.thrld, llStat.thrld=llStat.thrld, 
-                                      simCtr=NULL, w=w, log.CPM.transform=log.CPM.transform,
-                                      lib.size.params=lib.size.params, ...)
+  prepare.S.Data <- prepareSourceData(s.data=s.data, batch = batch, group = group, 
+                    exprmt.design=exprmt.design, const=const, lfc.thrld=lfc.thrld, t.thrld=t.thrld, 
+                    cand.DE.genes=cand.DE.genes, llStat.thrld=llStat.thrld,  simCtr=NULL, w=w, 
+                    log.CPM.transform=log.CPM.transform, lib.size.params=lib.size.params, ...)
   LL         <- prepare.S.Data$LL
   cpm.data   <- prepare.S.Data$cpm.data
   sub.batchs <- prepare.S.Data$sub.batchs
@@ -222,304 +229,73 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
   if(is.null(group)) group <- rep(1, ncol(s.data))
   if(is.null(batch)) batch <- rep(1, ncol(s.data))
   
+  if(const>0){
+    min.val <- log(const)
+  }else{
+    const <- 1
+    min.val <- 0
+    warning("The constant 'const' is not positive! The default value 'const=1' is used instead.")
+  }
+  
   # fit logistic regression for the probability of zeros
   if(model.zero.prob){
     if(verbose) {message("Fitting zero probability model ...")}
-    if(is(s.data, "SingleCellExperiment")){
-      fracZero.logit.list <- lapply(unique(sub.batchs), function(b){
-        zeroProbModel(cpm.data = cpm.data[, batch==b], L=colSums(counts(s.data)[, batch==b]),
-                      simCtr=NULL, const=const, ...)
-      }) 
-    }
-    else if(is(s.data, "data.frame") | is(s.data, "matrix")){
-      fracZero.logit.list <- lapply(unique(sub.batchs), function(b){
-        zeroProbModel(cpm.data = cpm.data[, batch==b], L=colSums(s.data[, batch==b]), 
-                      simCtr=NULL, const=const,...)
-      })
-    }
+    fracZero.logit.list <- fracZeroLogitModel(s.data = s.data, batch = batch, 
+                            sub.batchs=sub.batchs, cpm.data = cpm.data, const = const, ...)
+  }else{
+    fracZero.logit.list <- NULL
   }
-  
  
   # candidate genes
   if(verbose) {message("Selecting genes ...")}
-  null.genes0     <- prepare.S.Data$cand.genes$null.genes
-  nonnull.genes0  <- prepare.S.Data$cand.genes$nonnull.genes
+  null.genes0     <- prepare.S.Data$cand.DE.genes$null.genes
+  nonnull.genes0  <- prepare.S.Data$cand.DE.genes$nonnull.genes
   
   if(pDE>0 & !is.null(group) & length(nonnull.genes0)==0){
-    warning("No gene met the criterial to be a candidiate DE gene. Perhaps consider lowering the 'lfc.thrld' or the 'llStat.thrld' or the 't.thrld'. Consequently, all the simulated genes are not DE.")
+    warning("No gene met the criterial to be a candidiate DE gene. Perhaps consider 
+            lowering the 'lfc.thrld' or the 'llStat.thrld' or the 't.thrld'. Consequently, 
+            all the simulated genes are not DE.")
   }
   
   # Obtain copulas
-  if(verbose & geneTogenesCor) {message("Estimating batch specific copulas ...")}
-  if(geneTogenesCor){
-    copulas.batch <- genesCopula(X = cpm.data, batch = batch, n.batch=n.batch)
-  }
-  else{
-    copulas.batch <- lapply(sort(unique(batch)), function(bb){ 
-      U    <- matrix(runif(n.batch[bb]*nrow(cpm.data), 0, 1), n.batch[bb], nrow(cpm.data))   
-      colnames(U) <- rownames(cpm.data)
-      U
-    }) 
-  }
+  if(verbose & genewiseCor) {message("Estimating featurewise correlations ...")}
+  copulas.batch <- obtCopulasBatch(genewiseCor = genewiseCor, cpm.data = cpm.data,
+                                   batch = batch, n.batch = n.batch)
   
   
   # simulation step
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
     if(verbose) {message(" ...", h, " of ", n.sim)}
-    
     # sample DE and null genes 
-    selctGenes <- selectGenesSim(pDE = pDE, group = group, n.genes = n.genes, null.genes0 = null.genes0,
-                                 nonnull.genes0 = nonnull.genes0, group.config = group.config, h=h)
+    selctGenes <- selectGenesSim(pDE = pDE, group = group, n.genes = n.genes, 
+                                 null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0, 
+                                 group.config = group.config, h=h)
     DE.ind <- selctGenes$DE.ind
     sel.genes <- selctGenes$sel.genes
     
     
-    min.val <- log(const)
     # estimate batch specific parameters
-    est.list <- lapply(sel.genes, function(i){
+    est.list <- lapply(sel.genes, function(ii){
       #print(i)
-      gene.parm.est(cpm.data.i = cpm.data[i, ], batch = batch, group = group, 
-                    null.group = null.group, sub.batchs = sub.batchs, de.ind = DE.ind[i], 
+      gene.parm.est(cpm.data.i = cpm.data[ii, ], batch = batch, group = group, 
+                    null.group = null.group, sub.batchs = sub.batchs, de.ind = DE.ind[ii], 
                     model.zero.prob = model.zero.prob, min.val = min.val, w=w, ...)
     })
     
-    sim.list <- lapply(seq_len(length(sel.genes)), function(i){
-      #print(i)
-      if(!is.null(est.list[[i]]) & 
-         !any(sapply(est.list[[i]]$batch.est, is.null)))  
-      {
-        # print(i) 
-        if(DE.ind[i]==0){
-          if(length(n.batch)>1){   
-            par.sample <- as.matrix(do.call("rbind.fill2", lapply(est.list[[i]]$batch.est, function(bt){
-              v.mat     <- bt$parm.list$v
-              betas.vec <- bt$parm.list$betas 
-              data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= betas.vec, Sigma = v.mat), 
-                                       mu.hat=bt$parm.list$mu.hat, sig.hat=bt$parm.list$sig.hat))))
-            }))) 
-          }
-          else if(length(n.batch)==1){
-            par.sample <- t(as.matrix(est.list[[i]]$Mu.batch))
-          } 
-        }
-        else{ 
-          if(length(n.batch)>1){ 
-            par.sample <- lapply(sort(unique(group)), function(g){
-     
-              par.sample.g <- as.matrix(do.call("rbind.fill2", 
-                                                lapply(est.list[[i]]$batch.est[[g]], function(bt){ 
-                                                  data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= bt$parm.list$betas, 
-                                                                                   Sigma = bt$parm.list$v), 
-                                                                           mu.hat=bt$parm.list$mu.hat,
-                                                                           sig.hat=bt$parm.list$sig.hat)))) 
-                                                })))
-              
-              par.sample.g 
-            }) 
-          }
-          else if(length(n.batch)==1){
-            par.sample <- lapply(sort(unique(group)), function(g){
-              par.sample.g <-t(as.matrix(est.list[[i]]$Mu.batch[[g]]))
-    
-              par.sample.g 
-            }) 
-          } 
-        }
-        
-        
-        # estimate carrier density (g0)
-        if(DE.ind[i]==0){
-          g0 <- lapply(seq_len(nrow(par.sample)), function(bb){
-            b.data <- est.list[[i]]$batch.est[[bb]] 
-            gg0 <- (pnorm(b.data$yy$uls, as.matrix(par.sample)[bb, "mu.hat"],
-                          as.matrix(par.sample)[bb, "sig.hat"]) -
-                      pnorm(b.data$yy$lls,as.matrix(par.sample)[bb, "mu.hat"], 
-                            as.matrix(par.sample)[bb, "sig.hat"]))
-            
-            gg0[is.nan(gg0)] <- 0
-            gg0
-          })
-        }
-        else{
-          g0 <- lapply(sort(unique(group)), function(g){
-            par.sample.g <- par.sample[[g]] #par.sample[[paste0("grp_", g)]]
-            lapply(seq_len(nrow(par.sample.g)), function(bb){  
-              b.data <- est.list[[i]]$batch.est[[bb]][[g]]
-              gg0 <- (pnorm(b.data$yy$uls, par.sample.g[bb, "mu.hat"][[1]], 
-                            par.sample.g[bb, "sig.hat"][[1]]) -
-                        pnorm(b.data$yy$lls, par.sample.g[bb, "mu.hat"][[1]], 
-                              par.sample.g[bb, "sig.hat"][[1]]))
-              gg0[is.nan(gg0)] <- 0
-              gg0 
-            })
-          }) 
-        }
-        
-        
-        
-        # estimate the density g1(y)
-        if(DE.ind[i]==0){
-          g1 <- lapply(seq_len(nrow(par.sample)), function(bb){ 
-            b.data <- est.list[[i]]$batch.est[[bb]]
-            gg0 <- g0[[bb]]*sum(b.data$yy$Ny) +1
-            
-            s <- b.data$yy$S
-            s.mat <- matrix(NA, ncol = length(coef(b.data$llm)), nrow=length(s))
-            for(i in seq_len(ncol(s.mat))){
-              s.mat[, i] <- s^(i-1)
-            }
-            gg1 <- exp(s.mat %*% par.sample[bb, seq_len(ncol(s.mat))])*gg0
-            gg1 <- data.frame(gy=gg1, s=s, lls=b.data$yy$lls, uls=b.data$yy$uls)
-            gg1$gy[is.infinite(gg1$gy)] <- max(gg1$gy[!is.infinite(gg1$gy)]) 
-            gg1$Gy <- cumsum(gg1$gy)/sum(gg1$gy)
-            gg1 
-          })  
-        }
-        else{
-          g1 <- lapply(sort(unique(group)), function(g){
-            par.sample.g <- par.sample[[g]] #par.sample[[paste0("grp_", g)]]
-            g0.g <- g0[[g]] #g0[[paste0("grp_", g)]]
-            
-            lapply(seq_len(nrow(par.sample.g)), function(bb){   
-              b.data <- est.list[[i]]$batch.est[[bb]][[g]]
-              gg0 <- g0.g[[bb]]*sum(b.data$yy$Ny) + 1
-              
-              s <- b.data$yy$S
-              s.mat <- matrix(NA, ncol = length(coef(b.data$llm)), nrow=length(s))
-              for(k in seq_len(ncol(s.mat))){
-                s.mat[, k] <- s^(k-1)
-              }
-              gg1 <- exp(s.mat %*% as.matrix(par.sample.g[bb, seq_len(ncol(s.mat))]))*gg0
-              gg1 <- data.frame(gy=gg1, s=s, lls=b.data$yy$lls, uls=b.data$yy$uls)
-              gg1$gy[is.infinite(gg1$gy)] <- max(gg1$gy[!is.infinite(gg1$gy)]) 
-              gg1$Gy <- cumsum(gg1$gy)/sum(gg1$gy)
-              gg1
-            }) 
-          }) 
-        }
-        
-        # simulate data  
-        if(DE.ind[i]==0){ 
-          Y.star <- lapply(seq_len(nrow(par.sample)), function(bb){
-            Y0 <- cpm.data[sel.genes[i], (batch==bb & group==null.group)] 
-            #set.seed(sim.seed)
-            u <-  copulas.batch[[bb]][, sel.genes[i]]# #runif(n.batch[[bb]]) #
-            gg1 <- g1[[bb]]
-            #set.seed(sim.seed+1)
-            y.star.b <- sapply(u, function(uu){
-              yy  <- gg1$s[which.min(abs(gg1$Gy-uu))]
-              difs<- diff(gg1$s)
-              difs<- difs[!(is.na(difs) | is.infinite(difs) | is.nan(difs))]
-              eps <- abs(mean(difs, na.rm=TRUE)) #gg1$s[2]-gg1$s[1]  
-              yy  <- suppressWarnings(runif(1, yy-eps/2, yy+eps/2)) 
-              yy
-            })
-            LL.b <- as.numeric(do.call("c", LL[[bb]]))
-            if(log.CPM.transform){
-              y.star.b <- round(((exp(y.star.b)-const)*LL.b)/1e6)
-              y.star.b[y.star.b<0] <- 0
-            } 
-            
-            if(model.zero.prob & mean(Y0==min.val)>0.25){
-              lLL_b <- log(LL.b)
-              pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
-                                      newdata=data.frame(x1=mean(Y0), x2=lLL_b)), 
-                              silent = TRUE)
-              if(!is(pred.pz,"try-error")){
-                #set.seed(sim.seed+2)
-                drop.mlt <- sapply(pred.pz, function(p){ 
-                  rbinom(1, 1, p) 
-                })
-              }
-              else{
-                drop.mlt <- 0
-              } 
-              y.star.b <- y.star.b*(1-drop.mlt)
-            }
-            as.numeric(y.star.b)
-          })
-          Y.star <- do.call("c", Y.star)
-          #if(any(is.na(Y.star))){print(i)}
-        }
-        else{ 
-          Y.star <- lapply(sort(unique(group)), function(g){
-            par.sample.g <- par.sample[[g]] #par.sample[[paste0("grp_", g)]]
-            g1.g <- g1[[g]] #g1[[paste0("grp_", g)]]
-            y.star.g <- lapply(seq_len(nrow(par.sample.g)), function(bb){
-              Y0.g <- cpm.data[sel.genes[i], batch==bb & group==g]
-              #set.seed(sim.seed+bb)
-              u <- copulas.batch[[bb]][seq_len(n.group[g]), sel.genes[i]]#runif(config.mat[bb, g])#runif(n.batch[[bb]]/length(n.group))
-              gg1 <- g1.g[[bb]]
-              #set.seed(sim.seed+bb+1)
-              y.star.b <- sapply(u, function(uu){
-                yy  <- gg1$s[which.min(abs(gg1$Gy-uu))]
-                difs<- diff(gg1$s)
-                difs<- difs[!(is.na(difs) | is.infinite(difs) | is.nan(difs))]
-                eps <- abs(mean(difs, na.rm=TRUE)) #gg1$s[2]-gg1$s[1]  
-                yy  <- suppressWarnings(runif(1, yy-eps/2, yy+eps/2))
-                yy
-              })
-              LL.b.g <- LL[[bb]][[g]]
-               
-              if(log.CPM.transform){
-                y.star.b <- round(((exp(y.star.b)-const)*LL.b.g)/1e6)
-                y.star.b[y.star.b<0] <- 0
-              }  
-              
-              if(model.zero.prob & mean(Y0.g==min.val)>0.25){
-                lLL.b.g<- log(LL.b.g)
-                pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
-                                        newdata=data.frame(x1=mean(Y0.g), x2=lLL.b.g)), 
-                                silent = TRUE)
-                if(!is(pred.pz,"try-error")){
-                  #set.seed(sim.seed+bb+2)
-                  drop.mlt <- sapply(pred.pz, function(p){
-                    ##set.seed(sim.seed+bb+2)
-                    rbinom(1, 1, p)
-                  })
-                }
-                else{
-                  drop.mlt <- 0
-                } 
-                y.star.b <- y.star.b*(1-drop.mlt)
-              }
-              as.numeric(y.star.b)
-            })
-            y.star.g <- do.call("c", y.star.g)
-          })
-          Y.star <- do.call("c", Y.star)
-          #if(any(is.na(Y.star))){print(i)}
-        }}
-      else{
-        #print(i)
-        Y.star <- rep(0, tot.samples)
-        Y.star
-      }
-    }) 
-    
-    sim.count <- do.call(rbind, sim.list)
-    sim.count[is.na(sim.count)] <- 0
-    rownames(sim.count) <- paste0("Gene_", seq_len(nrow(sim.count)))
-    colnames(sim.count) <- paste0("Sample_", seq_len(ncol(sim.count)))
-    
-    col.data <- data.frame(Batch=rep(rep(seq_len(length(n.batch)), times=length(n.group)), config.mat),
-                           Group=rep(rep(seq_len(length(n.group)), each=length(n.batch)), config.mat), 
-                           sim.Lib.Size=do.call("c", do.call("c", LL)),  
-                           row.names = colnames(sim.count))
-    row.data <- data.frame(DE.ind=DE.ind, 
-                           source.ID=sel.genes,
-                           row.names = rownames(sim.count))
-    
-    if(result.format == "SCE"){
-      sim.data <- SingleCellExperiment(assays=list(counts=sim.count),
-                                       colData=col.data, rowData=row.data)
-      sim.data 
-    }
-    else if(result.format == "list"){
-      sim.data <- list(counts=sim.count, colData=col.data, rowData=row.data)
-      sim.data
-    }
+    sim.list <- lapply(seq_len(length(sel.genes)), function(ii){
+      #print(ii)
+      SPsimPerGene(cpm.data = cpm.data, est.list.ii = est.list[[ii]], DE.ind.ii = DE.ind[ii], 
+                   n.batch = n.batch, n.group = n.group, group = group, batch=batch, 
+                   sel.genes.ii = sel.genes[ii],  log.CPM.transform = log.CPM.transform, 
+                   null.group=null.group, LL=LL, copulas.batch=copulas.batch,
+                   const = const, min.val = min.val, model.zero.prob=model.zero.prob, 
+                   tot.samples=tot.samples, fracZero.logit.list = fracZero.logit.list)
+    })  
+    sim.data.h <- prepareSPsimOutputs(sim.list=sim.list, n.batch=n.batch, n.group=n.group, 
+                        config.mat=config.mat, LL=LL, DE.ind=DE.ind, sel.genes=sel.genes,
+                        result.format=result.format)
+    sim.data.h
   })
   sim.data.list
 }

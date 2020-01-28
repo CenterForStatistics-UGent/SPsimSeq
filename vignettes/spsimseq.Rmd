@@ -1,10 +1,10 @@
 ---
-title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data."
+title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data"
 author: "Alemu Takele Assefa"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
@@ -30,15 +30,15 @@ The package can be installed and loaded using the following commands:
 ```{r load-packages, eval=FALSE, warning=FALSE, message=FALSE, echo=TRUE}
 # first install dependencies 
 pkg.depnd  <- c("SingleCellExperiment", "fitdistrplus",  
-               "edgeR", "Hmisc", "WGCNA", "limma", "mvtnorm")
-pkg.source <- c(1,2,1,2,2,1,2)
+               "edgeR", "Hmisc", "WGCNA", "limma", "mvtnorm", "plyr")
+pkg.source <- c(1,2,1,2,2,1,2,2)
 sapply(1:length(pkg.depnd), function(i){
   pkg_available <- pkg.depnd[i] %in% rownames(installed.packages())
   if(!pkg_available){ 
     if(pkg.source[i] ==1){
       BiocManager::install(pkg.depnd[i])
     }
-    else(pkg.source[i] ==2){
+    else{
       install.packages(pkg.depnd[i])
     } 
   }
@@ -58,7 +58,7 @@ library(SPsimSeq)
 ## Example 1: simulating bulk RNA-seq
 **Zhang RNA-seq data [@Zhang241190]:** The data contains 498 neuroblastoma tumors. In short, unstranded poly(A)+ RNA sequencing was performed on the HiSeq 2000 instrument (Illumina). Paired-end reads with a length of 100 nucleotides were obtained. To quantify the full transcriptome, raw fastq files were processed with Kallisto v0.42.4 (index build with GRCh38-Ensembl v85). The pseudo-alignment tool Kallisto [@bray2016near] was chosen above other quantification methods as it is performing equally good but faster. For this study, a subset of 172 tumors (samples) with high-risk disease were selected, forming two groups: the MYCN amplified ($n_1$ = 91) and MYCN non-amplified ($n_2$ = 81) tumours as used in [@Assefa2018]. Sometimes we refer this dataset to us the Zhang data or the Zhang neuroblastoma data. A subset of this dataset (5000 randomly selected genes) is available with the SPsimSeq package for illustration purpose only.
 
-```{r, eval=TRUE, warning=FALSE, fig.width=12, fig.height=5}  
+```{r, eval=TRUE, warning=FALSE, fig.width=8, fig.height=5}  
  # load the Zhang bulk RNA-seq data (availabl with the package) 
  data("zhang.data.sub") 
  
@@ -174,9 +174,6 @@ plot(seq(-1, 1, 0.1), seq(-1, 1, 0.1), type="n", xlab="quantile (real data)",
 abline(0, 1, col="gray")
 points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.001)), 
        col="blue", pch=20, cex=1.5, cex.lab=1.25)  
-  
-
-
 ```
 
 
@@ -341,5 +338,11 @@ points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.
        col="blue", pch=20, cex=1.5, cex.lab=1.25)  
 ```
 
+
+
+
+```{r}
+sessionInfo()
+```
 
 # References
