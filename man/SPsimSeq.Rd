@@ -5,12 +5,12 @@
 \title{A function to simulate bulk or single cell RNA sequencing data}
 \usage{
 SPsimSeq(n.sim = 1, s.data, batch = NULL, group = NULL,
-  n.genes = 1000, batch.config = 1, group.config = 1,
-  lfc.thrld = 0.5, t.thrld = 2.5, llStat.thrld = 5,
-  tot.samples = 150, pDE = 0.2, model.zero.prob = FALSE, const = 1,
-  w = NULL, geneTogenesCor = TRUE, log.CPM.transform = TRUE,
-  lib.size.params = NULL, result.format = "SCE", verbose = TRUE,
-  seed = 2581988, ...)
+  n.genes = 1000, batch.config = 1, group.config = 1, pDE = 0.1,
+  cand.DE.genes = NULL, lfc.thrld = 0.5, t.thrld = 2.5,
+  llStat.thrld = 5, tot.samples = 150, model.zero.prob = FALSE,
+  genewiseCor = TRUE, log.CPM.transform = TRUE,
+  lib.size.params = NULL, w = NULL, const = 1,
+  result.format = "SCE", seed = 2581988, verbose = TRUE, ...)
 }
 \arguments{
 \item{n.sim}{an integer for the number of simulations to be generated}
@@ -27,33 +27,44 @@ SPsimSeq(n.sim = 1, s.data, batch = NULL, group = NULL,
 
 \item{group.config}{a numerical vector containing fractions  for the composition of samples/cells per group. Similar definition to 'batch.config'. The number of groups to be simulated is equal to the size of the vector. The fractions must sum to 1.}
 
-\item{lfc.thrld}{a positive numeric value for the minimum absolute log-fold-change for selecting candidate DE genes in the source data (when group is not NULL and pDE>0)}
+\item{pDE}{a numeric value between 0 and 1 indicating the desired fraction of DE genes in the simulated data}
 
-\item{t.thrld}{a positive numeric value for the minimum absolute t-test statistic for the log-fold-changes of genes for selecting candidate DE genes in the source data (when group is not NULL and  pDE>0)}
+\item{cand.DE.genes}{a list object contatining canidiate null and non-null (DE/predictor) genes.
+If NULL (the default), an internal function determines candidate genes based on log-fold-change and other statistics. 
+The user can also pass a list of canidate null and non-null genes (they must be disjoint). In particular, the list should contain
+two character vectors (for the name of the features/genes in the source data) with names 'null.genes' and 'nonnull.genes'.
+For example, cand.DE.genes=list(null.genes=c('A', 'B'), nonnull.genes=c('C', 'D')).}
 
-\item{llStat.thrld}{a positive numeric value for the minimum squared test statistics from the log-linear model to select candidate DE genes in the source data (when group is not NULL and  pDE>0)}
+\item{lfc.thrld}{a positive numeric value for the minimum absolute log-fold-change for selecting 
+candidate DE genes in the source data (when group is not NULL, pDE>0 and cand.DE.genes is NULL)}
+
+\item{t.thrld}{a positive numeric value for the minimum absolute t-test statistic for the 
+log-fold-changes of genes for selecting candidate DE genes in the source data (when group 
+is not NULL, pDE>0 and cand.DE.genes is NULL)}
+
+\item{llStat.thrld}{a positive numeric value for the minimum squared test statistics from 
+the log-linear model to select candidate DE genes in the source data (when group is not NULL, 
+pDE>0 and cand.DE.genes is NULL)}
 
 \item{tot.samples}{a numerical value for the total number of samples/cells to be simulated.}
 
-\item{pDE}{a numeric value between 0 and 1 indicating the desired fraction of DE genes in the simulated data}
-
 \item{model.zero.prob}{a logical value whether to model the zero expression probability separately (suitable for simulating of single-cell RNA-seq data or zero-inflated data)}
 
-\item{const}{a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.}
-
-\item{w}{a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data}
-
-\item{geneTogenesCor}{a logical value, if TRUE (default) the simulation will retain the gene-to-gene correlation structure of the source data using Gausian-copulas . Note that if it is TRUE, the program will be slow or it may fail for a limited memory size.}
+\item{genewiseCor}{a logical value, if TRUE (default) the simulation will retain the gene-to-gene correlation structure of the source data using Gausian-copulas . Note that if it is TRUE, the program will be slow or it may fail for a limited memory size.}
 
 \item{log.CPM.transform}{a logical value. If TRUE, the source data will be transformed into log-(CPM+const) before estimating the probability distributions}
 
 \item{lib.size.params}{NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.}
 
+\item{w}{a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data}
+
+\item{const}{a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.}
+
 \item{result.format}{a character value for the type of format for the output. Choice can be 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count, column information and row information.}
 
-\item{verbose}{a logical value, if TRUE a message about the status of the simulation will be printed on the console}
-
 \item{seed}{an integer between 1 and 1e10 for reproducible simulation. It will be used with #set.seed() function. See also ?set.seed}
+
+\item{verbose}{a logical value, if TRUE a message about the status of the simulation will be printed on the console}
 
 \item{...}{further arguments passed to or from other methods.}
 }
@@ -92,7 +103,7 @@ Also, it is important to filter the source data so that genes with suffient expr
 estimate the probability distributions.
 }
 \examples{
-#\donttest{ 
+ 
 #----------------------------------------------------------------
 # Example 1: simulating bulk RNA-seq
  
@@ -169,8 +180,6 @@ class(sim.data.sc1)
 head(counts(sim.data.sc1)[, seq_len(5)])
 colData(sim.data.sc1)
 rowData(sim.data.sc1)
-
-#}
 
 
 }

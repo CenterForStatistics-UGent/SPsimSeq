@@ -1,0 +1,15 @@
+---
+output: github_document
+---
+
+# 1.0.0
+
+- First private GitHub document
+
+# 2.0.0
+
+ - Major revision including gene/featurewise dependence
+ 
+# 2.0.1
+
+ - Minor revision on documentation and adding new features\dontrun
