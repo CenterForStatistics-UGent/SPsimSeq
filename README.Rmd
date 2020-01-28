@@ -1,5 +1,5 @@
 ---
-title: "SPsimSeq (v2.0.0)"
+title: "SPsimSeq (v2.0.1)"
 output: "github_document"
 ---
 
@@ -24,7 +24,7 @@ sapply(1:length(pkg.depnd), function(i){
     if(pkg.source[i] ==1){
       BiocManager::install(pkg.depnd[i])
     }
-    else(pkg.source[i] ==2){
+    else{
       install.packages(pkg.depnd[i])
     } 
   }

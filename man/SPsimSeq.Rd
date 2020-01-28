@@ -92,7 +92,7 @@ Also, it is important to filter the source data so that genes with suffient expr
 estimate the probability distributions.
 }
 \examples{
-#\donttest{ 
+ 
 #----------------------------------------------------------------
 # Example 1: simulating bulk RNA-seq
  
@@ -169,8 +169,6 @@ class(sim.data.sc1)
 head(counts(sim.data.sc1)[, seq_len(5)])
 colData(sim.data.sc1)
 rowData(sim.data.sc1)
-
-#}
 
 
 }
