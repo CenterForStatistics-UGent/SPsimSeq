@@ -56,7 +56,7 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
       }
       else{as.matrix(NA)}
     })
-    batch.parms <- rbind.fill2(lapply(batch.parms.lst, 
+    batch.parms <- rbind.fill(lapply(batch.parms.lst, 
                                       function(x) as.data.frame(as.list(x)))) 
     if(any(dim(batch.parms)>1)){
       Mu.batch <- colMeans(batch.parms, na.rm = TRUE)
@@ -79,7 +79,7 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
       }) })
     
     batch.parms <- lapply(batch.parms.lst, function(g){
-      rbind.fill2(lapply(g, function(x) as.data.frame(as.list(x))))
+      rbind.fill(lapply(g, function(x) as.data.frame(as.list(x))))
     })
     
     if(!any(sapply(batch.parms, function(x) is.null(unlist(x))))){
