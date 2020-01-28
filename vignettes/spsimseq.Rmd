@@ -1,10 +1,10 @@
 ---
-title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data."
+title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data"
 author: "Alemu Takele Assefa"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
@@ -38,7 +38,7 @@ sapply(1:length(pkg.depnd), function(i){
     if(pkg.source[i] ==1){
       BiocManager::install(pkg.depnd[i])
     }
-    else(pkg.source[i] ==2){
+    else{
       install.packages(pkg.depnd[i])
     } 
   }
@@ -174,9 +174,6 @@ plot(seq(-1, 1, 0.1), seq(-1, 1, 0.1), type="n", xlab="quantile (real data)",
 abline(0, 1, col="gray")
 points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.001)), 
        col="blue", pch=20, cex=1.5, cex.lab=1.25)  
-  
-
-
 ```
 
 
