@@ -21,7 +21,7 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
   if(n.group==1){ 
     if(force.fit.data){
       x[x<min(est.parms$SPsim.dens.hat[[1]]$s)] <- min(est.parms$SPsim.dens.hat[[1]]$s)
-      x[x>max(est.parms$SPsim.dens.hat[[1]]$s)] <- min(est.parms$SPsim.dens.hat[[1]]$s)
+      x[x>max(est.parms$SPsim.dens.hat[[1]]$s)] <- max(est.parms$SPsim.dens.hat[[1]]$s)
     }
     g0 <- dnorm(x, est.parms$SPsim.dens.parms[,"mu.hat"], 
                  est.parms$SPsim.dens.parms[,"sig.hat"])
@@ -32,14 +32,14 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
       x.mat[,k+1] <- x^k
     }
     g1 <- exp(x.mat%*%as.matrix(beta.hat)) 
-    f.hat <- list((g0+1)*g1)
+    f.hat <- list((g0)*g1)
   }else if(n.group>1){
     f.hat <- lapply(seq_len(n.group), function(ii){
       if(force.fit.data){
         x[x<min(est.parms$SPsim.dens.hat[[ii]][[1]]$s)] <- 
           min(est.parms$SPsim.dens.hat[[ii]][[1]]$s)
         x[x>max(est.parms$SPsim.dens.hat[[ii]][[1]]$s)] <- 
-          min(est.parms$SPsim.dens.hat[[ii]][[1]]$s)
+          max(est.parms$SPsim.dens.hat[[ii]][[1]]$s)
       }
       g0 <- dnorm(x, est.parms$SPsim.dens.parms[[ii]][,"mu.hat"], 
                   est.parms$SPsim.dens.parms[[ii]][,"sig.hat"]) 
@@ -58,10 +58,10 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
 }
 
 
-# # Example
+# Example
 # load(".../problemData.RData")
 # mcr_data <- mat
-# mcr_data <- mcr_data[rownames(mcr_data) != "", ] 
+# mcr_data <- mcr_data[rownames(mcr_data) != "", ]
 # 
 # sim.data <- SPsimSeq(n.sim = 1, s.data = mcr_data, batch = NULL, genewiseCor = FALSE,
 #                           group = fac, n.genes = 4900, batch.config = 1,
@@ -84,7 +84,7 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
 # names(cpm.dat.f) <- rownames(cpm.dat)
 # 
 # select.genes <- sample(rownames(cpm.dat), 20)
-# win.graph()
+# #win.graph()
 # par(mfrow=c(4, 5))
 # for(i in select.genes){
 #   if(length(cpm.dat.f[[i]])==1){
