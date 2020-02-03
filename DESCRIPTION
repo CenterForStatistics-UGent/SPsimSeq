@@ -33,10 +33,10 @@ Imports:
          graphics,  
          edgeR,
          Hmisc,
-         WGCNA,
+         WGCNA, 
          limma, 
          mvtnorm,
-         plyr
+         plyr 
 biocViews: GeneExpression, RNASeq, SingleCell, Sequencing, DNASeq
 RoxygenNote: 6.1.1
 Suggests:  
