@@ -310,7 +310,7 @@ length(null.genes0),
 
   #Prepare output
   colData = data.frame("Batch" = do.call("c",sapply(seq_along(n.batch), function(i) rep(i, n.batch[i]))),
-                    "Group"  = do.call("c",(sapply(seq_along(n.group), function(i) rep(i, n.group[i]))),
+                    "Group"  = do.call("c",(sapply(seq_along(n.group), function(i) rep(i, n.group[i])))),
                     "sim.Lib.Size" = do.call("c", do.call("c", LL)))
   rowData = list("null.genes" = null.genes0, "nonnull.genes" = nonnull.genes0)
   overall.out = list("counts" = sim.data.list,
