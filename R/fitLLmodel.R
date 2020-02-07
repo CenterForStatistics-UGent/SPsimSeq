@@ -4,77 +4,43 @@
 # @param  ... further arguments passed to or from other methods.
 # 
 # @return a list object contating the fitted log linear model
-# @examples 
-# # 
 # @importFrom stats glm pnorm coef vcov
-
 fitLLmodel <- function(yy, ...){
   Ny=yy$Ny
   x=yy$S
   ny=sum(Ny)
   g0= suppressWarnings(pnorm(yy$uls, yy$mu.hat, yy$sig.hat)) - 
     suppressWarnings(pnorm(yy$lls, yy$mu.hat, yy$sig.hat))
-  ofs=1 
-  # llm <- try(glm(Ny~I(x)+I(x^2)+I(x^3)+I(x^4), family = "poisson", offset = log(g0*ny+ofs)), 
-  #            silent = TRUE)
-  # if(class(llm)[1] != "try-error"){
-  #   if(llm$rank != ncol(llm$R)){ 
-  #     llm <- try(glm(Ny~I(x)+I(x^2)+I(x^3), family = "poisson", offset = log(g0*ny+ofs)), 
-  #                silent = TRUE)
-  #     if(class(llm)[1] != "try-error" &  (llm$rank != ncol(llm$R))){
-  #       llm <- try(glm(Ny~I(x)+I(x^2), family = "poisson", offset = log(g0*ny+ofs)), silent = TRUE)
-  #       if(class(llm)[1] != "try-error" &  llm$rank != ncol(llm$R)){
-  #         llm <- try(glm(Ny~I(x), family = "poisson", offset = log(g0*ny+ofs)), silent = TRUE)
-  #       }
-  #       else{
-  #         llm <- NULL
-  #       }
-  #     } 
-  #   }
-  # } 
-  # else{
-  #   llm <- NULL
-  # # }  
-  # Ny <- rpois(3, 5)
-  # x <- 1:3
-  # ny=20
-  # g0 <- rep(1, 3)
-  # ofs=1 
-  
-  trm <- tryCatch(llm <- glm(Ny~I(x)+I(x^2)+I(x^3)+I(x^4), family = "poisson", offset = log(g0*ny+ofs)), 
-             error=function(e){}, warning=function(w){}) 
-  if(is.null(trm)){
-    trm <- tryCatch(llm <- glm(Ny~I(x)+I(x^2)+I(x^3), family = "poisson", offset = log(g0*ny+ofs)),
-                    error=function(e){}, warning=function(w){})
-    if(is.null(trm)){
-      trm <- tryCatch(llm <- glm(Ny~I(x)+I(x^2), family = "poisson", offset = log(g0*ny+ofs)),
-                      error=function(e){}, warning=function(w){})
-      if(is.null(trm)){
-        trm <- tryCatch(llm <- suppressWarnings(glm(Ny~I(x), family = "poisson", 
-                                             offset = log(g0*ny+ofs))),
-                        error=function(e){})
-        if(is.null(trm)){
-          llm <- NULL
-        } 
-      } 
-    }
-  }else if(llm$rank != ncol(llm$R)){
-    llm <- suppressWarnings(glm(Ny~I(x)+I(x^2)+I(x^3), family = "poisson", offset = log(g0*ny+ofs)))
-    if(llm$rank != ncol(llm$R)){
-      llm <- suppressWarnings(glm(Ny~I(x)+I(x^2), family = "poisson", offset = log(g0*ny+ofs)))
-      if(llm$rank != ncol(llm$R)){
-        llm <- suppressWarnings(glm(Ny~I(x), family = "poisson", offset = log(g0*ny+ofs)))
-      }
-    }
+  ofs = log(g0*ny+1)
+  llm = NULL
+  degree = 4
+  while(is.null(llm) && (degree >= 1)){
+  llm <- tryCatch(fitPoisGlm(Ny, x, degree, offset = ofs), 
+                  error=function(e){}, warning=function(w){}) 
+  if(!is.null(llm) && llm$rank != ncol(llm$R)){
+    llm = NULL
   }
-  
-  
+  degree = degree - 1
+  }
   if(!is.null(llm)){
-    parm.list=list(betas=coef(llm), v=vcov(llm), mu.hat=yy$mu.hat, sig.hat=yy$sig.hat)
+    class(llm) = "glm"
+    parm.list=list(betas=coef(llm), v=vcov(llm), 
+                   mu.hat=yy$mu.hat, sig.hat=yy$sig.hat)
   }
   else{
     parm.list=list(betas=NULL, v=NULL, mu.hat=yy$mu.hat, sig.hat=yy$sig.hat)
   }
-  
   list(yy=yy, llm=llm, parm.list=parm.list)
+}
+#' Fast fit Poisson regression
+#'
+#' @param Ny vector of counts
+#' @param x regressor
+#' @param degree degree of the polynomial
+#' @param offset offset
+#' @importFrom stats glm.fit poisson
+#' @return see glm.fit
+fitPoisGlm = function(Ny, x, degree, offset){
+  desMat = buildXmat(x, degree+1)
+  glm.fit(y = Ny, x = desMat, family = poisson(), offset = offset)
 }
