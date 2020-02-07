@@ -3,10 +3,10 @@ obtParSample <- function(est.list.i, DE.ind.ii, n.batch, group){
   if(DE.ind.ii==0){
     if(length(n.batch)>1){   
       par.sample <- as.matrix(do.call("rbind.fill", lapply(est.list.i$batch.est, function(bt){
-        v.mat     <- bt$parm.list$v
-        betas.vec <- bt$parm.list$betas 
+        v.mat     <- bt$v
+        betas.vec <- bt$betas 
         data.frame(t(as.matrix(c(mvrnorm(n = 1, mu= betas.vec, Sigma = v.mat), 
-                                 mu.hat=bt$parm.list$mu.hat, sig.hat=bt$parm.list$sig.hat))))
+                                 mu.hat=bt$mu.hat, sig.hat=bt$sig.hat))))
       }))) 
     }
     else if(length(n.batch)==1){
@@ -19,10 +19,10 @@ obtParSample <- function(est.list.i, DE.ind.ii, n.batch, group){
         par.sample.g <- as.matrix(do.call("rbind.fill", 
                                           lapply(est.list.i$batch.est[[g]], function(bt){ 
                                             data.frame(t(as.matrix(c(mvrnorm(n = 1, 
-                                                                             mu= bt$parm.list$betas, 
-                                                                             Sigma = bt$parm.list$v), 
-                                                                     mu.hat=bt$parm.list$mu.hat,
-                                                                     sig.hat=bt$parm.list$sig.hat)))) 
+                                                                             mu= bt$betas, 
+                                                                             Sigma = bt$v), 
+                                                                     mu.hat=bt$mu.hat,
+                                                                     sig.hat=bt$sig.hat)))) 
                                           })))
         
         par.sample.g 

@@ -240,15 +240,29 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
   if(model.zero.prob){
     if(verbose) {message("Fitting zero probability model ...")}
     fracZero.logit.list <- fracZeroLogitModel(s.data = s.data, batch = batch, 
-                            sub.batchs=sub.batchs, cpm.data = cpm.data, const = const, ...)
-  }else{
+                            sub.batchs = sub.batchs, cpm.data = cpm.data, 
+                            const = const, ...)
+  } else {
     fracZero.logit.list <- NULL
   }
- 
   # candidate genes
   if(verbose) {message("Selecting genes ...")}
   null.genes0     <- prepare.S.Data$cand.DE.genes$null.genes
   nonnull.genes0  <- prepare.S.Data$cand.DE.genes$nonnull.genes
+  if((1-pDE)*n.genes > length(null.genes0)){
+  message("Note: The number of null genes (not DE) in the source data is ", 
+length(null.genes0),
+" and the number of null genes required to be included in the simulated data is "
+, round((1-pDE)*(n.genes)), 
+". Therefore, candidiate null genes are sampled with replacement.")
+  }
+  if(pDE*n.genes > length(nonnull.genes0)){
+  message("Note: The number of DE genes detected in the source data is ", 
+          length(nonnull.genes0), 
+          " and the number of DE genes required to be included in the simulated data is ", 
+          round(pDE*n.genes), 
+          ". Therefore, candidiate DE genes are sampled with replacement.")
+  }
   
   if(pDE>0 & !is.null(group) & length(nonnull.genes0)==0){
     warning("No gene met the criterial to be a candidiate DE gene. Perhaps consider 
@@ -261,7 +275,14 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
   copulas.batch <- obtCopulasBatch(genewiseCor = genewiseCor, cpm.data = cpm.data,
                                    batch = batch, n.batch = n.batch)
   
-  
+  # estimate batch specific parameters
+  if(verbose) {message("Estimating densities ...")}
+  est.list <- setNames(lapply(c(null.genes0, nonnull.genes0), function(gene){
+    gene.parm.est(cpm.data.i = cpm.data[gene, ], batch = batch, group = group, 
+                  null.group = null.group, sub.batchs = sub.batchs, 
+                  de.ind = gene %in% nonnull.genes0, 
+                  model.zero.prob = model.zero.prob, min.val = min.val, w=w, ...)
+  }), c(null.genes0, nonnull.genes0))
   # simulation step
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
@@ -269,32 +290,30 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
     # sample DE and null genes 
     selctGenes <- selectGenesSim(pDE = pDE, group = group, n.genes = n.genes, 
                                  null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0, 
-                                 group.config = group.config, h=h)
-    DE.ind <- selctGenes$DE.ind
-    sel.genes <- selctGenes$sel.genes
-    
-    
-    # estimate batch specific parameters
-    est.list <- lapply(sel.genes, function(ii){
-      #print(i)
-      gene.parm.est(cpm.data.i = cpm.data[ii, ], batch = batch, group = group, 
-                    null.group = null.group, sub.batchs = sub.batchs, de.ind = DE.ind[ii], 
-                    model.zero.prob = model.zero.prob, min.val = min.val, w=w, ...)
-    })
-    
-    sim.list <- lapply(seq_len(length(sel.genes)), function(ii){
-      #print(ii)
-      SPsimPerGene(cpm.data = cpm.data, est.list.ii = est.list[[ii]], DE.ind.ii = DE.ind[ii], 
+                                 group.config = group.config)
+    #Generate data
+    sim.dat <- t(sapply(selctGenes, function(gene){
+      SPsimPerGene(cpm.data = cpm.data, est.list.ii = est.list[[gene]], 
+                   DE.ind.ii = gene %in% nonnull.genes0, sel.genes.ii = gene,  
                    n.batch = n.batch, n.group = n.group, group = group, batch=batch, 
-                   sel.genes.ii = sel.genes[ii],  log.CPM.transform = log.CPM.transform, 
+                   log.CPM.transform = log.CPM.transform, 
                    null.group=null.group, LL=LL, copulas.batch=copulas.batch,
                    const = const, min.val = min.val, model.zero.prob=model.zero.prob, 
                    tot.samples=tot.samples, fracZero.logit.list = fracZero.logit.list)
-    })  
-    sim.data.h <- prepareSPsimOutputs(sim.list=sim.list, n.batch=n.batch, n.group=n.group, 
-                        config.mat=config.mat, LL=LL, DE.ind=DE.ind, sel.genes=sel.genes,
-                        result.format=result.format)
-    sim.data.h
+    }))
+    # sim.data.h <- prepareSPsimOutputs(sim.list=sim.list, n.batch=n.batch, n.group=n.group, 
+    #                     config.mat=config.mat, LL=LL, DE.ind=DE.ind, sel.genes=sel.genes,
+    #                     result.format=result.format)
+    colnames(sim.dat) = paste0("Sample_", seq_len(ncol(sim.dat)))
+    return(sim.dat)
   })
-  sim.data.list
+  
+  #Prepare output
+  colData = data.frame("Batch" = batch, "Group"  = group)
+  rowData = list("null.genes" = null.genes0, "nonnull.genes" = nonnull.genes0)
+  overall.out = list("counts" = sim.data.list, 
+                     "colData" = colData, "rowData" = rowData, 
+                     "copulas" = copulas.batch,
+                     "SPsim.est.densities" = est.list)
+  return(overall.out)
 }

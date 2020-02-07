@@ -15,7 +15,6 @@
 # @examples
 #  # example 
 # @importFrom fitdistrplus fitdist
-
 prepareSourceData <- function(s.data, batch, group, cand.DE.genes,  
                               exprmt.design, simCtr, lfc.thrld, llStat.thrld,
                               const, w, log.CPM.transform, lib.size.params, ...){

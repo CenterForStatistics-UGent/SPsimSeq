@@ -26,8 +26,6 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
                              max.frac.zeror.diff=Inf, const, w, ...){
   n.cells   <- table(X)
   sim.group <- length(n.cells)
-   
-
   # calculate fold-changes
   m.diff  <- as.data.frame(t(apply(cpm.data, 1, function(y){ 
     l.mod  <- lm(y~X)
@@ -62,17 +60,12 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
         sig.hat<- sd(Y[[l]]) 
         (pnorm(uls[[l]], mu.hat, sig.hat)-pnorm(lls[[l]], mu.hat, sig.hat))*N[[l]]
       })
-      
       Xy <- lapply(seq_len(length(Y)), function(l) rep(l-1, length(ss[[l]])))
-      
       ofs <- 1
-      
       Ny <- do.call('c', Ny)
       gg0<- do.call('c', gg0)
       ss <- do.call('c', ss)
       Xy <- do.call('c', Xy)
-      
-      
       
       l.mod.x <- tryCatch(glm(Ny~I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy), 
                               family = "poisson", offset = log(gg0+ofs)),
@@ -91,10 +84,7 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
           } 
         } 
       } 
-      
       if(!is.null(l.mod.x)){
-        #coef.X <- coef(l.mod.x)[grep("Xy", names(coef(l.mod.x)))]
-        #sum.square.coef.X <- sum(coef.X^2, na.rm = TRUE)
         if(l.mod.x$rank == ncol(l.mod.x$R)){
           Z.X <- summary(l.mod.x)$coefficients[, 3]
           Z.X <- Z.X[names(Z.X) %in% c("I(Xy)", "I(ss * Xy)", "I((ss^2) * Xy)")]
@@ -114,15 +104,11 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
     warning("Unable to find candidate non-null genes with. Consider to lower the fold-change threshold or llStat threshold.")
   }
   
-
   compr.stat2  <- compr.stat[nonnull.genes0, ]
   compr.stat2$statLL <- statLLmodel[rownames(compr.stat2)]
-  top.genes0 <- nonnull.genes0[statLLmodel>=llStat.thrld]
-
-  nonnull.genes <- top.genes0
-  null.genes    <- c(null.genes0, nonnull.genes0[!(nonnull.genes0 %in% top.genes0)])
+  nonnull.genes <- nonnull.genes0[statLLmodel>=llStat.thrld]
+  null.genes    <- c(null.genes0, setdiff(nonnull.genes0, nonnull.genes))
   sel.genes <- list(null.genes=unique(null.genes) , nonnull.genes=nonnull.genes,
                     statLLmodel=statLLmodel, compr.stat=compr.stat2)
   sel.genes
-
 }
