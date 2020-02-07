@@ -3,17 +3,15 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
                           sub.batchs, de.ind, model.zero.prob,
                           min.val, w,...){
   batch.est <- lapply(sub.batchs, function(b){ 
-    #print(b)
     if(de.ind==0){
       Y0 <- cpm.data.i[(batch==b & group==null.group)] 
-      if(model.zero.prob & mean(Y0==min.val)>0.25) Y <- Y0[Y0>min.val]
-      else Y <- Y0
-      
-      if(sum(Y>min.val)>3){
+      Y = if(model.zero.prob & mean(Y0==min.val)>0.25){
+        Y0[Y0>min.val]
+        } else Y0
+    if(sum(Y>min.val)>3){
         countY   <- obtCount(Y=Y, w=w)
-        # plot(countY$S, countY$Ny, type="b") 
         parm.est <- fitLLmodel(countY)
-        if(!is.null(parm.est$parm.list$betas) & length(countY$S)>=3){
+        if(!is.null(parm.est$betas) & length(countY$S)>=3){
           parm.est
         } 
         else{NULL}  
@@ -22,9 +20,6 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
     }
     else{
       Y0 <- split(cpm.data.i[batch==b], group[batch==b])
-      #Y0 <- lapply(sort(unique(group)), function(g) cpm.data[i, batch==b & group==g])
-      #names(Y0) <-  paste0("grp_", sort(unique(group)))
-      
       Y <- lapply(Y0, function(y0){
         if(model.zero.prob & mean(y0==min.val)>0.25) {y0[y0>min.val]}
         else {y0}
@@ -35,7 +30,7 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
           fitLLmodel(g, ...)
         })
         
-        cond1 = all(sapply(parm.est, function(x) !is.null(x$parm.list$betas)))
+        cond1 = all(sapply(parm.est, function(x) !is.null(x$betas)))
         cond2 = all(sapply(countY, function(x) length(x$S)>=3))
         if(cond1 & cond2){  
           parm.est
@@ -43,16 +38,14 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
         else{NULL}
       } 
       else{NULL}
-      # plot(countY$`1`$S, countY$`1`$Ny, type="l", xlim=range(cpm.data[i, batch==b])) 
-      # lines(countY$`2`$S, countY$`2`$Ny, col=2)    
     }
   }) 
   
   if(de.ind==0){
     batch.parms.lst <- lapply(batch.est, function(b){ 
       if(!is.null(b)){
-        c(b$parm.list$betas,  mu.hat=b$parm.list$mu.hat,  sig.hat=b$parm.list$sig.hat)
-        #b$parm.list$betas
+        c(b$betas,  mu.hat=b$mu.hat,  sig.hat=b$sig.hat)
+        #b$betas
       }
       else{as.matrix(NA)}
     })
@@ -72,8 +65,8 @@ gene.parm.est <- function(cpm.data.i, batch, group, null.group,
       b <- lapply(batch.est, function(x) x[[g]])
       b <- lapply(b, function(bb){
         if(!is.null(bb)){
-          c(bb$parm.list$betas, mu.hat=bb$parm.list$mu.hat, sig.hat=bb$parm.list$sig.hat)
-          #bb$parm.list$betas
+          c(bb$betas, mu.hat=bb$mu.hat, sig.hat=bb$sig.hat)
+          #bb$betas
         }
         else{NULL}
       }) })
