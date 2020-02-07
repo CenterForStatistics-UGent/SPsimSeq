@@ -3,8 +3,8 @@ SPsimPerGene <- function(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, bat
                          sel.genes.ii, log.CPM.transform, const, min.val, null.group, LL,
                          copulas.batch, tot.samples, model.zero.prob, fracZero.logit.list){
   if(!is.null(est.list.ii) & !any(sapply(est.list.ii$batch.est, is.null))){
-    # estimate batch specific parameters
-    par.sample <- obtParSample(est.list.i = est.list.ii,  DE.ind.ii = DE.ind.ii, 
+    # get batch specific parameters
+    par.sample <- obtParSample(est.list.i = est.list.ii, DE.ind.ii = DE.ind.ii, 
                                n.batch = n.batch, group = group)
     
     # estimate carrier density (g0)
@@ -28,12 +28,9 @@ SPsimPerGene <- function(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, bat
     }else{
       names(g1) <- names(g0) <- names(par.sample) <- paste0("group_", null.group)
     }
-    
-    list(Y.star = Y.star, SPsim.dens.hat=g1, norm.carrier.dens=g0, 
-         SPsim.dens.parms=par.sample, zero.prob.params=fracZero.logit.list)
+     return(Y.star)
   }
   else{ #print(i) 
-    list(Y.star = rep(0, tot.samples), SPsim.dens.hat=NA, 
-         norm.carrier.dens=NA, SPsim.dens.parms=NA, zero.prob.params=NA)
+   return(rep(0, tot.samples))
   }
 }

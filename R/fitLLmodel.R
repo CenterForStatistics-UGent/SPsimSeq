@@ -24,13 +24,13 @@ fitLLmodel <- function(yy, ...){
   }
   if(!is.null(llm)){
     class(llm) = "glm"
-    parm.list=list(betas=coef(llm), v=vcov(llm), 
-                   mu.hat=yy$mu.hat, sig.hat=yy$sig.hat)
+    betas=coef(llm)
+    v=vcov(llm)
   }
   else{
-    parm.list=list(betas=NULL, v=NULL, mu.hat=yy$mu.hat, sig.hat=yy$sig.hat)
+    betas= v=NULL
   }
-  list(yy=yy, llm=llm, parm.list=parm.list)
+  return(c(yy, list(betas = betas, v = v)))
 }
 #' Fast fit Poisson regression
 #'

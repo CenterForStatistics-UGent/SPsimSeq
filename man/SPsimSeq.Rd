@@ -135,10 +135,10 @@ sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2, batch = NULL,
                           pDE = 0.1, lfc.thrld = 0.5, 
                           result.format = "list",  seed = 2581988)
 
-sim.data.bulk1 <- sim.data.bulk[[1]]                              
-head(sim.data.bulk1$counts[, seq_len(5)])  # count data
-head(sim.data.bulk1$colData)        # sample info
-head(sim.data.bulk1$rowData)        # gene info
+                            
+head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
+head(sim.data.bulk$colData)        # sample info
+head(sim.data.bulk$rowData)        # gene info
 
 
 #----------------------------------------------------------------
@@ -168,17 +168,17 @@ set.seed(654321)
 scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 2000), ]
 
 # simulate data (we simulate here only a single data, n.sim = 1)
-sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
-                        group = treatment, n.genes = 2000, batch.config = 1,
-                        group.config = c(0.5, 0.5), tot.samples = 100, 
-                        pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
-                        result.format = "SCE",  seed = 2581988)
+#sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
+ #                       group = treatment, n.genes = 2000, batch.config = 1,
+  #                      group.config = c(0.5, 0.5), tot.samples = 100, 
+   #                     pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+    #                    result.format = "SCE",  seed = 2581988)
 
-sim.data.sc1 <- sim.data.sc[[1]]
-class(sim.data.sc1)
-head(counts(sim.data.sc1)[, seq_len(5)])
-colData(sim.data.sc1)
-rowData(sim.data.sc1)
+#sim.data.sc1 <- sim.data.sc[[1]]
+#class(sim.data.sc1)
+#head(counts(sim.data.sc1)[, seq_len(5)])
+#colData(sim.data.sc1)
+#rowData(sim.data.sc1)
 
 
 }
