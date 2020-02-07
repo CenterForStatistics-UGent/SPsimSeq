@@ -154,7 +154,6 @@ head(sim.data.bulk1$rowData)        # gene info
 #' # - we model the zeroes separately (model.zero.prob = TRUE)
 # - the ouput will be in SingleCellExperiment class object (result.format = "SCE")
 
-
 library(SingleCellExperiment)
 
 # load the NGP nutlin data (availabl with the package, processed with 
