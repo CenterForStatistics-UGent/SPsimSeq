@@ -4,8 +4,6 @@
 # @param  ... further arguments passed to or from other methods.
 # 
 # @return a list object contating the fitted log linear model
-# @examples 
-# # 
 # @importFrom stats glm pnorm coef vcov
 fitLLmodel <- function(yy, ...){
   Ny=yy$Ny
@@ -25,7 +23,8 @@ fitLLmodel <- function(yy, ...){
   degree = degree - 1
   }
   if(!is.null(llm)){
-    parm.list=list(betas=coef(llm), v=stats:::vcov.glm(llm), 
+    class(llm) = "glm"
+    parm.list=list(betas=coef(llm), v=vcov(llm), 
                    mu.hat=yy$mu.hat, sig.hat=yy$sig.hat)
   }
   else{
@@ -39,7 +38,7 @@ fitLLmodel <- function(yy, ...){
 #' @param x regressor
 #' @param degree degree of the polynomial
 #' @param offset offset
-#'
+#' @importFrom stats glm.fit poisson
 #' @return see glm.fit
 fitPoisGlm = function(Ny, x, degree, offset){
   desMat = buildXmat(x, degree+1)
