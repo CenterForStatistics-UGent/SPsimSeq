@@ -86,11 +86,9 @@ library(SPsimSeq)
                           group.config = c(0.5, 0.5), tot.samples = 172, 
                           pDE = 0.1, lfc.thrld = 0.5, 
                           result.format = "list",  seed = 2581988)
-                               
- sim.data.bulk1 <- sim.data.bulk[[1]]                              
- head(sim.data.bulk1$counts[, 1:5])  # count data
- head(sim.data.bulk1$colData)        # sample info
- head(sim.data.bulk1$rowData)        # gene info
+ head(sim.data.bulk$counts[[1]][, 1:5])  # count data
+ head(sim.data.bulk$colData)        # sample info
+ head(sim.data.bulk$rowData)        # gene info
  
  
 # compare the distributions of the mean expressions, variability, 
@@ -100,7 +98,7 @@ library(SPsimSeq)
  
 # normalize counts for comparison  
 Y0.log.cpm <- log2(edgeR::cpm(zhang.counts2)+1)
-Y1.log.cpm <- log2(edgeR::cpm(sim.data.bulk1$counts)+1)
+Y1.log.cpm <- log2(edgeR::cpm(sim.data.bulk$counts[[1]])+1)
 Y0.log.cpm <- Y0.log.cpm[rowMeans(Y0.log.cpm>0)>=0.1, ]
 Y1.log.cpm <- Y1.log.cpm[rowMeans(Y1.log.cpm>0)>=0.1, ]
  
@@ -111,7 +109,7 @@ rowCVs <- function(X){apply(X, 1, function(x) sd(x, na.rm=TRUE)/mean(x, na.rm=TR
  
 par(mfrow=c(1, 3))
 boxplot(list(real.data=log(colSums(zhang.counts2)), 
-             simulated.data=log(sim.data.bulk1$colData$sim.Lib.Size)), 
+             simulated.data=log(sim.data.bulk$colData$sim.Lib.Size)), 
         main="library size") 
 boxplot(list(real.data=rowMeans(Y0.log.cpm), 
              simulated.data=rowMeans(Y1.log.cpm)), 
@@ -180,7 +178,7 @@ points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.
 ## Example 2: simulating single-cell RNA-seq (containing read-counts)
 **Neuroblastoma NGP cells scRNA-seq data (NGP data)** retrieved from [@Verboom430090] (GEO accession GSE119984): This dataset is generated for a cellular perturbation experiment on the C1 instrument (SMARTer protocol) [@Verboom430090]. This total RNA-seq dataset contains 83 NGP neuroblastoma cells, of which 31 were treated with 8$\mu$M of nutlin-3 and the other 52 cells were treated with vehicle (controls). In the subsequent sections, this dataset is referred to us the NGP single-cell RNA-seq data.
 
-```{r, eval=TRUE, warning=FALSE, fig.width=12, fig.height=5}
+```{r, eval=FALSE, warning=FALSE, fig.width=12, fig.height=5}
 # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
  # - 5000 genes (n.genes = 5000) 
  # - 100 cells (tot.samples = 100) 
