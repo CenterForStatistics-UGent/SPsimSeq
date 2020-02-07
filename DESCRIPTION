@@ -13,7 +13,11 @@ Authors@R:
     person(given = "Joris",
            family = "Meys",
            role = c("cre"),
-           email = "Joris.Meys@ugent.be"))
+           email = "Joris.Meys@ugent.be"),
+    person(given = "Stijn",
+           family = "Hawinkel",
+           role = c("aut"),
+           email = "stijnhawinkel@hotmail.com"))
 Description:  SPsimSeq uses a specially designed exponential family for density estimation 
               to constructs the distribution of gene expression levels from a given real 
               RNA sequencing data (single-cell or bulk), and subsequently, simulates a new 

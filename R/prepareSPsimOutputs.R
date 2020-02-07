@@ -6,9 +6,7 @@ prepareSPsimOutputs <- function(sim.list, n.batch, n.group, config.mat, LL, DE.i
   rownames(sim.count) <- paste0("Gene_", seq_len(nrow(sim.count)))
   colnames(sim.count) <- paste0("Sample_", seq_len(ncol(sim.count)))
   
-  col.data <- data.frame(Batch=rep(rep(seq_len(length(n.batch)), times=length(n.group)), config.mat),
-                         Group=rep(rep(seq_len(length(n.group)), each=length(n.batch)), config.mat), 
-                         sim.Lib.Size=do.call("c", do.call("c", LL)), row.names = colnames(sim.count))
+  sim.Lib.Size=do.call("c", do.call("c", LL))
   row.data <- data.frame(DE.ind=DE.ind, source.ID=sel.genes, row.names = rownames(sim.count))
   
   SPsim.est.densities <- lapply(seq_len(length(sim.list)), function(ii){ 
