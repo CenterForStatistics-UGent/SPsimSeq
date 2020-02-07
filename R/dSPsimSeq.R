@@ -27,10 +27,7 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
                  est.parms$SPsim.dens.parms[,"sig.hat"])
     beta.hat <- est.parms$SPsim.dens.parms[, !(colnames(est.parms$SPsim.dens.parms) %in% 
                                                  c("mu.hat", "sig.hat"))]
-    x.mat <- matrix(NA, nrow = length(x), ncol = length(beta.hat))
-    for(k in 0:(length(beta.hat)-1)){
-      x.mat[,k+1] <- x^k
-    }
+    x.mat <- buildXmat(x, nc = length(beta.hat))
     g1 <- exp(x.mat%*%as.matrix(beta.hat)) 
     f.hat <- list((g0)*g1)
   }else if(n.group>1){
@@ -45,10 +42,7 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
                   est.parms$SPsim.dens.parms[[ii]][,"sig.hat"]) 
       beta.hat <- est.parms$SPsim.dens.parms[[ii]][, 
                       !(colnames(est.parms$SPsim.dens.parms[[ii]]) %in% c("mu.hat", "sig.hat"))]
-      x.mat <- matrix(NA, nrow = length(x), ncol = length(beta.hat))
-      for(k in 0:(length(beta.hat)-1)){
-        x.mat[,k+1] <- x^k
-      }
+      x.mat <- buildXmat(x, nc = length(beta.hat))
       g1 <- exp(x.mat%*%as.matrix(beta.hat))
       g0*g1 
     })
@@ -56,8 +50,6 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
   }
   f.hat
 }
-
-
 # Example
 # load(".../problemData.RData")
 # mcr_data <- mat
