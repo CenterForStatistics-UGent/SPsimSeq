@@ -26,11 +26,13 @@
 #' @param model.zero.prob a logical value whether to model the zero expression probability separately (suitable for simulating of single-cell RNA-seq data or zero-inflated data)
 #' @param tot.samples a numerical value for the total number of samples/cells to be simulated.
 #' @param result.format a character value for the type of format for the output. Choice can be 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count, column information and row information.
+#' @param return.details a logical value. If TRUE, detailed results including estimated parameters and densities will be returned
 #' @param genewiseCor a logical value, if TRUE (default) the simulation will retain the gene-to-gene correlation structure of the source data using Gausian-copulas . Note that if it is TRUE, the program will be slow or it may fail for a limited memory size.
 #' @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
 #' @param const a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
 #' @param log.CPM.transform a logical value. If TRUE, the source data will be transformed into log-(CPM+const) before estimating the probability distributions
 #' @param lib.size.params NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.
+#' @param variale.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
 #' @param seed an integer between 1 and 1e10 for reproducible simulation. It will be used with #set.seed() function. See also ?set.seed
 #' @param verbose a logical value, if TRUE a message about the status of the simulation will be printed on the console
 #' @param  ... further arguments passed to or from other methods.
@@ -171,8 +173,9 @@
 SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batch.config= 1,
                      group.config=1, pDE=0.1, cand.DE.genes=NULL, lfc.thrld=0.5, t.thrld=2.5,
                      llStat.thrld=5, tot.samples=150, model.zero.prob=FALSE, genewiseCor=TRUE,
-                     log.CPM.transform=TRUE, lib.size.params=NULL, w=NULL, const=1,
-                     result.format="SCE", seed=2581988, verbose=TRUE, ...)
+                     log.CPM.transform=TRUE, lib.size.params=NULL, variale.lib.size=FALSE,
+                     w=NULL, const=1, result.format="SCE", return.details=FALSE, 
+                     seed=2581988, verbose=TRUE, ...)
 {
   # Quick checks for error in the inputs
   checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch,
@@ -220,14 +223,11 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
   prepare.S.Data <- prepareSourceData(s.data=s.data, batch = batch, group = group,
                     exprmt.design=exprmt.design, const=const, lfc.thrld=lfc.thrld, t.thrld=t.thrld,
                     cand.DE.genes=cand.DE.genes, llStat.thrld=llStat.thrld,  simCtr=NULL, w=w,
-                    log.CPM.transform=log.CPM.transform, lib.size.params=lib.size.params, ...)
-  LL         <- prepare.S.Data$LL
+                    log.CPM.transform=log.CPM.transform,  ...)
   cpm.data   <- prepare.S.Data$cpm.data
   sub.batchs <- prepare.S.Data$sub.batchs
-
   if(is.null(group)) group <- rep(1, ncol(s.data))
   if(is.null(batch)) batch <- rep(1, ncol(s.data))
-
   if(const>0){
     min.val <- log(const)
   }else{
@@ -235,7 +235,19 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
     min.val <- 0
     warning("The constant 'const' is not positive! The default value 'const=1' is used instead.")
   }
+  
+  
+  # Simulate expected library sizes
+  if(!variale.lib.size & log.CPM.transform){
+    if(verbose){message("Simulating expected library sizes ...")}
+    ELS <- simLibSize(sub.batchs=sub.batchs, LS=obtLibSizes(s.data), 
+                      lib.size.params = lib.size.params, n.batch=n.batch, 
+                      batch = batch, n.group = n.group, config.mat = config.mat, ...)
+  }else if(!variale.lib.size & !log.CPM.transform){
+    ELS <- 1
+  }
 
+  
   # fit logistic regression for the probability of zeros
   if(model.zero.prob){
     if(verbose) {message("Fitting zero probability model ...")}
@@ -251,10 +263,10 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
   nonnull.genes0  <- prepare.S.Data$cand.DE.genes$nonnull.genes
   if((1-pDE)*n.genes > length(null.genes0)){
   message("Note: The number of null genes (not DE) in the source data is ",
-length(null.genes0),
-" and the number of null genes required to be included in the simulated data is "
-, round((1-pDE)*(n.genes)),
-". Therefore, candidiate null genes are sampled with replacement.")
+  length(null.genes0),
+  " and the number of null genes required to be included in the simulated data is ", 
+  round((1-pDE)*(n.genes)),
+  ". Therefore, candidiate null genes are sampled with replacement.")
   }
   if(pDE*n.genes > length(nonnull.genes0)){
   message("Note: The number of DE genes detected in the source data is ",
@@ -287,6 +299,14 @@ length(null.genes0),
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
     if(verbose) {message(" ...", h, " of ", n.sim)}
+    if(variale.lib.size & log.CPM.transform){
+      ELS <- simLibSize(sub.batchs=sub.batchs, LS=obtLibSizes(s.data), 
+                        lib.size.params = lib.size.params, n.batch=n.batch, 
+                        batch = batch, n.group = n.group, config.mat = config.mat, ...)
+    }else if(variale.lib.size & !log.CPM.transform){
+      ELS <- 1
+    }
+    
     # sample DE and null genes
     selctGenes <- selectGenesSim(pDE = pDE, group = group, n.genes = n.genes,
                                  null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0,
@@ -297,25 +317,37 @@ length(null.genes0),
                    DE.ind.ii = gene %in% nonnull.genes0, sel.genes.ii = gene,
                    n.batch = n.batch, n.group = n.group, group = group, batch=batch,
                    log.CPM.transform = log.CPM.transform,
-                   null.group=null.group, LL=LL, copulas.batch=copulas.batch,
+                   null.group=null.group, LL=ELS, copulas.batch=copulas.batch,
                    const = const, min.val = min.val, model.zero.prob=model.zero.prob,
                    tot.samples=tot.samples, fracZero.logit.list = fracZero.logit.list)
     }))
-    # sim.data.h <- prepareSPsimOutputs(sim.list=sim.list, n.batch=n.batch, n.group=n.group,
-    #                     config.mat=config.mat, LL=LL, DE.ind=DE.ind, sel.genes=sel.genes,
-    #                     result.format=result.format)
-    colnames(sim.dat) = paste0("Sample_", seq_len(ncol(sim.dat)))
-    return(sim.dat)
+    sim.data.h <- prepareSPsimOutputs(sim.dat=sim.dat, n.batch=n.batch, n.group=n.group,
+                        DE.ind=as.numeric(selctGenes %in% nonnull.genes0), 
+                        sel.genes=selctGenes, config.mat=config.mat, LL=ELS, 
+                        result.format=result.format, log.CPM.transform=log.CPM.transform)
+    return(sim.data.h)
+    # colnames(sim.dat) = paste0("Sample_", seq_len(ncol(sim.dat)))
+    # return(sim.dat)
   })
 
-  #Prepare output
-  colData = data.frame("Batch" = do.call("c",lapply(seq_along(n.batch), function(i) rep(i, n.batch[i]))),
-                    "Group"  = do.call("c",lapply(seq_along(n.group), function(i) rep(i, n.group[i]))),
-                    "sim.Lib.Size" = do.call("c", do.call("c", LL)))
-  rowData = list("null.genes" = null.genes0, "nonnull.genes" = nonnull.genes0)
-  overall.out = list("counts" = sim.data.list,
-                     "colData" = colData, "rowData" = rowData,
-                     "copulas" = copulas.batch,
-                     "SPsim.est.densities" = est.list)
-  return(overall.out)
+  # #Prepare output
+  # colData = data.frame("Batch" = do.call("c",lapply(seq_along(n.batch), 
+  #                                                   function(i) rep(i, n.batch[i]))),
+  #                   "Group"  = do.call("c",lapply(seq_along(n.group), 
+  #                                                 function(i) rep(i, n.group[i]))),
+  #                   "sim.Lib.Size" = do.call("c", do.call("c", LL)))
+  # rowData = list("null.genes" = null.genes0, "nonnull.genes" = nonnull.genes0)
+  # 
+  # overall.out = list("counts" = sim.data.list,
+  #                    "colData" = colData, "rowData" = rowData,
+  #                    "copulas" = copulas.batch,
+  #                    "SPsim.est.densities" = est.list)
+  # return(overall.out)
+  if(return.details){
+    list("sim.data.list"=sim.data.list, 
+         "detailed.results" = est.list)
+  }else{
+    sim.data.list
+  }
+  
 }
