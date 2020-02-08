@@ -9,10 +9,12 @@ sampleDatSPDens <- function(cpm.data, sel.genes.i, par.sample, DE.ind.ii, null.g
       u <-  copulas.batch[[bb]][, sel.genes.i]# #runif(n.batch[[bb]]) #
       y.star.b = makeYstarB(u, g1[[bb]])
       #set.seed(sim.seed+1)
-      LL.b <- as.numeric(do.call("c", LL[[bb]]))
       if(log.CPM.transform){
+        LL.b <- as.numeric(do.call("c", LL[[bb]]))
         y.star.b <- round(((exp(y.star.b)-const)*LL.b)/1e6)
         y.star.b[y.star.b<0] <- 0
+      }else{
+        LL.b <- 1
       } 
       
       if(model.zero.prob & mean(Y0==min.val)>0.25){
@@ -44,11 +46,13 @@ sampleDatSPDens <- function(cpm.data, sel.genes.i, par.sample, DE.ind.ii, null.g
         Y0.g <- cpm.data[sel.genes.i, batch==bb & group==g]
         #set.seed(sim.seed+bb)
         u <- copulas.batch[[bb]][seq_len(n.group[g]), sel.genes.i]#runif(config.mat[bb, g])#runif(n.batch[[bb]]/length(n.group))
-        y.star.b = makeYstarB(u, g1.g[[bb]])
-        LL.b.g <- LL[[bb]][[g]]
+        y.star.b = makeYstarB(u, g1.g[[bb]]) 
         if(log.CPM.transform){
+          LL.b.g <- LL[[bb]][[g]]
           y.star.b <- round(((exp(y.star.b)-const)*LL.b.g)/1e6)
           y.star.b[y.star.b<0] <- 0
+        }else{
+          LL.b.g <- 1
         }  
         
         if(model.zero.prob & mean(Y0.g==min.val)>0.25){
