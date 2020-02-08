@@ -12,4 +12,8 @@ output: github_document
  
 # 2.0.1
 
- - Minor revision on documentation and adding new features\dontrun
+ - Minor revision on documentation and adding new features
+ 
+# 2.0.2
+
+ - Optimizing outputs, further enhancement, fixing bugs, and addressing issues\dontrun

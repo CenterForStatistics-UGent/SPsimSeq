@@ -1,5 +1,5 @@
 ---
-title: "SPsimSeq (v2.0.1)"
+title: "SPsimSeq (v2.0.2)"
 output: "github_document"
 ---
 

@@ -17,31 +17,36 @@
 #@examples (below)
 ###
 dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
-  n.group <- length(est.parms$SPsim.dens.hat)
-  if(n.group==1){ 
+  if(is.list(est.parms$Mu.batch)){
+    n.groups <- length(est.parms$Mu.batch) 
+  }else{
+    n.groups <- 1
+  }
+  
+  if(n.groups==1){ 
     if(force.fit.data){
-      x[x<min(est.parms$SPsim.dens.hat[[1]]$s)] <- min(est.parms$SPsim.dens.hat[[1]]$s)
-      x[x>max(est.parms$SPsim.dens.hat[[1]]$s)] <- max(est.parms$SPsim.dens.hat[[1]]$s)
+      x[x<min(est.parms$batch.est[[1]]$S)] <- min(est.parms$batch.est[[1]]$S)
+      x[x>max(est.parms$batch.est[[1]]$S)] <- max(est.parms$batch.est[[1]]$S)
     }
-    g0 <- dnorm(x, est.parms$SPsim.dens.parms[,"mu.hat"], 
-                 est.parms$SPsim.dens.parms[,"sig.hat"])
-    beta.hat <- est.parms$SPsim.dens.parms[, !(colnames(est.parms$SPsim.dens.parms) %in% 
+    g0 <- dnorm(x, est.parms$Mu.batch[["mu.hat"]], 
+                 est.parms$Mu.batch[["sig.hat"]])
+    beta.hat <- est.parms$Mu.batch[!(names(est.parms$Mu.batch) %in% 
                                                  c("mu.hat", "sig.hat"))]
     x.mat <- buildXmat(x, nc = length(beta.hat))
     g1 <- exp(x.mat%*%as.matrix(beta.hat)) 
     f.hat <- list((g0)*g1)
-  }else if(n.group>1){
-    f.hat <- lapply(seq_len(n.group), function(ii){
+  }else if(n.groups>1){
+    f.hat <- lapply(seq_len(n.groups), function(ii){
       if(force.fit.data){
-        x[x<min(est.parms$SPsim.dens.hat[[ii]][[1]]$s)] <- 
-          min(est.parms$SPsim.dens.hat[[ii]][[1]]$s)
-        x[x>max(est.parms$SPsim.dens.hat[[ii]][[1]]$s)] <- 
-          max(est.parms$SPsim.dens.hat[[ii]][[1]]$s)
+        x[x<min(est.parms$batch.est[[1]][[ii]]$S)] <- 
+          min(est.parms$batch.est[[1]][[ii]]$S)
+        x[x>max(est.parms$batch.est[[1]][[ii]]$S)] <- 
+          max(est.parms$batch.est[[1]][[ii]]$S)
       }
-      g0 <- dnorm(x, est.parms$SPsim.dens.parms[[ii]][,"mu.hat"], 
-                  est.parms$SPsim.dens.parms[[ii]][,"sig.hat"]) 
-      beta.hat <- est.parms$SPsim.dens.parms[[ii]][, 
-                      !(colnames(est.parms$SPsim.dens.parms[[ii]]) %in% c("mu.hat", "sig.hat"))]
+      g0 <- dnorm(x, est.parms$Mu.batch[[ii]]["mu.hat"], 
+                  est.parms$Mu.batch[[ii]]["sig.hat"]) 
+      beta.hat <- est.parms$Mu.batch[[ii]][ 
+                      !(names(est.parms$Mu.batch[[ii]]) %in% c("mu.hat", "sig.hat"))]
       x.mat <- buildXmat(x, nc = length(beta.hat))
       g1 <- exp(x.mat%*%as.matrix(beta.hat))
       g0*g1 
@@ -50,7 +55,8 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
   }
   f.hat
 }
-# Example
+
+#Example
 # load(".../problemData.RData")
 # mcr_data <- mat
 # mcr_data <- mcr_data[rownames(mcr_data) != "", ]
@@ -59,19 +65,18 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
 #                           group = fac, n.genes = 4900, batch.config = 1,
 #                           group.config = prop.table(table(fac)), tot.samples = 30,
 #                           pDE = 0.2, lfc.thrld = 0.5, t.thrld = 2.0, llStat.thrld = 0,
-#                           w=0.6, log.CPM.transform = FALSE,
+#                           w=0.6, log.CPM.transform = FALSE, return.details = TRUE,
 #                           result.format = "list",  seed = 2581988)
 # 
-# sim.data1 <- sim.data[[1]]
+# sim.data.parm <- sim.data$detailed.results # detailed results of SPsimSeq
+# sim.data1 <- sim.data$sim.data.list[[1]]   # simulated data
 # 
 # cpm.dat <- mcr_data
 # cpm.dat <- cpm.dat[as.character(unique(sim.data1$rowData$source.ID)), ]
 # 
 # cpm.dat.f <- lapply(rownames(cpm.dat), function(rr){
 #   #print(rr)
-#   rr2 <- rownames(sim.data1$rowData)[sim.data1$rowData$source.ID==rr]
-#   rr2 <- rr2[1]
-#   dSPsimSeq(x = cpm.dat[rr, ], est.parms = sim.data1$SPsim.est.densities[[rr2]])
+#   dSPsimSeq(x = cpm.dat[rr, ], est.parms = sim.data.parm[[rr]])
 # })
 # names(cpm.dat.f) <- rownames(cpm.dat)
 # 
@@ -81,7 +86,7 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
 # for(i in select.genes){
 #   if(length(cpm.dat.f[[i]])==1){
 #     plot(cpm.dat[i, ], cpm.dat.f[[i]][[1]], type = "p", main = i)
-#     #lines(density(cpm.dat[i, ]), col="gray")
+#     lines(density(cpm.dat[i, ]), col="gray")
 #   }else{
 #     plot(cpm.dat[i, ], cpm.dat.f[[i]][[1]], type = "p", ylim = c(min(min(cpm.dat.f[[i]][[1]]),
 #                                                                      min(cpm.dat.f[[i]][[2]])),

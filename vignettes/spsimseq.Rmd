@@ -58,7 +58,7 @@ library(SPsimSeq)
 ## Example 1: simulating bulk RNA-seq
 **Zhang RNA-seq data [@Zhang241190]:** The data contains 498 neuroblastoma tumors. In short, unstranded poly(A)+ RNA sequencing was performed on the HiSeq 2000 instrument (Illumina). Paired-end reads with a length of 100 nucleotides were obtained. To quantify the full transcriptome, raw fastq files were processed with Kallisto v0.42.4 (index build with GRCh38-Ensembl v85). The pseudo-alignment tool Kallisto [@bray2016near] was chosen above other quantification methods as it is performing equally good but faster. For this study, a subset of 172 tumors (samples) with high-risk disease were selected, forming two groups: the MYCN amplified ($n_1$ = 91) and MYCN non-amplified ($n_2$ = 81) tumours as used in [@Assefa2018]. Sometimes we refer this dataset to us the Zhang data or the Zhang neuroblastoma data. A subset of this dataset (5000 randomly selected genes) is available with the SPsimSeq package for illustration purpose only.
 
-```{r, eval=TRUE, warning=FALSE, fig.width=8, fig.height=5}  
+```{r, eval=TRUE, warning=FALSE, fig.width=8, fig.height=4}  
  # load the Zhang bulk RNA-seq data (availabl with the package) 
  data("zhang.data.sub") 
  
@@ -84,11 +84,12 @@ library(SPsimSeq)
  sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2, batch = NULL,
                           group = MYCN.status, n.genes = 3000, batch.config = 1,
                           group.config = c(0.5, 0.5), tot.samples = 172, 
-                          pDE = 0.1, lfc.thrld = 0.5, 
-                          result.format = "list",  seed = 2581988)
- head(sim.data.bulk$counts[[1]][, 1:5])  # count data
- head(sim.data.bulk$colData)        # sample info
- head(sim.data.bulk$rowData)        # gene info
+                          pDE = 0.1, lfc.thrld = 0.5, result.format = "list",  
+                          seed = 2581988)
+ sim.data.bulk1 <- sim.data.bulk[[1]]
+ head(sim.data.bulk1$counts[, 1:5])  # count data
+ head(sim.data.bulk1$colData)        # sample info
+ head(sim.data.bulk1$rowData)        # gene info
  
  
 # compare the distributions of the mean expressions, variability, 
@@ -98,7 +99,7 @@ library(SPsimSeq)
  
 # normalize counts for comparison  
 Y0.log.cpm <- log2(edgeR::cpm(zhang.counts2)+1)
-Y1.log.cpm <- log2(edgeR::cpm(sim.data.bulk$counts[[1]])+1)
+Y1.log.cpm <- log2(edgeR::cpm(sim.data.bulk1$counts)+1)
 Y0.log.cpm <- Y0.log.cpm[rowMeans(Y0.log.cpm>0)>=0.1, ]
 Y1.log.cpm <- Y1.log.cpm[rowMeans(Y1.log.cpm>0)>=0.1, ]
  
@@ -109,7 +110,7 @@ rowCVs <- function(X){apply(X, 1, function(x) sd(x, na.rm=TRUE)/mean(x, na.rm=TR
  
 par(mfrow=c(1, 3))
 boxplot(list(real.data=log(colSums(zhang.counts2)), 
-             simulated.data=log(sim.data.bulk$colData$sim.Lib.Size)), 
+             simulated.data=log(sim.data.bulk1$colData$sim.Lib.Size)), 
         main="library size") 
 boxplot(list(real.data=rowMeans(Y0.log.cpm), 
              simulated.data=rowMeans(Y1.log.cpm)), 
@@ -178,7 +179,7 @@ points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.
 ## Example 2: simulating single-cell RNA-seq (containing read-counts)
 **Neuroblastoma NGP cells scRNA-seq data (NGP data)** retrieved from [@Verboom430090] (GEO accession GSE119984): This dataset is generated for a cellular perturbation experiment on the C1 instrument (SMARTer protocol) [@Verboom430090]. This total RNA-seq dataset contains 83 NGP neuroblastoma cells, of which 31 were treated with 8$\mu$M of nutlin-3 and the other 52 cells were treated with vehicle (controls). In the subsequent sections, this dataset is referred to us the NGP single-cell RNA-seq data.
 
-```{r, eval=FALSE, warning=FALSE, fig.width=12, fig.height=5}
+```{r, eval=TRUE, warning=FALSE, fig.width=8, fig.height=4}
 # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
  # - 5000 genes (n.genes = 5000) 
  # - 100 cells (tot.samples = 100) 
@@ -232,8 +233,8 @@ rowCVs <- function(X){apply(X, 1, function(x) sd(x, na.rm=TRUE)/mean(x, na.rm=TR
 rowZeroFrac <- function(X){apply(X, 1, function(x) mean(x==0, na.rm=TRUE))}
  
 par(mfrow=c(1, 3))
-boxplot(list(real.data=colSums(zhang.counts2), 
-             simulated.data=sim.data.bulk1$colData$sim.Lib.Size), 
+boxplot(list(real.data=colSums(counts(scNGP.data2)), 
+             simulated.data=colData(sim.data.sc1)$sim.Lib.Size), 
         main="library size") 
 boxplot(list(real.data=rowMeans(Y0.log.cpm), 
              simulated.data=rowMeans(Y1.log.cpm)), 
@@ -247,10 +248,10 @@ boxplot(list(real.data=rowVars(Y0.log.cpm),
 
 # compare the relationship between the mean and variability  
 par(mfrow=c(1,3), mar=c(4,4,4,1))
-heatscatter(rowMeans(Y0.log.cpm), rowCVs(Y0.log.cpm), ylim=c(0, 10), xlim=c(0, 16),
+heatscatter(rowMeans(Y0.log.cpm), rowCVs(Y0.log.cpm), ylim=c(0, 6), xlim=c(0, 16),
             colpal="bl2gr2rd", main="real data", xlab="mean log2-CPM", 
             ylab="coefficients of variation", cexplot=0.5, alpha = 60, cex.lab=1.25)
-heatscatter(rowMeans(Y1.log.cpm), rowCVs(Y1.log.cpm), ylim=c(0, 10), xlim=c(0, 16),
+heatscatter(rowMeans(Y1.log.cpm), rowCVs(Y1.log.cpm), ylim=c(0, 6), xlim=c(0, 16),
      main="SPsimSeq", xlab="mean log2-CPM", ylab="coefficients of variation", 
      cexplot=0.5, alpha = 60, colpal="bl2gr2rd", cex.lab=1.25)
 
