@@ -17,7 +17,7 @@
 # @importFrom fitdistrplus fitdist
 prepareSourceData <- function(s.data, batch, group, cand.DE.genes,  
                               exprmt.design, simCtr, lfc.thrld, llStat.thrld,
-                              const, w, log.CPM.transform, lib.size.params, ...){
+                              const, w, log.CPM.transform, ...){
   
   # design element
   n.batch <- exprmt.design$n.batch
@@ -28,19 +28,19 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
   if(log.CPM.transform){
     if(is(s.data, "SingleCellExperiment")){ 
       cpm.data <- log(calCPM(counts(s.data))+const)
-      L <- colSums(counts(s.data))
+      #LS <- colSums(counts(s.data))
     }else if(is(s.data, "data.frame") | is(s.data, "matrix")){
       cpm.data <- log(calCPM(s.data)+const)
-      L <- colSums(s.data)
+      #LS <- colSums(s.data)
     }
   }
   else{
     if(is(s.data, "SingleCellExperiment")){ 
       cpm.data <- counts(s.data)
-      L <- colSums(counts(s.data))
+      LS <- colSums(counts(s.data))
     }else if(is(s.data, "data.frame") | is(s.data, "matrix")){
       cpm.data <- s.data
-      L <- colSums(s.data)
+      LS <- colSums(s.data)
     }
   }
   
@@ -62,10 +62,10 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
     stop("Invalid number of batches passed!")
   }
   
-  # simulate library size  
-  LL <- simLibSize(sub.batchs=sub.batchs, L=L, lib.size.params = lib.size.params, 
-                   n.batch=n.batch, batch = batch, n.group = n.group, 
-                   config.mat = config.mat, ...)
+  # # simulate library size  
+  # LL <- simLibSize(sub.batchs=sub.batchs, L=LS, lib.size.params = lib.size.params, 
+  #                  n.batch=n.batch, batch = batch, n.group = n.group, 
+  #                  config.mat = config.mat, ...)
   
   # select candidate genes
   if(is.null(cand.DE.genes) & !is.null(group) & length(unique(group))>1){ 
@@ -75,6 +75,6 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
   }else if(is.null(cand.DE.genes) & (is.null(group) | length(unique(group))==1)){
     cand.DE.genes <- list(null.genes= rownames(s.data)) 
   } 
-  
-  list(cand.DE.genes=cand.DE.genes, LL=LL, cpm.data=cpm.data, sub.batchs=sub.batchs)
+  list(cand.DE.genes=cand.DE.genes, cpm.data=cpm.data, sub.batchs=sub.batchs)
+  #list(cand.DE.genes=cand.DE.genes, LL=LL, cpm.data=cpm.data, sub.batchs=sub.batchs)
 }
