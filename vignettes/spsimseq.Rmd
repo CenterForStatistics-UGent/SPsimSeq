@@ -337,9 +337,6 @@ points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.
        col="blue", pch=20, cex=1.5, cex.lab=1.25)  
 ```
 
-
-
-
 ```{r}
 sessionInfo()
 ```
