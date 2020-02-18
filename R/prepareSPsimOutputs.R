@@ -1,7 +1,7 @@
 # A function to prepare outputs
-prepareSPsimOutputs <- function(sim.dat, n.batch, n.group, config.mat, LL, DE.ind, sel.genes,
+prepareSPsimOutputs <- function(sim.dat, n.batch, n.group, LL, DE.ind, sel.genes,
                                 result.format, log.CPM.transform){
-  sim.count <- sim.dat
+  sim.count <- t(sapply(sim.dat, function(x) x[,"y.new"]))
   sim.count[is.na(sim.count)] <- 0
   rownames(sim.count) <- paste0("Gene_", seq_len(nrow(sim.count)))
   colnames(sim.count) <- paste0("Sample_", seq_len(ncol(sim.count)))
@@ -14,10 +14,8 @@ prepareSPsimOutputs <- function(sim.dat, n.batch, n.group, config.mat, LL, DE.in
   }else{
     sim.Lib.Size = NA
   }
-  col.data <- data.frame("Batch" = do.call("c",lapply(seq_along(n.batch), 
-                                          function(i) rep(i, n.batch[i]))),
-             "Group"  = do.call("c",lapply(seq_along(n.group), 
-                                           function(i) rep(i, n.group[i]))),
+  col.data <- data.frame("Batch" = sim.dat[[1]]$Batch,
+             "Group"  = sim.dat[[1]]$Group,
              "sim.Lib.Size" = sim.Lib.Size,
              row.names = colnames(sim.count))
   

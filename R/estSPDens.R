@@ -2,7 +2,7 @@
 estSPDens <- function(est.list.i, par.sample, DE.ind.ii, group, g0){
   if(DE.ind.ii==0){
     g1 <- lapply(seq_len(nrow(par.sample)), function(bb){ 
-      b.data <- est.list.i$batch.est[[bb]]
+      b.data <- est.list.i[[bb]]
       gg0 <- g0[[bb]]*sum(b.data$Ny) +1
       s <- b.data$S
       s.mat <- buildXmat(s, nc = length(b.data$betas))
@@ -18,7 +18,7 @@ estSPDens <- function(est.list.i, par.sample, DE.ind.ii, group, g0){
       par.sample.g <- par.sample[[g]] #par.sample[[paste0("grp_", g)]]
       g0.g <- g0[[g]] #g0[[paste0("grp_", g)]]
       lapply(seq_len(nrow(par.sample.g)), function(bb){   
-        b.data <- est.list.i$batch.est[[bb]][[g]]
+        b.data <- est.list.i[[bb]][[g]]
         gg0 <- g0.g[[bb]]*sum(b.data$Ny) + 1
         s <- b.data$S
         s.mat <- buildXmat(s, nc = length(b.data$betas))

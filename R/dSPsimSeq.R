@@ -22,6 +22,7 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
   }else{
     n.groups <- 1
   }
+  n.groups <- length(est.parms[[1]]) 
   
   if(n.groups==1){ 
     if(force.fit.data){
@@ -38,15 +39,14 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
   }else if(n.groups>1){
     f.hat <- lapply(seq_len(n.groups), function(ii){
       if(force.fit.data){
-        x[x<min(est.parms$batch.est[[1]][[ii]]$S)] <- 
-          min(est.parms$batch.est[[1]][[ii]]$S)
-        x[x>max(est.parms$batch.est[[1]][[ii]]$S)] <- 
-          max(est.parms$batch.est[[1]][[ii]]$S)
+        x[x<min(est.parms[[1]][[ii]]$S)] <- 
+          min(est.parms[[1]][[ii]]$S)
+        x[x>max(est.parms[[1]][[ii]]$S)] <- 
+          max(est.parms[[1]][[ii]]$S)
       }
-      g0 <- dnorm(x, est.parms$Mu.batch[[ii]]["mu.hat"], 
-                  est.parms$Mu.batch[[ii]]["sig.hat"]) 
-      beta.hat <- est.parms$Mu.batch[[ii]][ 
-                      !(names(est.parms$Mu.batch[[ii]]) %in% c("mu.hat", "sig.hat"))]
+      g0 <- dnorm(x, est.parms[[1]][[ii]]$mu.hat, 
+                  est.parms[[1]][[ii]]$sig.hat) 
+      beta.hat <- est.parms[[1]][[ii]]$betas
       x.mat <- buildXmat(x, nc = length(beta.hat))
       g1 <- exp(x.mat%*%as.matrix(beta.hat))
       g0*g1 
@@ -56,7 +56,7 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
   f.hat
 }
 
-#Example
+# #Example
 # load(".../problemData.RData")
 # mcr_data <- mat
 # mcr_data <- mcr_data[rownames(mcr_data) != "", ]
