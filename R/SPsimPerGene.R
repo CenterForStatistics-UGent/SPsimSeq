@@ -1,8 +1,8 @@
 # A function that generates the simulated data for each gene
-SPsimPerGene <- function(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, batch, group, 
+SPsimPerGene <- function(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, batch, group, config.mat, 
                          sel.genes.ii, log.CPM.transform, const, min.val, null.group, LL,
                          copulas.batch, tot.samples, model.zero.prob, fracZero.logit.list){
-  if(!is.null(est.list.ii) & !any(sapply(est.list.ii$batch.est, is.null))){
+  if(!is.null(est.list.ii)){
     # get batch specific parameters
     par.sample <- obtParSample(est.list.i = est.list.ii, DE.ind.ii = DE.ind.ii, 
                                n.batch = n.batch, group = group)
@@ -20,8 +20,8 @@ SPsimPerGene <- function(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, bat
                               DE.ind.ii=DE.ind.ii, null.group=null.group, LL=LL,
                               copulas.batch=copulas.batch, group=group, batch=batch, 
                               g1=g1, log.CPM.transform=log.CPM.transform, const=const,
-                              min.val=min.val, n.group=n.group, 
-                              model.zero.prob=model.zero.prob, 
+                              min.val=min.val, n.group=n.group, n.batch=n.batch,
+                              config.mat=config.mat, model.zero.prob=model.zero.prob, 
                               fracZero.logit.list=fracZero.logit.list)
     if(DE.ind.ii==1){
       names(g1) <- names(g0) <- names(par.sample) <- paste0("group_", unique(group))
@@ -31,6 +31,6 @@ SPsimPerGene <- function(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, bat
      return(Y.star)
   }
   else{ #print(i) 
-   return(rep(0, tot.samples))
+   return(numeric(tot.samples))
   }
 }

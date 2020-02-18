@@ -12,7 +12,7 @@
 #@importFrom limma voom
 genesCopula <- function(X, batch, n.batch){
   cpl.list <- lapply(sort(unique(batch)), function(bb){ 
-    voom.res <- limma::voom(X)
+    voom.res <- limma::voom(X[, batch==bb])
     W <- voom.res$weights
     cor.mat <- WGCNA::cor(x=t(X[, batch==bb]), weights.x = t(W), 
                           use = "pairwise.complete.obs")

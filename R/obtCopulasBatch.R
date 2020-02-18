@@ -5,7 +5,8 @@ obtCopulasBatch <- function(genewiseCor, cpm.data, batch, n.batch){
   }
   else{
     copulas.batch <- lapply(sort(unique(batch)), function(bb){ 
-      U    <- matrix(runif(n.batch[bb]*nrow(cpm.data), 0, 1), n.batch[bb], nrow(cpm.data))   
+      U    <- matrix(runif(n.batch[bb]*nrow(cpm.data), 0, 1), 
+                     n.batch[bb], nrow(cpm.data))   
       colnames(U) <- rownames(cpm.data)
       U
     }) 

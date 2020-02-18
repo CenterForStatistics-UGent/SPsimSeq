@@ -28,12 +28,21 @@
 # # respectively.
 # expriment.config(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
 # }
-expriment.config <- function(batch.config=c(0.25, 0.35, 0.4), group.config=c(0.6, 0.4),
-                             tot.samples=150, ...){
+expriment.config <- function(batch.config, group.config, tot.samples=150, ...){
   if(sum(batch.config)!=1) stop("Batch configuration fractions do not sum to 1.")
   if(sum(group.config)!=1) stop("Group configuration fractions do not sum to 1.")
   
+  if(is.null(names(batch.config))){
+    names(batch.config) <- paste0("Batch_",seq_len(length(batch.config)))
+  }
+  if(is.null(names(group.config))){
+    names(group.config) <- paste0("Group_",seq_len(length(group.config)))
+  }
+  
   exprmt.config <- round((batch.config %*% t(group.config))*tot.samples)
+  rownames(exprmt.config) <- names(batch.config)
+  colnames(exprmt.config) <- names(group.config)
+  
   n.batch <- rowSums(exprmt.config)
   n.group <- colSums(exprmt.config)
   
