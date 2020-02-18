@@ -289,7 +289,7 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
 
   # estimate batch specific parameters
   if(verbose) {message("Estimating densities ...")}
-  est.list <- setNames(lapply(c(null.genes0, nonnull.genes0), function(gene){
+  est.list <- setNames(lapply(c(null.genes0, nonnull.genes0), function(gene){ 
     gene.parm.est(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
                   null.group = null.group, sub.batchs = sub.batchs,
                   de.ind = gene %in% nonnull.genes0,
@@ -312,18 +312,18 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
                                  null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0,
                                  group.config = group.config)
     #Generate data
-    sim.dat <- t(sapply(selctGenes, function(gene){
+    sim.dat <- lapply(selctGenes, function(gene){ 
       SPsimPerGene(cpm.data = cpm.data, est.list.ii = est.list[[gene]],
                    DE.ind.ii = gene %in% nonnull.genes0, sel.genes.ii = gene,
                    n.batch = n.batch, n.group = n.group, group = group, batch=batch,
-                   log.CPM.transform = log.CPM.transform,
+                   log.CPM.transform = log.CPM.transform, config.mat=config.mat,
                    null.group=null.group, LL=ELS, copulas.batch=copulas.batch,
                    const = const, min.val = min.val, model.zero.prob=model.zero.prob,
                    tot.samples=tot.samples, fracZero.logit.list = fracZero.logit.list)
-    }))
+    })
     sim.data.h <- prepareSPsimOutputs(sim.dat=sim.dat, n.batch=n.batch, n.group=n.group,
                         DE.ind=as.numeric(selctGenes %in% nonnull.genes0), 
-                        sel.genes=selctGenes, config.mat=config.mat, LL=ELS, 
+                        sel.genes=selctGenes, LL=ELS, 
                         result.format=result.format, log.CPM.transform=log.CPM.transform)
     return(sim.data.h)
     # colnames(sim.dat) = paste0("Sample_", seq_len(ncol(sim.dat)))
