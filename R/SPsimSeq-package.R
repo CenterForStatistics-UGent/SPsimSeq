@@ -11,6 +11,12 @@
 #'
 #' @docType package
 #' @author  Alemu Takele Assefa \email{alemutak@hotmail.com}
+#' 
+#' #' @references
+#' \itemize{
+#' \iem Alemu Takele Assefa, Jo Vandesompele, Olivier Thas. (2020). SPsimSeq: semi-parametric simulation of bulk and single cell RNA sequencing data, \emph{Bioinformatics}, , btaa105, https://doi.org/10.1093/bioinformatics/btaa105
+#' }
+#' 
 #' @name SPsimSeq-package  
 #' 
 NULL
