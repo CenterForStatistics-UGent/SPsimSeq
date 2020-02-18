@@ -81,12 +81,12 @@ sampleDatSPDens <- function(cpm.data, sel.genes.i, par.sample, DE.ind.ii, null.g
   } 
   return(Y.star)
 }
-#' Make y.star.b
-#'
-#' @param u copulas
-#' @param gg1 density object
-#'
-#' @return y.star.b
+# Make y.star.b
+#
+# @param u copulas
+# @param gg1 density object
+#
+# @return y.star.b
 makeYstarB =  function(u, gg1){
   #Moved these steps outside the loop
   if(nrow(gg1)>1){
