@@ -72,7 +72,7 @@
 #'
 #' @references
 #' \itemize{
-#' \item Assefa, A. T., Vandesompele, J., & Thas, O. (2019). SPsimSeq: semi-parametric simulation of bulk and single cell RNA sequencing data. \emph{bioRxiv}, doi: https://doi.org/10.1101/677740.
+#' \item Alemu Takele Assefa, Jo Vandesompele, Olivier Thas. (2020). SPsimSeq: semi-parametric simulation of bulk and single cell RNA sequencing data, \emph{Bioinformatics}, , btaa105, https://doi.org/10.1093/bioinformatics/btaa105.
 #' \item Efron, B., & Tibshirani, R. (1996). Using specially designed exponential families for density estimation. \emph{The Annals of Statistics}, 24(6), 2431-2461.
 #' }
 #'
