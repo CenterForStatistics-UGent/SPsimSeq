@@ -7,7 +7,6 @@
 #' @param exprmt.design a list contating simulation design configuration 
 #' @param const a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0)
 #' @param lfc.thrld,llStat.thrld,t.thrld,w see ?chooseCandGenes
-#' @param  ... further arguments passed to or from other methods.
 #'
 #' @return a list object
 #'
@@ -16,7 +15,7 @@
 #' @importFrom fitdistrplus fitdist
 prepareSourceData <- function(s.data, batch, group, cand.DE.genes,  
                               exprmt.design, const, lfc.thrld, llStat.thrld,
-                              t.thrld, w, log.CPM.transform, ...){
+                              t.thrld, w, log.CPM.transform){
   
   # design element
   n.batch <- exprmt.design$n.batch
@@ -50,8 +49,8 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
   if(is.null(cand.DE.genes)){
     cand.DE.genes = if(!is.null(group) & length(unique(group))>1){ 
      chooseCandGenes(cpm.data = cpm.data, X = group, const = const, 
-                     lfc.thrld = lfc.thrld, llStat.thrld = llStat.thrld, w = w, 
-                     ...)
+                     lfc.thrld = lfc.thrld, t.thrld = t.thrld, 
+                     llStat.thrld = llStat.thrld, w = w)
     } else {
       list(null.genes= rownames(s.data)) 
     } 
