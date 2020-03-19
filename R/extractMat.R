@@ -1,5 +1,6 @@
 #' A function with S4 dispatching to extract the count matrix
 #' @param Y a matrix, data frame or SingleCellExperiment
+#' @param ... additional arguments, currently ignored
 #' @return A data matrix with samples in the columns and genes in the rows
 #' @rdname extractMat
 setGeneric("extractMat", function(Y, ...) standardGeneric("extractMat"))
