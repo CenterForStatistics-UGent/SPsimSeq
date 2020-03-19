@@ -177,6 +177,8 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
                      w=NULL, const=1, result.format="SCE", return.details=FALSE, 
                      seed=2581988, verbose=TRUE, ...)
 {
+  #Extract the count data from whatever object is provided
+  s.data = extractMat(s.data)
   # Quick checks for error in the inputs
   checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch,
                                     group.config = group.config, batch.config = batch.config)
