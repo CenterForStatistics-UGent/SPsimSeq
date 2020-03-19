@@ -18,6 +18,8 @@ extractMat(Y, ...)
 }
 \arguments{
 \item{Y}{a matrix, data frame or SingleCellExperiment}
+
+\item{...}{additional arguments, currently ignored}
 }
 \value{
 A data matrix with samples in the columns and genes in the rows
