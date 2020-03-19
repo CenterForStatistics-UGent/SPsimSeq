@@ -33,14 +33,10 @@
 #' @param log.CPM.transform a logical value. If TRUE, the source data will be transformed into log-(CPM+const) before estimating the probability distributions
 #' @param lib.size.params NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.
 #' @param variale.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
-#' @param seed an integer between 1 and 1e10 for reproducible simulation. It will be used with #set.seed() function. See also ?set.seed
 #' @param verbose a logical value, if TRUE a message about the status of the simulation will be printed on the console
 #' @param  ... further arguments passed to or from other methods.
 #'
-#'
-#'
 #' @return a list of SingleCellExperiment/list objects each containing simulated counts (not normalized), smple/cell level information in colData, and gene/feature level information in rowData.
-#'
 #'
 #' @details This function uses a specially designed exponential family for density estimation
 #' to constructs the distribution of gene expression levels from a given real gene expression data
@@ -69,13 +65,11 @@
 #' Also, it is important to filter the source data so that genes with suffient expression will be used to
 #' estimate the probability distributions.
 #'
-#'
 #' @references
 #' \itemize{
 #' \item Assefa, A. T., Vandesompele, J., & Thas, O. (2019). SPsimSeq: semi-parametric simulation of bulk and single cell RNA sequencing data. \emph{bioRxiv}, doi: https://doi.org/10.1101/677740.
 #' \item Efron, B., & Tibshirani, R. (1996). Using specially designed exponential families for density estimation. \emph{The Annals of Statistics}, 24(6), 2431-2461.
 #' }
-#'
 #'
 #' @examples
 #' #----------------------------------------------------------------
@@ -154,7 +148,6 @@
 #' #colData(sim.data.sc1)
 #' #rowData(sim.data.sc1)
 #'
-#'
 #' @export
 #' @importFrom MASS mvrnorm
 #' @importFrom stats pnorm dnorm runif rbinom predict approx quantile glm rlnorm lm sd var
@@ -170,37 +163,21 @@
 #' @importFrom WGCNA cor
 #' @importFrom limma voom
 #' @importFrom plyr rbind.fill
-SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batch.config= 1,
-                     group.config=1, pDE=0.1, cand.DE.genes=NULL, lfc.thrld=0.5, t.thrld=2.5,
-                     llStat.thrld=5, tot.samples=150, model.zero.prob=FALSE, genewiseCor=TRUE,
-                     log.CPM.transform=TRUE, lib.size.params=NULL, variale.lib.size=FALSE,
-                     w=NULL, const=1, result.format="SCE", return.details=FALSE, 
-                     seed=2581988, verbose=TRUE, ...)
+SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL, 
+                     n.genes = 1000, batch.config = 1, group.config = 1, 
+                     pDE = 0.1, cand.DE.genes = NULL, lfc.thrld = 0.5, 
+                     t.thrld = 2.5, llStat.thrld = 5, tot.samples = 150, 
+                     model.zero.prob = FALSE, genewiseCor = TRUE,
+                     log.CPM.transform = TRUE, lib.size.params = NULL, 
+                     variale.lib.size = FALSE, w = NULL, const = 1, 
+                     result.format = "SCE", return.details = FALSE, 
+                     verbose = TRUE, ...)
 {
   #Extract the count data from whatever object is provided
   s.data = extractMat(s.data)
   # Quick checks for error in the inputs
   checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch,
                                     group.config = group.config, batch.config = batch.config)
-
-  if(any(checkInputs$val==-1)){
-    msgs <- checkInputs$mes[checkInputs$val==-1]
-    message(paste0("Error ", seq_len(length(msgs)), "-- ", msgs))
-    if(length(msgs) > 1){
-      stop(paste("There are", length(msgs),"errors!"),call. = FALSE)
-    }else{
-      stop(paste("There is", length(msgs),"error!"),call. = FALSE)
-    }
-  }else if(any(checkInputs$val==1)){
-    msgs <- checkInputs$mes[checkInputs$val==1]
-    message(paste0("Note ", seq_len(length(msgs)), "-- ", msgs))
-    if(length(msgs) > 1){
-      message(paste("There are", length(msgs)," messages."),call. = FALSE)
-    }else{
-      message(paste("There is", length(msgs)," message."),call. = FALSE)
-    }
-  }
-
   # experiment configurartion
   if(verbose) {message("Configuring design ...")}
   if(!is.null(group)){
@@ -210,16 +187,12 @@ SPsimSeq <- function(n.sim=1, s.data, batch=NULL, group=NULL, n.genes=1000, batc
     batch <- as.numeric(factor(batch, labels =  seq_len(length(unique(batch)))))
   }
 
-  null.group = ifelse(!is.null(group), which.max(table(group))[[1]], 1)
+  null.group = ifelse(is.null(group),1, which.max(table(group))[[1]])
   exprmt.design <- expriment.config(batch.config = batch.config, group.config = group.config,
                                     tot.samples = tot.samples)
   n.batch <- exprmt.design$n.batch
   n.group <- exprmt.design$n.group
   config.mat <- exprmt.design$exprmt.config
-
-  # sim control
-  if(!is.null(seed)){set.seed(seed)}
-
   # prepare source data
   if(verbose) {message("Preparing source data ...")}
   prepare.S.Data <- prepareSourceData(s.data=s.data, batch = batch, group = group,
