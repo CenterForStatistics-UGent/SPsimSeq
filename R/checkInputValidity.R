@@ -1,17 +1,7 @@
 # Check for data validity
 checkInputValidity <- function(s.data, group, batch, group.config, batch.config){
-  # Check for class of the source data
-  source.class <- is(s.data, "SingleCellExperiment") | 
-    is(s.data, "matrix") | 
-    is(s.data, "data.frame")
-  
-  if(!source.class){
-    val1  <- -1
-    mes1 <- "The source data is not in the form (class) of 'SingleCellExperiment', 'matrix', 'data.frame' \n"
-  }else{val1 <- 0; mes1 <- "none"}
-  
   # Check for class of missing values in the source data
-  if(any(is.na(group))){
+  if(anyNA(group)){
     val2 <- -1
     mes2 <-  "    The group indicator missing value. \n"
   }else{val2 <- 0; mes2 <- "none"}
@@ -49,23 +39,6 @@ checkInputValidity <- function(s.data, group, batch, group.config, batch.config)
       number of columns in the source count matrix. \n"
     }else{val6 <- 0; mes6 <- "none"} 
   }else{val6 <- 0; mes6 <- "none"} 
-  
-  # # Check for the validity of the group/batch indicators
-  # if(!is.null(group)){
-  #   if(!all(group%%1==0 & group>0)){
-  #     val7  <- -1
-  #     mes7 <-  "Groups must be labelled as 1,2, .... Example, group=c(1,1,1,2,2,2) \n"
-  #   }else{val7 <- 0; mes7 <- "none"} 
-  # }else{val7 <- 0; mes7 <- "none"} 
-  # 
-  # if(!is.null(batch)){
-  #   if(!all(batch%%1==0 & batch>0)){
-  #     val8  <- -1
-  #     mes8 <-  "Batches must be labelled as 1,2, .... Example, batch=c(1,1,1,2,2,2) \n"
-  #   }else{val8 <- 0; mes8 <- "none"}  
-  # }else{val8 <- 0; mes8 <- "none"}  
-  # 
-  
   # Check for the validity of the group/batch configuration
   if(is.null(group) & (length(group.config)!=1)){
     val9  <- -1
