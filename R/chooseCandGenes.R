@@ -1,27 +1,25 @@
-#Select candidate genes
-##
-#This function can be used to independently select candidate genes from a given real RNA-srq data (bulk/single)
-#for the SPsimSeq simulation. It chooses genes with various chracteristics, such as log-fold-change 
-# above a certain thereshold. 
-# 
-# @param cpm.data logCPM transformed matrix (if log.CPM.transform=FALSE, then it is the source gene expression data)
-# @param X a vector of indicators for group memebership of cells/samples 
-# @param lfc.thrld a positive numeric value for the minimum absolute log-fold-change for selecting candidate DE genes in the source data (when group is not NULL and pDE>0)
-# @param t.thrld a positive numeric value for the minimum absolute t-test statistic for the log-fold-changes of genes for selecting candidate DE genes in the source data (when group is not NULL and  pDE>0)
-# @param llStat.thrld a positive numeric value for the minimum squared test statistics from the log-linear model to select candidate DE genes in the source data (when group is not NULL and  pDE>0)
-# containing X as a covariate to select DE genes 
-# @param max.frac.zeror.diff a numeric value >=0 indicating the maximum  absolute
-# difference in the fraction of zero counts between the groups for DE genes. Default in Infinitive
-# @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
-# @param const a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
-# @param  ... further arguments passed to or from other methods.
-##
-# @return a list object contating a set of candidate null and non-null genes and additional results
-# @examples
-#  # example: see ?SPsimSeq
+#'Select candidate genes
+#'
+#'This function can be used to independently select candidate genes from a given real RNA-srq data (bulk/single)
+#'for the SPsimSeq simulation. It chooses genes with various chracteristics, such as log-fold-change 
+#' above a certain thereshold. 
+#' 
+#' @param cpm.data logCPM transformed matrix (if log.CPM.transform=FALSE, then it is the source gene expression data)
+#' @param X a vector of indicators for group memebership of cells/samples 
+#' @param lfc.thrld a positive numeric value for the minimum absolute log-fold-change for selecting candidate DE genes in the source data (when group is not NULL and pDE>0)
+#' @param t.thrld a positive numeric value for the minimum absolute t-test statistic for the log-fold-changes of genes for selecting candidate DE genes in the source data (when group is not NULL and  pDE>0)
+#' @param llStat.thrld a positive numeric value for the minimum squared test statistics from the log-linear model to select candidate DE genes in the source data (when group is not NULL and  pDE>0)
+#' containing X as a covariate to select DE genes 
+#' @param max.frac.zeror.diff a numeric value >=0 indicating the maximum  absolute
+#' difference in the fraction of zero counts between the groups for DE genes. Default in Infinitive
+#' @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
+#' @param const a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
+#' @param  ... further arguments passed to or from other methods.
+#' @return a list object contating a set of candidate null and non-null genes and additional results
+#' @examples
+#'  # example: see ?SPsimSeq
   
-# @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
-# @importFrom SingleCellExperiment counts
+#' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
 chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
                              max.frac.zeror.diff=Inf, const, w, ...){
   n.cells   <- table(X)
