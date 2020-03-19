@@ -13,7 +13,6 @@
 #
 #@return a list of estimated densities
 #
-#
 #@examples (below)
 ###
 dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
