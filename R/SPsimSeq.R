@@ -186,15 +186,15 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   if(!is.null(batch)){
     batch <- as.numeric(factor(batch, labels =  seq_len(length(unique(batch)))))
   }
-
+  #Find the reference group
   null.group = ifelse(is.null(group),1, which.max(table(group))[[1]])
-  exprmt.design <- expriment.config(batch.config = batch.config, group.config = group.config,
+  exprmt.design <- configExperiment(batch.config = batch.config, group.config = group.config,
                                     tot.samples = tot.samples)
   n.batch <- exprmt.design$n.batch
   n.group <- exprmt.design$n.group
   config.mat <- exprmt.design$exprmt.config
   # prepare source data
-  if(verbose) {message("Preparing source data ...")}
+  if(verbose) message("Preparing source data ...")
   prepare.S.Data <- prepareSourceData(s.data=s.data, batch = batch, group = group,
                     exprmt.design=exprmt.design, const=const, lfc.thrld=lfc.thrld, t.thrld=t.thrld,
                     cand.DE.genes=cand.DE.genes, llStat.thrld=llStat.thrld,  simCtr=NULL, w=w,

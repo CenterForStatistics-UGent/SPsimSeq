@@ -6,7 +6,6 @@
 # @param group.config a numerical vector for the marginal fraction of samples in each group.
 # The number of groups to be simulated is equal to the size of the vector. All values must sum to 1.
 # @param tot.samples total number of samples to be simulated.
-# @param  ... further arguments passed to or from other methods.
 # 
 # @return a list object contating the number of groups and batches to be simukated, 
 # and the experiment configurartion 
@@ -28,18 +27,15 @@
 # # respectively.
 # expriment.config(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
 # }
-expriment.config <- function(batch.config, group.config, tot.samples=150, ...){
-  if(sum(batch.config)!=1) stop("Batch configuration fractions do not sum to 1.")
-  if(sum(group.config)!=1) stop("Group configuration fractions do not sum to 1.")
-  
+configExperiment <- function(batch.config, group.config, tot.samples = 150){
   if(is.null(names(batch.config))){
-    names(batch.config) <- paste0("Batch_",seq_len(length(batch.config)))
+    names(batch.config) <- paste0("Batch_",seq_along(batch.config))
   }
   if(is.null(names(group.config))){
-    names(group.config) <- paste0("Group_",seq_len(length(group.config)))
+    names(group.config) <- paste0("Group_",seq_along(group.config))
   }
   
-  exprmt.config <- round((batch.config %*% t(group.config))*tot.samples)
+  exprmt.config <- round(tcrossprod(batch.config, group.config)*tot.samples)
   rownames(exprmt.config) <- names(batch.config)
   colnames(exprmt.config) <- names(group.config)
   
