@@ -14,8 +14,7 @@ bibliography: references.bib
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
-)   
-
+)
 library(SPsimSeq)
 ```
 # Introduction to SPsimSeq
@@ -27,32 +26,22 @@ In this documentation, we will demonstrate SPsimSeq for simulating bulk and sing
 # Installing SPsimSeq
 The package can be installed and loaded using the following commands:
 
-```{r load-packages, eval=FALSE, warning=FALSE, message=FALSE, echo=TRUE}
-# first install dependencies 
-pkg.depnd  <- c("SingleCellExperiment", "fitdistrplus",  
-               "edgeR", "Hmisc", "WGCNA", "limma", "mvtnorm", "plyr")
-pkg.source <- c(1,2,1,2,2,1,2,2)
-sapply(1:length(pkg.depnd), function(i){
-  pkg_available <- pkg.depnd[i] %in% rownames(installed.packages())
-  if(!pkg_available){ 
-    if(pkg.source[i] ==1){
-      BiocManager::install(pkg.depnd[i])
-    }
-    else{
-      install.packages(pkg.depnd[i])
-    } 
-  }
-})
-  
-## then install SPsimSeq
-remotes::install_github("CenterForStatistics-UGent/SPsimSeq")
+```{r githubInstall, eval=FALSE}
+## Install SPsimSeq
+library(devtools)
+install_github("CenterForStatistics-UGent/SPsimSeq")
+```
 
+```{r BiocInstall, eval=FALSE}
+## Install SPsimSeq
+library(BiocManager)
+BiocManager::install("SPsimSeq")
+```
 
+```{r loadSPsimSeq}
 # load package
 library(SPsimSeq) 
 ```
-
-
 
 # Implementation of SPsimSeq
 ## Example 1: simulating bulk RNA-seq
@@ -84,8 +73,7 @@ library(SPsimSeq)
  sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2, batch = NULL,
                           group = MYCN.status, n.genes = 3000, batch.config = 1,
                           group.config = c(0.5, 0.5), tot.samples = 172, 
-                          pDE = 0.1, lfc.thrld = 0.5, result.format = "list",  
-                          seed = 2581988)
+                          pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
  sim.data.bulk1 <- sim.data.bulk[[1]]
  head(sim.data.bulk1$counts[, 1:5])  # count data
  head(sim.data.bulk1$colData)        # sample info

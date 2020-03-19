@@ -26,5 +26,5 @@ obtCount <- function(Y, w, ...){
   uls <- s[2:(length(s))]
   S   <- (lls+uls)/2
   Ny <- h$counts
-  list(S=S, lls=lls, uls=uls, Ny=Ny, Y=Y, mu.hat=mean(Y), sig.hat=sd(Y), w=w) 
+  list(S = S, lls = lls, uls = uls, Ny = Ny) 
 }

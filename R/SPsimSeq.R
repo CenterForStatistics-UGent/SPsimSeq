@@ -195,10 +195,11 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   config.mat <- exprmt.design$exprmt.config
   # prepare source data
   if(verbose) message("Preparing source data ...")
-  prepare.S.Data <- prepareSourceData(s.data=s.data, batch = batch, group = group,
-                    exprmt.design=exprmt.design, const=const, lfc.thrld=lfc.thrld, t.thrld=t.thrld,
-                    cand.DE.genes=cand.DE.genes, llStat.thrld=llStat.thrld,  w=w,
-                    log.CPM.transform=log.CPM.transform,  ...)
+  prepare.S.Data <- prepareSourceData(s.data = s.data, batch = batch, group = group,
+                    exprmt.design = exprmt.design, const = const, 
+                    lfc.thrld = lfc.thrld, t.thrld=t.thrld,
+                    cand.DE.genes = cand.DE.genes, llStat.thrld = llStat.thrld,
+                    w = w, log.CPM.transform = log.CPM.transform)
   cpm.data   <- prepare.S.Data$cpm.data
   sub.batchs <- prepare.S.Data$sub.batchs
   if(is.null(group)) group <- rep(1, ncol(s.data))
@@ -206,23 +207,18 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   if(const>0){
     min.val <- log(const)
   }else{
-    const <- 1
-    min.val <- 0
-    warning("The constant 'const' is not positive! The default value 'const=1' is used instead.")
+    stop("The constant 'const' is not positive! Please provide a strictly postive value!")
   }
-  
-  
   # Simulate expected library sizes
   if(!variale.lib.size & log.CPM.transform){
     if(verbose){message("Simulating expected library sizes ...")}
-    ELS <- simLibSize(sub.batchs=sub.batchs, LS=obtLibSizes(s.data), 
+    ELS <- simLibSize(sub.batchs = sub.batchs, LS = colSums(s.data), 
                       lib.size.params = lib.size.params, n.batch=n.batch, 
-                      batch = batch, n.group = n.group, config.mat = config.mat, ...)
+                      batch = batch, n.group = n.group, config.mat = config.mat)
   }else if(!variale.lib.size & !log.CPM.transform){
     ELS <- 1
   }
 
-  
   # fit logistic regression for the probability of zeros
   if(model.zero.prob){
     if(verbose) {message("Fitting zero probability model ...")}

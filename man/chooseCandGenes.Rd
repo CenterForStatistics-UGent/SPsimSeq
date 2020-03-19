@@ -5,7 +5,7 @@
 \title{Select candidate genes}
 \usage{
 chooseCandGenes(cpm.data, X, lfc.thrld, llStat.thrld, t.thrld,
-  max.frac.zeror.diff = Inf, const, w, ...)
+  max.frac.zeror.diff = Inf, const, w)
 }
 \arguments{
 \item{cpm.data}{logCPM transformed matrix (if log.CPM.transform=FALSE, then it is the source gene expression data)}
@@ -19,14 +19,12 @@ containing X as a covariate to select DE genes}
 
 \item{t.thrld}{a positive numeric value for the minimum absolute t-test statistic for the log-fold-changes of genes for selecting candidate DE genes in the source data (when group is not NULL and  pDE>0)}
 
-\item{max.frac.zeror.diff}{a numeric value >=0 indicating the maximum  absolute
-difference in the fraction of zero counts between the groups for DE genes. Default in Infinitive}
+\item{max.frac.zeror.diff}{a numeric value >=0 indicating the maximum absolute
+difference in the fraction of zero counts between the groups for DE genes.}
 
 \item{const}{a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.}
 
 \item{w}{a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data}
-
-\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 a list object contating a set of candidate null and non-null genes and additional results
