@@ -197,7 +197,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   if(verbose) message("Preparing source data ...")
   prepare.S.Data <- prepareSourceData(s.data=s.data, batch = batch, group = group,
                     exprmt.design=exprmt.design, const=const, lfc.thrld=lfc.thrld, t.thrld=t.thrld,
-                    cand.DE.genes=cand.DE.genes, llStat.thrld=llStat.thrld,  simCtr=NULL, w=w,
+                    cand.DE.genes=cand.DE.genes, llStat.thrld=llStat.thrld,  w=w,
                     log.CPM.transform=log.CPM.transform,  ...)
   cpm.data   <- prepare.S.Data$cpm.data
   sub.batchs <- prepare.S.Data$sub.batchs
