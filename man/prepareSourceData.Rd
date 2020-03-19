@@ -5,7 +5,7 @@
 \title{Prepare source data for simulation.}
 \usage{
 prepareSourceData(s.data, batch, group, cand.DE.genes, exprmt.design,
-  const, lfc.thrld, llStat.thrld, t.thrld, w, log.CPM.transform, ...)
+  const, lfc.thrld, llStat.thrld, t.thrld, w, log.CPM.transform)
 }
 \arguments{
 \item{s.data}{a source data matrix}
@@ -18,12 +18,9 @@ prepareSourceData(s.data, batch, group, cand.DE.genes, exprmt.design,
 
 \item{exprmt.design}{a list contating simulation design configuration}
 
-\item{const}{a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0).
-default is 1e-5}
+\item{const}{a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0)}
 
 \item{lfc.thrld, llStat.thrld, t.thrld, w}{see ?chooseCandGenes}
-
-\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 a list object
