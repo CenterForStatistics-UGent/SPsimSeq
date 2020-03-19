@@ -2,7 +2,6 @@
 
 export(SPsimSeq)
 import(methods)
-importFrom(Biobase,exprs)
 importFrom(Hmisc,cut2)
 importFrom(MASS,mvrnorm)
 importFrom(SingleCellExperiment,SingleCellExperiment)
