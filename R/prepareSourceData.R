@@ -5,9 +5,8 @@
 #' @param group a vector containg group indicator for each sample/cell
 #' @param cand.DE.genes a list object contating candidate predictor (DE) genes
 #' @param exprmt.design a list contating simulation design configuration 
-#' @param const a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0).
-#' default is 1e-5
-#' @param lfc.thrld,llStat.thrld,w see ?chooseCandGenes
+#' @param const a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0)
+#' @param lfc.thrld,llStat.thrld,t.thrld,w see ?chooseCandGenes
 #' @param  ... further arguments passed to or from other methods.
 #'
 #' @return a list object
@@ -17,7 +16,7 @@
 #' @importFrom fitdistrplus fitdist
 prepareSourceData <- function(s.data, batch, group, cand.DE.genes,  
                               exprmt.design, const, lfc.thrld, llStat.thrld,
-                              const, w, log.CPM.transform, ...){
+                              t.thrld, w, log.CPM.transform, ...){
   
   # design element
   n.batch <- exprmt.design$n.batch
@@ -38,7 +37,7 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
     if(length(n.batch) < length(unique(batch))){
       sub.batchs <- sort(sample(length(unique(batch)), length(n.batch))) 
     }else if(length(n.batch) == length(unique(batch))){
-      sub.batchs <- seq_len(length(n.batch))
+      sub.batchs <- seq_along(n.batch)
     }else{
       stop("Invalid number of batches passed: length(n.batch) > length(unique(batch))")
     }
