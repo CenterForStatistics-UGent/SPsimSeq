@@ -11,7 +11,7 @@ SPsimSeq(n.sim = 1, s.data, batch = NULL, group = NULL,
   genewiseCor = TRUE, log.CPM.transform = TRUE,
   lib.size.params = NULL, variale.lib.size = FALSE, w = NULL,
   const = 1, result.format = "SCE", return.details = FALSE,
-  seed = 2581988, verbose = TRUE, ...)
+  verbose = TRUE, ...)
 }
 \arguments{
 \item{n.sim}{an integer for the number of simulations to be generated}
@@ -66,8 +66,6 @@ pDE>0 and cand.DE.genes is NULL)}
 \item{result.format}{a character value for the type of format for the output. Choice can be 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count, column information and row information.}
 
 \item{return.details}{a logical value. If TRUE, detailed results including estimated parameters and densities will be returned}
-
-\item{seed}{an integer between 1 and 1e10 for reproducible simulation. It will be used with #set.seed() function. See also ?set.seed}
 
 \item{verbose}{a logical value, if TRUE a message about the status of the simulation will be printed on the console}
 
@@ -183,7 +181,6 @@ scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 2000), ]
 #head(counts(sim.data.sc1)[, seq_len(5)])
 #colData(sim.data.sc1)
 #rowData(sim.data.sc1)
-
 
 }
 \references{

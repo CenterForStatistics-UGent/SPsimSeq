@@ -5,7 +5,7 @@
 setGeneric("extractMat", function(Y, ...) standardGeneric("extractMat"))
 #' @rdname extractMat
 #' @import methods
-#' @importFrom Biobase exprs
+#' @importFrom SingleCellExperiment counts
 setMethod("extractMat", "SingleCellExperiment", function(Y, ...){
   counts(Y)
 })
