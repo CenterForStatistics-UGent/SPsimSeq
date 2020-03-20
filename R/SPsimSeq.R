@@ -207,14 +207,12 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   sub.batchs <- prepare.S.Data$sub.batchs
   if(is.null(group)) group <- rep(1, ncol(s.data))
   if(is.null(batch)) batch <- rep(1, ncol(s.data))
-  # Simulate library sizes
-  if(!variable.lib.size & log.CPM.transform){
-    if(verbose){message("Simulating expected library sizes ...")}
-    ELS <- simLibSize(sub.batchs = sub.batchs, LS = colSums(s.data), 
-                      lib.size.params = lib.size.params, n.batch=n.batch, 
-                      batch = batch, n.group = n.group, config.mat = config.mat)
-  }else if(!variable.lib.size & !log.CPM.transform){
-    ELS <- 1
+  # Estimate library size distributions
+  if(!variable.lib.size & log.CPM.transform & is.null(lib.size.params)){
+    if(verbose){message("Fitting library size distirbution ...")}
+    lib.size.params <- estLibSizeDistr(sub.batchs = sub.batchs, LS = colSums(s.data), 
+                      n.batch = n.batch, batch = batch, n.group = n.group, 
+                      config.mat = config.mat)
   }
 
   # fit logistic regression for the probability of zeros
