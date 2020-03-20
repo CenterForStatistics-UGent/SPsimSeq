@@ -1,5 +1,5 @@
 # selectes genes among candidate genes
-selectGenesSim <- function(pDE, group, n.genes, null.genes0, nonnull.genes0,
+selectGenes <- function(pDE, group, n.genes, null.genes0, nonnull.genes0,
                            group.config, ...){
   if(pDE>0 & !is.null(group) & length(group.config)>1){
     if((1-pDE)*n.genes <= length(null.genes0)){

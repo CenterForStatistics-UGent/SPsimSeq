@@ -13,8 +13,3 @@ obtCorMatsBatch <- function(cpm.data, batch, n.batch){
                use = "pairwise.complete.obs")
   }) 
 }
-
-Z       <- mvtnorm::rmvnorm(n=n.batch[bb], sigma = cor.mat)  
-Cpl     <- apply(Z, 2, function(z) pnorm(z))
-colnames(Cpl) <- rownames(X)
-Cpl
