@@ -1,6 +1,6 @@
 # A function to estimate the parameters of the log-linear model (gene level)
 obtParSample <- function(est.list.i, DE.ind.ii, n.batch, group){
-  if(DE.ind.ii==0){
+  if(DE.ind.ii){
     if(length(n.batch)>1){   
       par.sample <- as.matrix(do.call("rbind", lapply(est.list.i, function(bt){
         v.mat     <- bt$v
