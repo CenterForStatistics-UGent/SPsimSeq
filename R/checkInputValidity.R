@@ -1,5 +1,6 @@
 # Check for data validity
-checkInputValidity <- function(s.data, group, batch, group.config, batch.config){
+checkInputValidity <- function(s.data, group, batch, group.config, batch.config,
+                               const, w, logt, log_base, prior.count, norm.factors, norm.lib.size){
   # Check for class of missing values in the source data
   if(anyNA(group)){
     stop("The group indicator contains missing values!")
@@ -38,15 +39,12 @@ checkInputValidity <- function(s.data, group, batch, group.config, batch.config)
     if(length(group.config) > length(unique(group))){
       stop("The number of groups to be simulated is larger than the number of 
       groups available in the source data!")
-    }
-    
-    else if((length(group.config) < length(unique(group))) & length(group.config) !=1){
+    } else if((length(group.config) < length(unique(group))) & length(group.config) !=1){
      stop("The number of groups to be simulated is less than the number of 
       groups available in the source data. Maybe subset your source data OR consider 
       adding a 0 in the group.config vector for the group that you do not want to simulate 
       from. Example group.config=c(0.5, 0.5, 0)!")
-    } 
-    else if((length(unique(group))!=1) & length(group.config) ==1){
+    } else if((length(unique(group))!=1) & length(group.config) ==1){
       stop("The source data has", length(unique(group)), "groups but you are
                       simulating only for one group (length(group.config)=1). Hence, data 
                       only from one of the groups will be used!")
@@ -57,7 +55,6 @@ checkInputValidity <- function(s.data, group, batch, group.config, batch.config)
                    there is no groupping variable (group=NULL) for the source data. \n")
     }
   } 
-  
   if(!is.null(batch)){
     if(length(batch.config) != length(unique(batch))){
       stop("The number of batchs to be simulated is not equal to the number of batches 
@@ -69,6 +66,24 @@ checkInputValidity <- function(s.data, group, batch, group.config, batch.config)
                      there is no batch indicator (batch=NULL) for the source data. \n")
     }  
   }   
+  if(!is.null(lib.size.params) & (length(lib.size.params) != 2 | is.null(names(lib.size.params)))){
+    stop("The log-normal parameters for the distribution of library sizes must be submitted in a named vector of size 2. 
+             Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm()")
+  }
+  if(const<0){
+    stop("The constant 'const' is not positive! Please provide a strictly postive value!")
+  }
+  if(!is.null(w) && (w<0 || w>1)){
+    stop("w should be NULL or any value between 0 and 1 excluding 0 and 1")
+  }
+  if(logt & (log_base%%1 != 0 | log_base < 2 | prior.count < 0)){
+    stop("Invalid log base or prior count!")
+  }
+  else if(norm.lib.size & !is.null(norm.factors)){
+    if(length(norm.factors) != ncol(X) | !is.numeric(norm.factors)){
+      stop("Invalid normalization factors passed!")
+    }
+  }
   invisible()
 }
 
