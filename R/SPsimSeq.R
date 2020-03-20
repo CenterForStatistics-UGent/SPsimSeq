@@ -284,7 +284,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
                    DE.ind.ii = gene %in% nonnull.genes0, sel.genes.ii = gene,
                    n.batch = n.batch, n.group = n.group, group = group, batch=batch,
                    log.CPM.transform = log.CPM.transform, config.mat=config.mat,
-                   null.group=null.group, LL=ELS, copulas.batch=copulas.batch,
+                   null.group=null.group, LL = if(variable.lib.size) samLS else LL, copulas.batch=copulas.batch,
                    const = const, min.val = min.val, model.zero.prob=model.zero.prob,
                    tot.samples=tot.samples, fracZero.logit.list = fracZero.logit.list)
     })
@@ -295,8 +295,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
     return(sim.data.h)
   })
   if(return.details){
-    list("sim.data.list"=sim.data.list, 
-         "detailed.results" = est.list)
+    list("sim.data.list" = sim.data.list, "detailed.results" = est.list)
   }else{
     sim.data.list
   }
