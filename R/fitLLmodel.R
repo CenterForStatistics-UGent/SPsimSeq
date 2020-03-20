@@ -6,10 +6,10 @@
 # @return a list object contating the fitted log linear model
 # @importFrom stats glm pnorm coef vcov
 fitLLmodel <- function(yy, ...){
-  Ny=yy$Ny
-  x=yy$S
-  ny=sum(Ny)
-  g0= suppressWarnings(pnorm(yy$uls, yy$mu.hat, yy$sig.hat)) - 
+  Ny = yy$Ny
+  x = yy$S
+  ny = sum(Ny)
+  g0 = suppressWarnings(pnorm(yy$uls, yy$mu.hat, yy$sig.hat)) - 
     suppressWarnings(pnorm(yy$lls, yy$mu.hat, yy$sig.hat))
   ofs = log(g0*ny+1)
   llm = NULL
@@ -22,15 +22,6 @@ fitLLmodel <- function(yy, ...){
   }
   degree = degree - 1
   }
-  # if(!is.null(llm)){
-  #   class(llm) = "glm"
-  #   betas=coef(llm)
-  #   v=vcov(llm)
-  # }
-  # else{
-  #   betas= rep(0, degree)
-  #   v=matrix(0, degree, degree)
-  # }
   est.parms <- parmEstOut(llm)
   return(c(yy, list(betas = est.parms$beta.hat.vec, v = est.parms$V.hat.mat)))
 }
