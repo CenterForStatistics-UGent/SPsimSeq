@@ -32,7 +32,7 @@
 #' @param const a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
 #' @param log.CPM.transform a logical value. If TRUE, the source data will be transformed into log-(CPM+const) before estimating the probability distributions
 #' @param lib.size.params NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.
-#' @param variale.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
+#' @param variable.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
 #' @param verbose a logical value, if TRUE a message about the status of the simulation will be printed on the console
 #' @param  ... further arguments passed to or from other methods.
 #'
@@ -169,7 +169,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
                      t.thrld = 2.5, llStat.thrld = 5, tot.samples = 150, 
                      model.zero.prob = FALSE, genewiseCor = TRUE,
                      log.CPM.transform = TRUE, lib.size.params = NULL, 
-                     variale.lib.size = FALSE, w = NULL, const = 1, 
+                     variable.lib.size = FALSE, w = NULL, const = 1, 
                      result.format = "SCE", return.details = FALSE, 
                      verbose = TRUE)
 {
@@ -177,7 +177,10 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   s.data = extractMat(s.data)
   # Quick checks for error in the inputs
   checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch,
-                                    group.config = group.config, batch.config = batch.config)
+                                    group.config = group.config, batch.config = batch.config, 
+                                    const = const, w = w, logt = logt, 
+                                    log_base = log_base, prior.count = prior.count, 
+                                    norm.factors = norm.factors, norm.lib.size = norm.lib.size)
   # experiment configurartion
   if(verbose) {message("Configuring design ...")}
   if(!is.null(group)){
@@ -204,18 +207,13 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   sub.batchs <- prepare.S.Data$sub.batchs
   if(is.null(group)) group <- rep(1, ncol(s.data))
   if(is.null(batch)) batch <- rep(1, ncol(s.data))
-  if(const>0){
-    min.val <- log(const)
-  }else{
-    stop("The constant 'const' is not positive! Please provide a strictly postive value!")
-  }
-  # Simulate expected library sizes
-  if(!variale.lib.size & log.CPM.transform){
+  # Simulate library sizes
+  if(!variable.lib.size & log.CPM.transform){
     if(verbose){message("Simulating expected library sizes ...")}
     ELS <- simLibSize(sub.batchs = sub.batchs, LS = colSums(s.data), 
                       lib.size.params = lib.size.params, n.batch=n.batch, 
                       batch = batch, n.group = n.group, config.mat = config.mat)
-  }else if(!variale.lib.size & !log.CPM.transform){
+  }else if(!variable.lib.size & !log.CPM.transform){
     ELS <- 1
   }
 
@@ -269,11 +267,11 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
     if(verbose) {message(" ...", h, " of ", n.sim)}
-    if(variale.lib.size & log.CPM.transform){
+    if(variable.lib.size & log.CPM.transform){
       ELS <- simLibSize(sub.batchs=sub.batchs, LS=obtLibSizes(s.data), 
                         lib.size.params = lib.size.params, n.batch=n.batch, 
                         batch = batch, n.group = n.group, config.mat = config.mat)
-    }else if(variale.lib.size & !log.CPM.transform){
+    }else if(variable.lib.size & !log.CPM.transform){
       ELS <- 1
     }
     
