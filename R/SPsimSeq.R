@@ -267,15 +267,15 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
     if(verbose) {message(" ...", h, " of ", n.sim)}
     #Sample libray sizes
     if(variable.lib.size & log.CPM.transform){
-      ELS <- simLibSize(sub.batchs = sub.batchs, LS = obtLibSizes(s.data), 
-                        lib.size.params = lib.size.params, n.batch = n.batch, 
+      samLS <- genLibSizes(fit.ln = lib.size.params, n.batch = n.batch, 
                         batch = batch, n.group = n.group, config.mat = config.mat)
     }
     
     #Sample copula
+    copSam = genCopula(corMats.batch, n.batch = n.batch, batch = batch)
     
     # sample DE and null genes
-    selctGenes <- selectGenesSim(pDE = pDE, group = group, n.genes = n.genes,
+    selctGenes <- selectGenes(pDE = pDE, group = group, n.genes = n.genes,
                                  null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0,
                                  group.config = group.config)
     #Generate data

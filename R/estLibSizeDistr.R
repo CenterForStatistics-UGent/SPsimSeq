@@ -4,7 +4,7 @@
 #' @param batch batches
 #' 
 #' @return Estimated log-normal parameter library sizes
-#' @importFrom fitdistrplus fitdistr
+#' @importFrom fitdistrplus fitdist
 estLibSizeDistr = function(LS, batch){
   tapply(LS, batch, function(L.b){
       fitdist(L.b, distr = "lnorm")$estimate 
