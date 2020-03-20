@@ -15,8 +15,8 @@ estSPDens <- function(est.list.i, par.sample, DE.ind.ii, group, g0){
   }
   else{
     g1 <- lapply(sort(unique(group)), function(g){
-      par.sample.g <- par.sample[[g]] #par.sample[[paste0("grp_", g)]]
-      g0.g <- g0[[g]] #g0[[paste0("grp_", g)]]
+      par.sample.g <- par.sample[[g]]
+      g0.g <- g0[[g]]
       lapply(seq_len(nrow(par.sample.g)), function(bb){   
         b.data <- est.list.i[[bb]][[g]]
         gg0 <- g0.g[[bb]]*sum(b.data$Ny) + 1
