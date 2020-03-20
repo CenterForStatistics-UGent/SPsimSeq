@@ -184,10 +184,10 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   # experiment configurartion
   if(verbose) {message("Configuring design ...")}
   if(!is.null(group)){
-    group <- as.numeric(factor(group, labels =  seq_len(length(unique(group)))))
+    group <- as.numeric(factor(group, labels =  seq_along(unique(group))))
   }
   if(!is.null(batch)){
-    batch <- as.numeric(factor(batch, labels =  seq_len(length(unique(batch)))))
+    batch <- as.numeric(factor(batch, labels =  seq_along(unique(batch))))
   }
   #Find the reference group
   null.group = ifelse(is.null(group), 1, which.max(table(group))[[1]])
