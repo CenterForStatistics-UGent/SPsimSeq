@@ -171,7 +171,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
                      log.CPM.transform = TRUE, lib.size.params = NULL, 
                      variale.lib.size = FALSE, w = NULL, const = 1, 
                      result.format = "SCE", return.details = FALSE, 
-                     verbose = TRUE, ...)
+                     verbose = TRUE)
 {
   #Extract the count data from whatever object is provided
   s.data = extractMat(s.data)
@@ -187,7 +187,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
     batch <- as.numeric(factor(batch, labels =  seq_len(length(unique(batch)))))
   }
   #Find the reference group
-  null.group = ifelse(is.null(group),1, which.max(table(group))[[1]])
+  null.group = ifelse(is.null(group), 1, which.max(table(group))[[1]])
   exprmt.design <- configExperiment(batch.config = batch.config, group.config = group.config,
                                     tot.samples = tot.samples)
   n.batch <- exprmt.design$n.batch
@@ -224,7 +224,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
     if(verbose) {message("Fitting zero probability model ...")}
     fracZero.logit.list <- fracZeroLogitModel(s.data = s.data, batch = batch,
                             sub.batchs = sub.batchs, cpm.data = cpm.data,
-                            const = const, ...)
+                            const = const)
   } else {
     fracZero.logit.list <- NULL
   }
@@ -246,25 +246,24 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
           round(pDE*n.genes),
           ". Therefore, candidiate DE genes are sampled with replacement.")
   }
-
   if(pDE>0 & !is.null(group) & length(nonnull.genes0)==0){
     warning("No gene met the criterial to be a candidiate DE gene. Perhaps consider
             lowering the 'lfc.thrld' or the 'llStat.thrld' or the 't.thrld'. Consequently,
             all the simulated genes are not DE.")
   }
-
-  # Obtain copulas
-  if(verbose & genewiseCor) {message("Estimating featurewise correlations ...")}
-  copulas.batch <- obtCopulasBatch(genewiseCor = genewiseCor, cpm.data = cpm.data,
-                                   batch = batch, n.batch = n.batch)
-
+  # Obtain correlation matrices
+  if(genewiseCor){
+    if(verbose) {message("Estimating featurewise correlations ...")}
+    corMats.batch <- obtCorMatsBatch(cpm.data = cpm.data,
+                                     batch = batch, n.batch = n.batch)
+  }
   # estimate batch specific parameters
   if(verbose) {message("Estimating densities ...")}
   est.list <- setNames(lapply(c(null.genes0, nonnull.genes0), function(gene){ 
     gene.parm.est(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
                   null.group = null.group, sub.batchs = sub.batchs,
                   de.ind = gene %in% nonnull.genes0,
-                  model.zero.prob = model.zero.prob, min.val = min.val, w=w, ...)
+                  model.zero.prob = model.zero.prob, min.val = min.val, w = w)
   }), c(null.genes0, nonnull.genes0))
   # simulation step
   if(verbose) {message("Simulating data ...")}
@@ -273,7 +272,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
     if(variale.lib.size & log.CPM.transform){
       ELS <- simLibSize(sub.batchs=sub.batchs, LS=obtLibSizes(s.data), 
                         lib.size.params = lib.size.params, n.batch=n.batch, 
-                        batch = batch, n.group = n.group, config.mat = config.mat, ...)
+                        batch = batch, n.group = n.group, config.mat = config.mat)
     }else if(variale.lib.size & !log.CPM.transform){
       ELS <- 1
     }
