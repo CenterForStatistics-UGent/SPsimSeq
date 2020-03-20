@@ -37,8 +37,6 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
       sub.batchs <- sort(sample(length(unique(batch)), length(n.batch))) 
     }else if(length(n.batch) == length(unique(batch))){
       sub.batchs <- seq_along(n.batch)
-    }else{
-      stop("Invalid number of batches passed: length(n.batch) > length(unique(batch))")
     }
   }else if(is.null(batch)){
     sub.batchs <- 1

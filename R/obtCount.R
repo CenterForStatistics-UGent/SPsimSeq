@@ -17,10 +17,6 @@ obtCount <- function(Y, w, ...){
   else if(w>0 & w<1){
     h   <- hist(Y, nclass = round(w*length(Y)), plot = FALSE, right = TRUE)
   }
-  else{
-    stop("w should be NULL or any value between 0 and 1 excluding 0 and 1")
-  }
-  
   s   <- h$breaks
   lls <- s[seq_len(length(s)-1)]
   uls <- s[2:(length(s))]
