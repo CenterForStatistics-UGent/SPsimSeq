@@ -221,8 +221,6 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
     fracZero.logit.list <- fracZeroLogitModel(s.data = s.data, batch = batch,
                             sub.batchs = sub.batchs, cpm.data = cpm.data,
                             const = const)
-  } else {
-    fracZero.logit.list <- NULL
   }
   # candidate genes
   if(verbose) {message("Selecting genes ...")}
@@ -247,31 +245,34 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
             lowering the 'lfc.thrld' or the 'llStat.thrld' or the 't.thrld'. Consequently,
             all the simulated genes are not DE.")
   }
-  # Obtain correlation matrices
+  # Estimate correlation matrices
   if(genewiseCor){
     if(verbose) {message("Estimating featurewise correlations ...")}
     corMats.batch <- obtCorMatsBatch(cpm.data = cpm.data,
                                      batch = batch, n.batch = n.batch)
   }
-  # estimate batch specific parameters
+  # Estimate batch specific densities
   if(verbose) {message("Estimating densities ...")}
-  est.list <- setNames(lapply(c(null.genes0, nonnull.genes0), function(gene){ 
-    gene.parm.est(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
+  est.list <- lapply(c(null.genes0, nonnull.genes0), function(gene){ 
+    geneParmEst(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
                   null.group = null.group, sub.batchs = sub.batchs,
                   de.ind = gene %in% nonnull.genes0,
                   model.zero.prob = model.zero.prob, min.val = min.val, w = w)
-  }), c(null.genes0, nonnull.genes0))
-  # simulation step
+  })
+  est.list = set.names(est.list, c(null.genes0, nonnull.genes0))
+  
+  # Simulation step
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
     if(verbose) {message(" ...", h, " of ", n.sim)}
+    #Sample libray sizes
     if(variable.lib.size & log.CPM.transform){
-      ELS <- simLibSize(sub.batchs=sub.batchs, LS=obtLibSizes(s.data), 
-                        lib.size.params = lib.size.params, n.batch=n.batch, 
+      ELS <- simLibSize(sub.batchs = sub.batchs, LS = obtLibSizes(s.data), 
+                        lib.size.params = lib.size.params, n.batch = n.batch, 
                         batch = batch, n.group = n.group, config.mat = config.mat)
-    }else if(variable.lib.size & !log.CPM.transform){
-      ELS <- 1
     }
+    
+    #Sample copula
     
     # sample DE and null genes
     selctGenes <- selectGenesSim(pDE = pDE, group = group, n.genes = n.genes,
@@ -288,27 +289,11 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
                    tot.samples=tot.samples, fracZero.logit.list = fracZero.logit.list)
     })
     sim.data.h <- prepareSPsimOutputs(sim.dat=sim.dat, n.batch=n.batch, n.group=n.group,
-                        DE.ind=as.numeric(selctGenes %in% nonnull.genes0), 
-                        sel.genes=selctGenes, LL=ELS, 
+                        DE.ind = selctGenes %in% nonnull.genes0, 
+                        sel.genes = selctGenes, LL=ELS, 
                         result.format=result.format, log.CPM.transform=log.CPM.transform)
     return(sim.data.h)
-    # colnames(sim.dat) = paste0("Sample_", seq_len(ncol(sim.dat)))
-    # return(sim.dat)
   })
-
-  # #Prepare output
-  # colData = data.frame("Batch" = do.call("c",lapply(seq_along(n.batch), 
-  #                                                   function(i) rep(i, n.batch[i]))),
-  #                   "Group"  = do.call("c",lapply(seq_along(n.group), 
-  #                                                 function(i) rep(i, n.group[i]))),
-  #                   "sim.Lib.Size" = do.call("c", do.call("c", LL)))
-  # rowData = list("null.genes" = null.genes0, "nonnull.genes" = nonnull.genes0)
-  # 
-  # overall.out = list("counts" = sim.data.list,
-  #                    "colData" = colData, "rowData" = rowData,
-  #                    "copulas" = copulas.batch,
-  #                    "SPsim.est.densities" = est.list)
-  # return(overall.out)
   if(return.details){
     list("sim.data.list"=sim.data.list, 
          "detailed.results" = est.list)
