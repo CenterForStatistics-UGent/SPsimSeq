@@ -29,7 +29,7 @@
 #' @param return.details a logical value. If TRUE, detailed results including estimated parameters and densities will be returned
 #' @param genewiseCor a logical value, if TRUE (default) the simulation will retain the gene-to-gene correlation structure of the source data using Gausian-copulas . Note that if it is TRUE, the program will be slow or it may fail for a limited memory size.
 #' @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
-#' @param const a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
+#' @param prior.count a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
 #' @param log.CPM.transform a logical value. If TRUE, the source data will be transformed into log-(CPM+const) before estimating the probability distributions
 #' @param lib.size.params NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.
 #' @param variable.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
@@ -159,19 +159,17 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
                      t.thrld = 2.5, llStat.thrld = 5, tot.samples = 150, 
                      model.zero.prob = FALSE, genewiseCor = TRUE,
                      log.CPM.transform = TRUE, lib.size.params = NULL, 
-                     variable.lib.size = FALSE, w = NULL, const = 1, 
+                     variable.lib.size = FALSE, w = NULL,
                      result.format = "SCE", return.details = FALSE, 
-                     verbose = TRUE, log_base = 2, )
+                     verbose = TRUE, prior.count = 1, const.mult = 1e6)
 {
   #Extract the count data from whatever object is provided
   s.data = extractMat(s.data)
   # Quick checks for error in the inputs
   checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch,
                                     group.config = group.config, batch.config = batch.config, 
-                                    const = const, w = w, log.CPM.transform = log.CPM.transform, 
-                                    log_base = log_base, prior.count = prior.count, 
-                                    norm.factors = norm.factors, norm.lib.size = norm.lib.size,
-                                    lib.size.params = lib.size.params)
+                                    w = w, log.CPM.transform = log.CPM.transform, 
+                                    prior.count = prior.count, lib.size.params = lib.size.params)
   # experiment configurartion
   if(verbose) {message("Configuring design ...")}
   if(!is.null(group)){
@@ -190,10 +188,10 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   # prepare source data
   if(verbose) message("Preparing source data ...")
   prepare.S.Data <- prepareSourceData(s.data = s.data, batch = batch, group = group,
-                    exprmt.design = exprmt.design, const = const, 
-                    lfc.thrld = lfc.thrld, t.thrld=t.thrld,
+                    exprmt.design = exprmt.design, lfc.thrld = lfc.thrld, t.thrld=t.thrld,
                     cand.DE.genes = cand.DE.genes, llStat.thrld = llStat.thrld,
-                    w = w, log.CPM.transform = log.CPM.transform, log_base = log_base)
+                    w = w, log.CPM.transform = log.CPM.transform, 
+                    prior.count = prior.count, const.mult = const.mult)
   cpm.data   <- prepare.S.Data$cpm.data
   sub.batchs <- prepare.S.Data$sub.batchs
   if(is.null(group)) group <- rep(1, ncol(s.data))
