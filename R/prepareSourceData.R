@@ -5,16 +5,12 @@
 #' @param group a vector containg group indicator for each sample/cell
 #' @param cand.DE.genes a list object contating candidate predictor (DE) genes
 #' @param exprmt.design a list contating simulation design configuration 
-#' @param const a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0)
 #' @param lfc.thrld,llStat.thrld,t.thrld,w see ?chooseCandGenes
 #'
 #' @return a list object
-#'
-#' @examples
-#'  # example 
 prepareSourceData <- function(s.data, batch, group, cand.DE.genes,  
-                              exprmt.design, const, lfc.thrld, llStat.thrld,
-                              t.thrld, w, log.CPM.transform){
+                              exprmt.design, lfc.thrld, llStat.thrld,
+                              t.thrld, w, log.CPM.transform, prior.count, const.mult){
   
   # design element
   n.batch <- exprmt.design$n.batch
@@ -22,7 +18,8 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
   config.mat <- exprmt.design$exprmt.config
   
   # calculate log CPM 
-  cpm.data <- calulateCPM(s.data, log.CPM.transform = log.CPM.transform)
+  cpm.data <- calulateCPM(s.data, log.CPM.transform = log.CPM.transform, 
+                          prior.count = prior.count, const.mult = const.mult)
 
   # subset batches
   if(!is.null(batch)){ 
@@ -39,7 +36,7 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
   # select candidate genes
   if(is.null(cand.DE.genes)){
     cand.DE.genes = if(!is.null(group) & length(unique(group))>1){ 
-     chooseCandGenes(cpm.data = cpm.data, X = group, const = const, 
+     chooseCandGenes(cpm.data = cpm.data, X = group, const = prior.count, 
                      lfc.thrld = lfc.thrld, t.thrld = t.thrld, 
                      llStat.thrld = llStat.thrld, w = w)
     } else {
