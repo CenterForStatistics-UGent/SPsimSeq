@@ -15,11 +15,11 @@ geneParmEst <- function(cpm.data.i, batch, group, null.group, sub.batchs,
   lapply(sub.batchs, function(b){ 
     if(!de.ind){
       Y0 <- cpm.data.i[(batch==b & group==null.group)] 
-      parmEstDensVec(Y0, modelzero.prob, min.val)
+      parmEstDensVec(Y0, model.zero.prob, min.val)
     } else {
       Y0 <- split(cpm.data.i[batch==b], group[batch==b])
       Y <- lapply(Y0, function(y0){
-        parmEstDensVec(y0, modelzero.prob, min.val)
+        parmEstDensVec(y0, model.zero.prob, min.val)
       }) 
     }
   }) 
@@ -42,8 +42,7 @@ if(sum(Y > min.val) > min.count.nonnull){
   fitLLmodel(yy = countY)
 } 
 else{
-  list(S=0, lls=0, uls=0, Ny=0, Y=Y, mu.hat=mean(Y), sig.hat=sd(Y), 
-       w=w, betas=parmEstOut(llm = NULL)$beta.hat.vec, 
-       v = parmEstOut(llm = NULL)$V.hat.mat)
+  list(S = 0, lls = 0, uls = 0, Ny = 0, Y = Y, mu.hat = mean(Y), 
+       sig.hat = sd(Y), w = w, betas = integer(5), v = diag(5))
   }
 }

@@ -9,7 +9,7 @@ fitLLmodel <- function(yy, ...){
   #Carrier density
   g0 = suppressWarnings(pnorm(yy$uls, yy$mu.hat, yy$sig.hat) - 
     pnorm(yy$lls, yy$mu.hat, yy$sig.hat))
-  ofs = log(g0*sum(Ny)+1)
+  ofs = log(g0*sum(yy$Ny)+1)
   llm = NULL
   degree = 4
   while(is.null(llm) && (degree >= 1)){
