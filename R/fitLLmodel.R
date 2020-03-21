@@ -1,27 +1,25 @@
-# Fit log linear model for each gene
-# 
-# @param yy a list object contating a result from obtCount() function for a single gene 
-# @param  ... further arguments passed to or from other methods.
-# 
-# @return a list object contating the fitted log linear model
-# @importFrom stats glm pnorm coef vcov
+#' Fit log linear model for each gene
+#' 
+#' @param yy a list object contating a result from obtCount() function for a single gene 
+#' @param  ... further arguments passed to or from other methods.
+#' 
+#' @return a list object containing the fitted log linear model and carrier density
+#' @importFrom stats pnorm
 fitLLmodel <- function(yy, ...){
-  Ny = yy$Ny
-  x = yy$S
-  ny = sum(Ny)
-  g0 = suppressWarnings(pnorm(yy$uls, yy$mu.hat, yy$sig.hat)) - 
-    suppressWarnings(pnorm(yy$lls, yy$mu.hat, yy$sig.hat))
-  ofs = log(g0*ny+1)
+  #Carrier density
+  g0 = suppressWarnings(pnorm(yy$uls, yy$mu.hat, yy$sig.hat) - 
+    pnorm(yy$lls, yy$mu.hat, yy$sig.hat))
+  ofs = log(g0*sum(Ny)+1)
   llm = NULL
   degree = 4
   while(is.null(llm) && (degree >= 1)){
-  llm <- tryCatch(fitPoisGlm(Ny, x, degree, offset = ofs), 
+  llm <- tryCatch(fitPoisGlm(yy$Ny, yy$S, degree, offset = ofs), 
                   error=function(e){}, warning=function(w){}) 
   if(!is.null(llm) && llm$rank != ncol(llm$R)){
     llm = NULL
   }
   degree = degree - 1
   }
-  est.parms <- parmEstOut(llm)
-  return(c(yy, list(betas = est.parms$beta.hat.vec, v = est.parms$V.hat.mat)))
+  est.parms <- extractGlmParams(llm)
+  return(c(yy, est.parms, list(g0 = g0)))
 }

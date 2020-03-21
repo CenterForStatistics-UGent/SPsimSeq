@@ -149,19 +149,10 @@
 #' #rowData(sim.data.sc1)
 #'
 #' @export
-#' @importFrom MASS mvrnorm
 #' @importFrom stats pnorm dnorm runif rbinom predict approx quantile glm rlnorm lm sd var
 #' @importFrom methods is
-#' @importFrom SingleCellExperiment counts colData rowData SingleCellExperiment
-#' @importFrom Hmisc cut2
-#' @importFrom fitdistrplus fitdist
 #' @importFrom stats glm pnorm coef vcov setNames
-#' @importFrom edgeR calcNormFactors
-#' @importFrom SingleCellExperiment counts SingleCellExperiment colData rowData
-#' @importFrom graphics hist
 #' @importFrom mvtnorm rmvnorm
-#' @importFrom WGCNA cor
-#' @importFrom limma voom
 #' @importFrom plyr rbind.fill
 SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL, 
                      n.genes = 1000, batch.config = 1, group.config = 1, 
@@ -210,9 +201,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
   # Estimate library size distributions
   if(!variable.lib.size & log.CPM.transform & is.null(lib.size.params)){
     if(verbose){message("Fitting library size distirbution ...")}
-    lib.size.params <- estLibSizeDistr(sub.batchs = sub.batchs, LS = colSums(s.data), 
-                      n.batch = n.batch, batch = batch, n.group = n.group, 
-                      config.mat = config.mat)
+    lib.size.params <- estLibSizeDistr(LS = colSums(s.data), batch = batch)
   }
 
   # fit logistic regression for the probability of zeros
@@ -268,9 +257,8 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
     #Sample libray sizes
     if(variable.lib.size & log.CPM.transform){
       samLS <- genLibSizes(fit.ln = lib.size.params, n.batch = n.batch, 
-                        batch = batch, n.group = n.group, config.mat = config.mat)
+                       n.group = n.group, config.mat = config.mat)
     }
-    
     #Sample copula
     copSam = genCopula(corMats.batch, n.batch = n.batch, batch = batch)
     
