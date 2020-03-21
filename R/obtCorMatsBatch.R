@@ -7,9 +7,9 @@
 #' @return The estimated correlation matrices per batch
 obtCorMatsBatch <- function(cpm.data, batch, n.batch){
   lapply(sort(unique(batch)), function(bb){ 
-    voom.res <- limma::voom(X[, batch==bb])
+    voom.res <- limma::voom(cpm.data[, batch==bb])
     W <- voom.res$weights
-    WGCNA::cor(x=t(X[, batch==bb]), weights.x = t(W), 
+    WGCNA::cor(x=t(cpm.data[, batch==bb]), weights.x = t(W), 
                use = "pairwise.complete.obs")
   }) 
 }

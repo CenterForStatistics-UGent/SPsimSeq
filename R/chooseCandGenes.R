@@ -23,9 +23,8 @@
 chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
                              max.frac.zeror.diff = Inf, const, w){
   n.cells   <- table(X)
-  sim.group <- length(n.cells)
   # calculate fold-changes
-  logConst =  log(const)
+  logConst =  log2(const)
   m.diff  <- apply(cpm.data, 1, function(y){ 
     l.mod  <- lm(y~X)
     t.stat <- max(abs(summary(l.mod)[["coefficients"]][-1, "t value"]))
@@ -34,27 +33,24 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
     frac.z.diff <- max(abs(combn(tapply(y, X, function(yy) mean(yy==logConst)), 2, FUN=diff)))
     c(t.stat = t.stat, fc = fc, frac.z.diff = frac.z.diff)
   })
-  
   null.genes0    <- colnames(m.diff)[m.diff["t.stat",] < t.thrld | m.diff["fc",] < lfc.thrld ]
   nonnull.genes0 <- colnames(m.diff)[(m.diff["t.stat",] >= t.thrld) & 
                                        (m.diff["fc",] >= lfc.thrld) & 
                                        (m.diff["frac.z.diff",] <= max.frac.zeror.diff)]
-
+  #Why is this next step needed?
   if(llStat.thrld > 0 & length(nonnull.genes0)>=1){
     statLLmodel <- sapply(nonnull.genes0, function(j){
       Y <- lapply(names(n.cells), function(x){
         cpm.data[j, X==x]
       })
-      
       S.list <- lapply(Y, FUN = obtCount, w=w)
       ss     <- lapply(S.list, function(x) x$S)
       lls    <- lapply(S.list, function(x) x$lls)
       uls    <- lapply(S.list, function(x) x$uls)
       Ny     <- lapply(S.list, function(x) x$Ny)
-      muHats     <- vapply(Y, mean, FUN.VALUE = 0)
-      sigHats     <- vapply(Y, sd, FUN.VALUE = 0)
+      muHats <- vapply(S.list, function(x) x$mu.hat, FUN.VALUE = 0)
+      sigHats <- vapply(S.list, function(x) x$sig.hat, FUN.VALUE = 0)
       N = vapply(Ny, sum, FUN.VALUE = 0)
-      
       gg0 <- lapply(seq_along(Y), function(l){ 
         (pnorm(uls[[l]], muHats[[l]], sigHats[[l]]) - 
            pnorm(lls[[l]], muHats[[l]], sigHats[[l]]))*N[[l]]
@@ -67,20 +63,21 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
       ofs = log(gg0+1)
       
       formulae = paste0("Ny~", 
-                        c("I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy", 
+                        c("I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy)", 
                    "I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy)",
                    "I(ss)+ I(Xy) + I(ss*Xy)"
                    ))
+      df = data.frame(Ny = Ny, ss = ss, Xy = Xy, ofs =ofs)
       for (form in formulae){
-      l.mod.x <- tryCatch(glm(form), 
-                              family = "poisson", offset = ofs,
+      l.mod.x <- tryCatch(glm(form, data = df,
+                              family = "poisson", offset = ofs),
                           error=function(e){}, warning=function(w){})
       if(!is.null(l.mod.x)) break
       }
       if(!is.null(l.mod.x)){
         if(l.mod.x$rank == ncol(l.mod.x$R)){
           Z.X <- summary(l.mod.x)$coefficients[, 3]
-          Z.X <- Z.X[names(Z.X) %in% c("I(Xy)", "I(ss * Xy)", "I((ss^2) * Xy)")]
+          Z.X <- Z.X[names(Z.X) %in% c("I(Xy)", "I(ss*Xy)", "I((ss^2)*Xy)")]
           sum.square.Z.X <- sum(Z.X^2, na.rm = TRUE)
           sum.square.Z.X
         }
@@ -88,7 +85,7 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
       }
       else {0} 
     })
-  } else if(llStat.thrld==0 & length(nonnull.genes0)>=1){
+  } else if(llStat.thrld == 0 & length(nonnull.genes0)>=1){
     statLLmodel <- rep(0, length(nonnull.genes0))
   } else{
     statLLmodel <- 0

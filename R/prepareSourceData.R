@@ -11,16 +11,14 @@
 prepareSourceData <- function(s.data, batch, group, cand.DE.genes,  
                               exprmt.design, lfc.thrld, llStat.thrld,
                               t.thrld, w, log.CPM.transform, prior.count, const.mult){
-  
   # design element
   n.batch <- exprmt.design$n.batch
   n.group <- exprmt.design$n.group
   config.mat <- exprmt.design$exprmt.config
   
   # calculate log CPM 
-  cpm.data <- calulateCPM(s.data, log.CPM.transform = log.CPM.transform, 
+  cpm.data <- calculateCPM(s.data, log.CPM.transform = log.CPM.transform, 
                           prior.count = prior.count, const.mult = const.mult)
-
   # subset batches
   if(!is.null(batch)){ 
     if(length(n.batch) < length(unique(batch))){
@@ -32,7 +30,6 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
     sub.batchs <- 1
     batch <- rep(1, ncol(s.data))
   }
-  
   # select candidate genes
   if(is.null(cand.DE.genes)){
     cand.DE.genes = if(!is.null(group) & length(unique(group))>1){ 
