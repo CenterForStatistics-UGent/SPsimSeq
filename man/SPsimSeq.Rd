@@ -9,9 +9,9 @@ SPsimSeq(n.sim = 1, s.data, batch = NULL, group = NULL,
   cand.DE.genes = NULL, lfc.thrld = 0.5, t.thrld = 2.5,
   llStat.thrld = 5, tot.samples = 150, model.zero.prob = FALSE,
   genewiseCor = TRUE, log.CPM.transform = TRUE,
-  lib.size.params = NULL, variale.lib.size = FALSE, w = NULL,
+  lib.size.params = NULL, variable.lib.size = FALSE, w = NULL,
   const = 1, result.format = "SCE", return.details = FALSE,
-  verbose = TRUE, ...)
+  verbose = TRUE)
 }
 \arguments{
 \item{n.sim}{an integer for the number of simulations to be generated}
@@ -57,7 +57,7 @@ pDE>0 and cand.DE.genes is NULL)}
 
 \item{lib.size.params}{NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.}
 
-\item{variale.lib.size}{a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).}
+\item{variable.lib.size}{a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).}
 
 \item{w}{a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data}
 

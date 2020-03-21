@@ -20,9 +20,7 @@ for space and computation time saving}
 
 \item{n.samples}{an integer indicating the number of samples/cells to sample (if subset.data=TRUE)}
 
-\item{const}{a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0).}
-
-\item{...}{further arguments passed to or from other methods.}
+\item{const}{a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0)}
 }
 \value{
 a GLM class object contating the estimated logistic regression
