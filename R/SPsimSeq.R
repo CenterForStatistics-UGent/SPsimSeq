@@ -148,10 +148,7 @@
 #' #rowData(sim.data.sc1)
 #'
 #' @export
-#' @importFrom stats pnorm dnorm runif rbinom predict approx quantile glm rlnorm lm sd var
-#' @importFrom methods is
-#' @importFrom stats glm pnorm coef vcov setNames
-#' @importFrom mvtnorm rmvnorm
+#' @importFrom stats pnorm dnorm runif rbinom predict approx quantile glm rlnorm lm sd var setNames
 #' @importFrom plyr rbind.fill
 SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL, 
                      n.genes = 1000, batch.config = 1, group.config = 1, 
@@ -228,7 +225,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
           ". Therefore, candidiate DE genes are sampled with replacement.")
   }
   if(pDE>0 & !is.null(group) & length(nonnull.genes0)==0){
-    warning("No gene met the criterial to be a candidiate DE gene. Perhaps consider
+    warning("No gene met the criterion to be a candidiate DE gene. Perhaps consider
             lowering the 'lfc.thrld' or the 'llStat.thrld' or the 't.thrld'. Consequently,
             all the simulated genes are not DE.")
   }
@@ -244,9 +241,9 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
     geneParmEst(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
                   null.group = null.group, sub.batchs = sub.batchs,
                   de.ind = gene %in% nonnull.genes0,
-                  model.zero.prob = model.zero.prob, min.val = min.val, w = w)
+                  model.zero.prob = model.zero.prob, min.val = log2(prior.count), w = w)
   })
-  est.list = set.names(est.list, c(null.genes0, nonnull.genes0))
+  est.list = setNames(est.list, c(null.genes0, nonnull.genes0))
   
   # Simulation step
   if(verbose) {message("Simulating data ...")}

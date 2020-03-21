@@ -7,11 +7,11 @@
 #'
 #' @return a normalized data matrix
 #' @importFrom edgeR calcNormFactors
-calulateCPM <- function(X, const.mult, log.CPM.transform, 
+calculateCPM <- function(X, const.mult, log.CPM.transform, 
                         prior.count){
   if(log.CPM.transform){
     norm.factors = edgeR::calcNormFactors(X)*colSums(X)
     cpm = X %*% diag(1/(norm.factors)) * const.mult
-    log(cpm + prior.count)
+    log2(cpm + prior.count)
   } else X
 }

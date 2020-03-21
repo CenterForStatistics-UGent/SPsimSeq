@@ -22,7 +22,7 @@ zeroProbModel <- function(cpm.data, L, n.mean.class = 0.2, subset.data = FALSE,
   
   # fit logistic model for the probability of zeros
   mean.log.cpm <- rowMeans(cpm.data)
-  y <- c(cpm.data==log(const))
+  y <- c(cpm.data==log2(const))
   n.mean.class <- round(n.mean.class*nrow(cpm.data))
   mid.val <- as.numeric(as.character(cut2(mean.log.cpm, g=n.mean.class, levels.mean = TRUE)))
   log.L <- log(L)
