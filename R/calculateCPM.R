@@ -1,16 +1,17 @@
-# Calculates counts per millions of reads
-calCPM <- function(X, const.mult = 1e6, norm.lib.size = TRUE, norm.factors = NULL, 
-                   logt = FALSE, log_base = 2, prior.count = 1, ...){
-  if(norm.lib.size){
-    norm.factors = if(is.null(norm.factors)){
-       edgeR::calcNormFactors(X)*colSums(X)
-    } else{
-     rep.int(1L, ncol(X))
-    }
-  }
-  cpm <- X %*% diag(1/(norm.factors)) * const.mult
-  if(logt){
-    cpm <- log(cpm+prior.count, base=log_base)
-  }
-  return(cpm)
+#' Calculates counts per millions of reads, possibly with log-transform
+#'
+#' @param X raw data matrix
+#' @param const.mult a constant to multiply with
+#' @param log.CPM.transform a boolean, is log-transform desired
+#' @param prior.count prior count to be added to the zeroes
+#'
+#' @return a normalized data matrix
+#' @importFrom edgeR calcNormFactors
+calulateCPM <- function(X, const.mult, log.CPM.transform, 
+                        log_base, prior.count){
+  if(log.CPM.transform){
+    norm.factors = edgeR::calcNormFactors(X)*colSums(X)
+    cpm <- X %*% diag(1/(norm.factors)) * const.mult
+    log(cpm+prior.count)
+  } else X
 }
