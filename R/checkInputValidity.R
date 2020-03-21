@@ -1,6 +1,7 @@
 # Check for data validity
 checkInputValidity <- function(s.data, group, batch, group.config, batch.config,
-                               const, w, logt, log_base, prior.count, norm.factors, norm.lib.size){
+                               const, w, log.CPM.transform, log_base, prior.count, 
+                               norm.factors, norm.lib.size, lib.size.params){
   # Check for class of missing values in the source data
   if(anyNA(group)){
     stop("The group indicator contains missing values!")
@@ -70,13 +71,13 @@ checkInputValidity <- function(s.data, group, batch, group.config, batch.config,
     stop("The log-normal parameters for the distribution of library sizes must be submitted in a named vector of size 2. 
              Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm()")
   }
-  if(const<0){
+  if(const < 0){
     stop("The constant 'const' is not positive! Please provide a strictly postive value!")
   }
-  if(!is.null(w) && (w<0 || w>1)){
+  if(!is.null(w) && (w < 0 || w > 1)){
     stop("w should be NULL or any value between 0 and 1 excluding 0 and 1")
   }
-  if(logt & (log_base%%1 != 0 | log_base < 2 | prior.count < 0)){
+  if(log.CPM.transform & (log_base%%1 != 0 | log_base < 2 | prior.count < 0)){
     stop("Invalid log base or prior count!")
   }
   else if(norm.lib.size & !is.null(norm.factors)){
