@@ -1,5 +1,5 @@
-# A function to estimate the semi-parametric densities (gene level)
-estSPDens <- function(est.list.i, par.sample, DE.ind.ii, group, g0){
+# A function to evaluate the semi-parametric densities (gene level)
+evalSPDens <- function(est.list.i, par.sample, DE.ind.ii, group, g0){
   if(DE.ind.ii==0){
     g1 <- lapply(seq_len(nrow(par.sample)), function(bb){ 
       b.data <- est.list.i[[bb]]
@@ -31,4 +31,16 @@ estSPDens <- function(est.list.i, par.sample, DE.ind.ii, group, g0){
     }) 
   }
   return(g1)
+}
+
+evalSPDensVec = function(estListI, g0, Sum, b.data){
+  b.data <- est.list.i[[bb]]
+  gg0 <- g0[[bb]]*sum(b.data$Ny) +1
+  s <- b.data$S
+  s.mat <- buildXmat(s, nc = length(b.data$betas))
+  gg1 <- exp(s.mat %*% par.sample[bb, seq_len(ncol(s.mat))])*gg0
+  gg1 <- data.frame(gy=gg1, s=s, lls=b.data$lls, uls=b.data$uls)
+  gg1$gy[is.infinite(gg1$gy)] <- max(gg1$gy[!is.infinite(gg1$gy)]) 
+  gg1$Gy <- cumsum(gg1$gy)/sum(gg1$gy)
+  gg1 
 }
