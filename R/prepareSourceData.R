@@ -22,14 +22,8 @@ prepareSourceData <- function(s.data, batch, group, cand.DE.genes,
   config.mat <- exprmt.design$exprmt.config
   
   # calculate log CPM 
-  if(log.CPM.transform){
-      cpm.data <- log(calCPM(s.data)+const)
-  }
-  else{
-      cpm.data <- s.data
-      LS <- colSums(s.data)
-  }
-  
+  cpm.data <- calulateCPM(s.data, log.CPM.transform = log.CPM.transform)
+
   # subset batches
   if(!is.null(batch)){ 
     if(length(n.batch) < length(unique(batch))){

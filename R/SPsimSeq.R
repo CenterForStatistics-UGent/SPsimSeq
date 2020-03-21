@@ -100,8 +100,7 @@
 #' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2, batch = NULL,
 #'                           group = MYCN.status, n.genes = 2000, batch.config = 1,
 #'                           group.config = c(0.5, 0.5), tot.samples = 20,
-#'                           pDE = 0.1, lfc.thrld = 0.5,
-#'                           result.format = "list",  seed = 2581988)
+#'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 #'
 #'
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
@@ -140,7 +139,7 @@
 #'  #                       group = treatment, n.genes = 2000, batch.config = 1,
 #'   #                      group.config = c(0.5, 0.5), tot.samples = 100,
 #'    #                     pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
-#'     #                    result.format = "SCE",  seed = 2581988)
+#'     #                    result.format = "SCE")
 #'
 #' #sim.data.sc1 <- sim.data.sc[[1]]
 #' #class(sim.data.sc1)
@@ -162,16 +161,17 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
                      log.CPM.transform = TRUE, lib.size.params = NULL, 
                      variable.lib.size = FALSE, w = NULL, const = 1, 
                      result.format = "SCE", return.details = FALSE, 
-                     verbose = TRUE)
+                     verbose = TRUE, log_base = 2, )
 {
   #Extract the count data from whatever object is provided
   s.data = extractMat(s.data)
   # Quick checks for error in the inputs
   checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch,
                                     group.config = group.config, batch.config = batch.config, 
-                                    const = const, w = w, logt = logt, 
+                                    const = const, w = w, log.CPM.transform = log.CPM.transform, 
                                     log_base = log_base, prior.count = prior.count, 
-                                    norm.factors = norm.factors, norm.lib.size = norm.lib.size)
+                                    norm.factors = norm.factors, norm.lib.size = norm.lib.size,
+                                    lib.size.params = lib.size.params)
   # experiment configurartion
   if(verbose) {message("Configuring design ...")}
   if(!is.null(group)){
@@ -193,7 +193,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = NULL, group = NULL,
                     exprmt.design = exprmt.design, const = const, 
                     lfc.thrld = lfc.thrld, t.thrld=t.thrld,
                     cand.DE.genes = cand.DE.genes, llStat.thrld = llStat.thrld,
-                    w = w, log.CPM.transform = log.CPM.transform)
+                    w = w, log.CPM.transform = log.CPM.transform, log_base = log_base)
   cpm.data   <- prepare.S.Data$cpm.data
   sub.batchs <- prepare.S.Data$sub.batchs
   if(is.null(group)) group <- rep(1, ncol(s.data))
