@@ -20,17 +20,17 @@
   
 #' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
 #' @importFrom utils combn
-chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
-                             max.frac.zeror.diff = Inf, const, w){
-  n.cells   <- table(X)
+chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld,
+                             max.frac.zeror.diff = Inf, const, pDE, n.genes){
+  n.cells   <- table(group)
   # calculate fold-changes
-  logConst =  log2(const)
+  logConst =  log(const)
   m.diff  <- apply(cpm.data, 1, function(y){ 
-    l.mod  <- lm(y~X)
+    l.mod  <- lm(y~group)
     t.stat <- max(abs(summary(l.mod)[["coefficients"]][-1, "t value"]))
     #Removed as.numeric
     fc     <- max(abs(coef(l.mod)[-1]))
-    frac.z.diff <- max(abs(combn(tapply(y, X, function(yy) mean(yy==logConst)), 2, FUN=diff)))
+    frac.z.diff <- max(abs(combn(tapply(y, group, function(yy) mean(yy==logConst)), 2, FUN=diff)))
     c(t.stat = t.stat, fc = fc, frac.z.diff = frac.z.diff)
   })
   null.genes0    <- colnames(m.diff)[m.diff["t.stat",] < t.thrld | m.diff["fc",] < lfc.thrld ]
@@ -41,9 +41,9 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
   if(llStat.thrld > 0 & length(nonnull.genes0)>=1){
     statLLmodel <- sapply(nonnull.genes0, function(j){
       Y <- lapply(names(n.cells), function(x){
-        cpm.data[j, X==x]
+        cpm.data[j, group==x]
       })
-      S.list <- lapply(Y, FUN = obtCount, w=w)
+      S.list <- lapply(Y, FUN = obtCount)
       ss     <- lapply(S.list, function(x) x$S)
       lls    <- lapply(S.list, function(x) x$lls)
       uls    <- lapply(S.list, function(x) x$uls)
@@ -95,7 +95,27 @@ chooseCandGenes <- function(cpm.data, X,  lfc.thrld, llStat.thrld, t.thrld,
   compr.stat2$statLL <- statLLmodel[rownames(compr.stat2)]
   nonnull.genes <- nonnull.genes0[statLLmodel>=llStat.thrld]
   null.genes    <- c(null.genes0, setdiff(nonnull.genes0, nonnull.genes))
-  sel.genes <- list(null.genes=unique(null.genes) , nonnull.genes=nonnull.genes,
-                    statLLmodel=statLLmodel, compr.stat=compr.stat2)
+  sel.genes <- list(null.genes = unique(null.genes), nonnull.genes = nonnull.genes)
+  
+  #Throw warnings where needed
+  if((1-pDE)*n.genes > length(null.genes)){
+    message("Note: The number of null genes (not DE) in the source data is ",
+            length(null.genes),
+            " and the number of null genes required to be included in the simulated data is ", 
+            round((1-pDE)*(n.genes)),
+            ". Therefore, candidiate null genes are sampled with replacement.")
+  }
+  if(pDE*n.genes > length(nonnull.genes)){
+    message("Note: The number of DE genes detected in the source data is ",
+            length(nonnull.genes),
+            " and the number of DE genes required to be included in the simulated data is ",
+            round(pDE*n.genes),
+            ". Therefore, candidiate DE genes are sampled with replacement.")
+  }
+  if(pDE>0 & !is.null(group) & length(nonnull.genes)==0){
+    warning("No gene met the criterion to be a candidiate DE gene. Perhaps consider
+            lowering the 'lfc.thrld' or the 'llStat.thrld' or the 't.thrld'. Consequently,
+            all the simulated genes are not DE.")
+  }
   sel.genes
 }
