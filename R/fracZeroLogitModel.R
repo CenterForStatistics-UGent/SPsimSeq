@@ -1,7 +1,14 @@
-# A wrapper function to call the ZerpProbModel
-fracZeroLogitModel <- function(s.data, cpm.data, batch, const, sub.batchs){
-    lapply(unique(sub.batchs), function(b){
-      zeroProbModel(cpm.data = cpm.data[, batch==b], L=colSums(s.data[, batch==b]), 
-                   const=const)
-    })
+#' Extract data and iterate over batches to estimate zero probability models
+#'
+#' @param s.data 
+#' @param batch 
+#'
+#' @return a list of binomial regression parameters
+fracZeroLogitModel <- function(s.data, batch, cpm.data){
+  LS = colSums(s.data)
+  zeroMat = s.data == 0
+  tapply(colnames(s.data), batch, function(coln){
+    zeroProbModel(cpm.data = cpm.data[, coln], L = LS[coln], 
+                  zeroMat[, coln])
+  })
 }

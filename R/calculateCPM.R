@@ -2,16 +2,12 @@
 #'
 #' @param X raw data matrix
 #' @param const.mult a constant to multiply with
-#' @param log.CPM.transform a boolean, is log-transform desired
 #' @param prior.count prior count to be added to the zeroes
 #'
 #' @return a normalized data matrix
 #' @importFrom edgeR calcNormFactors
-calculateCPM <- function(X, const.mult, log.CPM.transform, 
-                        prior.count){
-  if(log.CPM.transform){
+calculateCPM <- function(X, const.mult, prior.count){
     norm.factors = edgeR::calcNormFactors(X)*colSums(X)
     cpm = X %*% diag(1/(norm.factors)) * const.mult
-    log2(cpm + prior.count)
-  } else X
+    log(cpm + prior.count)
 }
