@@ -28,6 +28,7 @@
 # expriment.config(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
 # }
 configExperiment <- function(batch.config, group.config, tot.samples = 150){
+  
   if(is.null(names(batch.config))){
     names(batch.config) <- paste0("Batch_",seq_along(batch.config))
   }
@@ -41,6 +42,23 @@ configExperiment <- function(batch.config, group.config, tot.samples = 150){
   
   n.batch <- rowSums(exprmt.config)
   n.group <- colSums(exprmt.config)
+  
+  # design element
+  n.batch <- exprmt.design$n.batch
+  n.group <- exprmt.design$n.group
+  config.mat <- exprmt.design$exprmt.config
+  
+  # subset batches
+  if(!is.null(batch)){ 
+    if(length(n.batch) < length(unique(batch))){
+      sub.batchs <- sort(sample(length(unique(batch)), length(n.batch))) 
+    }else if(length(n.batch) == length(unique(batch))){
+      sub.batchs <- seq_along(n.batch)
+    }
+  }else if(is.null(batch)){
+    sub.batchs <- 1
+    batch <- rep(1, ncol(s.data))
+  }
   
   list(exprmt.config=exprmt.config, n.batch=n.batch, n.group=n.group)
 }
