@@ -16,7 +16,8 @@
 #' 
 #' #---- a design with a total of 20 samples/cells from 1 group and 2 batchs with 
 #' # batch 1 has 15 samples/cells and batch 2 has 5
-#' expriment.config(batch.config=c(15/20, 5/20), group.config=1, tot.samples=20)
+#' expriment.config(batch.config = c(15/20, 5/20), group.config = 1, 
+#' tot.samples = 20)
 #' 
 #' #---- a design with a total of 20 samples/cells from 1 batch and 2 groups with 
 #' # group 1 has 10 samples/cells and batch 2 has 10
@@ -27,13 +28,13 @@
 #' # respectively.
 #' expriment.config(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
 #' }
-configExperiment <- function(batch.config, group.config, tot.samples){
+configExperiment <- function(batch.config, group.config, tot.samples, batch){
   #Assign names
   if(is.null(names(batch.config))){
-    names(batch.config) <- paste0("Batch_",seq_along(batch.config))
+    names(batch.config) <- paste0("Batch_", seq_along(batch.config))
   }
   if(is.null(names(group.config))){
-    names(group.config) <- paste0("Group_",seq_along(group.config))
+    names(group.config) <- paste0("Group_", seq_along(group.config))
   }
   #Configure the experiment
   exprmt.config <- round(tcrossprod(batch.config, group.config)*tot.samples)
@@ -42,5 +43,9 @@ configExperiment <- function(batch.config, group.config, tot.samples){
   #Total per group and batch
   n.batch <- rowSums(exprmt.config)
   n.group <- colSums(exprmt.config)
+  #Sample batches if needed
+  if(nrow(exprt.config)>1){
+   sub.batchs 
+  }
   list(exprmt.config = exprmt.config, n.batch = n.batch, n.group = n.group)
 }

@@ -218,7 +218,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   ## EXPERIMENT CONFIGURATION
   if(verbose) {message("Configuring design ...")}
   exprmt.design <- configExperiment(batch.config = batch.config, group.config = group.config,
-                                    tot.samples = tot.samples)
+                                    tot.samples = tot.samples, batch = batch)
   ## DATA GENERATION
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
@@ -237,13 +237,14 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                                  group.config = group.config)
     #Generate data
     sim.dat <- lapply(selctGenes, function(gene){ 
-      SPsimPerGene(cpm.data = cpm.data, densList.ii = densList[[gene]],
-                   DE.ind.ii = gene %in% nonnull.genes0, sel.genes.ii = gene,
-                   n.batch = n.batch, n.group = n.group, group = group, batch=batch,
-                   log.CPM.transform = log.CPM.transform, config.mat=config.mat,
-                   null.group=null.group, LL = if(variable.lib.size) samLS else LL, copulas.batch=copulas.batch,
-                   const = const, min.val = min.val, model.zero.prob=model.zero.prob,
-                   tot.samples=tot.samples, fracZero.logit.list = fracZero.logit.list)
+      SPsimPerGene(densList.ii = densList[[gene]], 
+                   DE.ind.ii = gene %in% nonnull.genes0, 
+                   sel.genes.ii = gene,
+                   exprmt.design = exprmt.design,
+                   log.CPM.transform = log.CPM.transform,
+                   LL = samLS, copSam = copSam,
+                   prior.count = prior.count, model.zero.prob = model.zero.prob,
+                   tot.samples = tot.samples, fracZero.logit.list = fracZero.logit.list)
     })
     sim.data.h <- prepareSPsimOutputs(sim.dat=sim.dat, n.batch=n.batch, n.group=n.group,
                         DE.ind = selctGenes %in% nonnull.genes0, 
