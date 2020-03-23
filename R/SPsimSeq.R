@@ -165,7 +165,8 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch,
                                     group.config = group.config, batch.config = batch.config, 
                                     w = w, log.CPM.transform = log.CPM.transform, 
-                                    prior.count = prior.count, lib.size.params = lib.size.params)
+                                    prior.count = prior.count, lib.size.params = lib.size.params, 
+                                    llStat.thrld = llStat.thrld)
   #CPM TRANSFORM
   cpm.data <- if(log.CPM.transform){
     # calculate log CPM 
