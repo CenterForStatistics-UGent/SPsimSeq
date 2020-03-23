@@ -189,7 +189,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   if(is.null(cand.DE.genes)){
     if(verbose) {message("Selecting candidate DE genes ...")}
     cand.DE.genes = if(length(unique(group))>1){ 
-      chooseCandGenes(cpm.data = cpm.data, group = group, const = prior.count, 
+      chooseCandGenes(cpm.data = cpm.data, group = group, prior.count = prior.count, 
                       lfc.thrld = lfc.thrld, t.thrld = t.thrld, w = w,
                       llStat.thrld = llStat.thrld, pDE = pDE, n.genes = n.genes)
     } else {
@@ -210,8 +210,8 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   if(verbose) {message("Estimating densities ...")}
   densList <- lapply(c(null.genes0, nonnull.genes0), function(gene){ 
     geneParmEst(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
-                de.ind = gene %in% nonnull.genes0,
-                model.zero.prob = model.zero.prob, min.val = log(prior.count), w = w)
+                de.ind = gene %in% nonnull.genes0, prior.count = prior.count,
+                model.zero.prob = model.zero.prob, w = w)
   })
   densList = setNames(densList, c(null.genes0, nonnull.genes0))
   #SIMULATION
