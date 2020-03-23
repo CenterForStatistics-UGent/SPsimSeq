@@ -21,8 +21,8 @@
 #'
 #' @return Simulated cpm values
 SPsimPerGene <- function(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, batch, group, config.mat, 
-                         sel.genes.ii, log.CPM.transform, const, min.val, null.group, LL,
-                         copulas.batch, tot.samples, model.zero.prob, fracZero.logit.list){
+                         sel.genes.ii, log.CPM.transform, prior.count, LL,
+                         corMats, tot.samples, model.zero.prob, fracZero.logit.list){
     # get batch specific parameters
     par.sample <- obtParSample(est.list.i = est.list.ii, DE.ind.ii = DE.ind.ii, 
                                n.batch = n.batch, group = group)
