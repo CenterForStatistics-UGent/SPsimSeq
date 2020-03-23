@@ -37,7 +37,8 @@
 #' Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.
 #' @param variable.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
 #' @param verbose a logical value, if TRUE a message about the status of the simulation will be printed on the console
-#'
+#' @param w see ?hist
+#' 
 #' @return a list of SingleCellExperiment/list objects each containing simulated counts (not normalized), smple/cell level information in colData, and gene/feature level information in rowData.
 #'
 #' @details This function uses a specially designed exponential family for density estimation
@@ -152,7 +153,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                      group = rep(1, ncol(s.data)), 
                      n.genes = 1000, batch.config = 1, group.config = 1, 
                      pDE = 0.1, cand.DE.genes = NULL, lfc.thrld = 0.5, 
-                     t.thrld = 2.5, llStat.thrld = 5, tot.samples = 150, 
+                     t.thrld = 2.5, llStat.thrld = 5, tot.samples = ncol(s.data), 
                      model.zero.prob = FALSE, genewiseCor = TRUE,
                      log.CPM.transform = TRUE, lib.size.params = NULL, 
                      variable.lib.size = FALSE,
@@ -174,9 +175,10 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   } else s.data
   #PARAMETER ESTIMATION
   # Estimate library size distributions
+  LS = colSums(s.data) #Library sizes
   if(variable.lib.size && is.null(lib.size.params)){
     if(verbose){message("Fitting library size distirbution ...")}
-    lib.size.params <- estLibSizeDistr(LS = colSums(s.data), batch = batch)
+    lib.size.params <- estLibSizeDistr(LS = LS, batch = batch)
   }
   # Estimate correlation matrices
   if(genewiseCor){
@@ -186,7 +188,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   #Find candidate DE genes
   if(is.null(cand.DE.genes)){
     if(verbose) {message("Selecting candidate DE genes ...")}
-    cand.DE.genes = if(!is.null(group) & length(unique(group))>1){ 
+    cand.DE.genes = if(length(unique(group))>1){ 
       chooseCandGenes(cpm.data = cpm.data, group = group, const = prior.count, 
                       lfc.thrld = lfc.thrld, t.thrld = t.thrld, 
                       llStat.thrld = llStat.thrld, pDE = pDE, n.genes = n.genes)
@@ -209,38 +211,23 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   densList <- lapply(c(null.genes0, nonnull.genes0), function(gene){ 
     geneParmEst(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
                 de.ind = gene %in% nonnull.genes0,
-                model.zero.prob = model.zero.prob, min.val = log2(prior.count), w = w)
+                model.zero.prob = model.zero.prob, min.val = log(prior.count), w = w)
   })
   densList = setNames(densList, c(null.genes0, nonnull.genes0))
   #SIMULATION
   ## EXPERIMENT CONFIGURATION
   if(verbose) {message("Configuring design ...")}
-  #Find the reference group
-  null.group = ifelse(is.null(group), 1, which.max(table(group))[[1]])
   exprmt.design <- configExperiment(batch.config = batch.config, group.config = group.config,
                                     tot.samples = tot.samples)
-  n.batch <- exprmt.design$n.batch
-  n.group <- exprmt.design$n.group
-  config.mat <- exprmt.design$exprmt.config
-  # prepare source data
-  if(verbose) message("Preparing source data ...")
-  prepare.S.Data <- prepareSourceData(s.data = s.data, batch = batch, group = group,
-                    exprmt.design = exprmt.design, lfc.thrld = lfc.thrld, t.thrld=t.thrld,
-                    cand.DE.genes = cand.DE.genes, llStat.thrld = llStat.thrld,
-                    w = w, log.CPM.transform = log.CPM.transform, 
-                    prior.count = prior.count, const.mult = const.mult, 
-                    pDE = pDE, n.genes = n.genes)
-  cpm.data   <- prepare.S.Data$cpm.data
-  sub.batchs <- prepare.S.Data$sub.batchs
-  # Simulation step
+  ## DATA GENERATION
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
     if(verbose) {message(" ...", h, " of ", n.sim)}
     #Sample libray sizes
-    if(variable.lib.size & log.CPM.transform){
-      samLS <- genLibSizes(fit.ln = lib.size.params, n.batch = n.batch, 
+    samLS <- if(variable.lib.size & log.CPM.transform){
+       genLibSizes(fit.ln = lib.size.params, n.batch = n.batch, 
                        n.group = n.group, config.mat = config.mat)
-    }
+    } else LS
     #Sample copula
     copSam = genCopula(corMats.batch, n.batch = n.batch, batch = batch)
     
