@@ -3,14 +3,13 @@
 #' @param yy a list object contating a result from obtCount() function for a single gene 
 #' @param mu.hat,sig.hat Carrier density estimators
 #' @param n number of observations
-#' @param prior.count the prior count
 #' 
 #' @return a list object containing the fitted log linear model and carrier density
 #' @importFrom stats pnorm
-fitLLmodel <- function(yy, mu.hat, sig.hat, n, prior.count){
+fitLLmodel <- function(yy, mu.hat, sig.hat, n){
   #Evaluate carrier density
   g0 = diff(pnorm(yy$breaks, mean = mu.hat, sd = sig.hat))
-  ofs = log(g0*n + prior.count)
+  ofs = log(g0*n)
   llm = NULL; degree = 4
   while(is.null(llm) && (degree >= 1)){
   llm <- tryCatch(fitPoisGlm(yy$counts, yy$mids, degree, offset = ofs), 
