@@ -134,8 +134,7 @@
 #' scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 2000), ]
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' #sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
-#'  #                       group = treatment, n.genes = 2000, batch.config = 1,
+#' #sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, group = treatment, n.genes = 2000, batch.config = 1,
 #'   #                      group.config = c(0.5, 0.5), tot.samples = 100,
 #'    #                     pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'     #                    result.format = "SCE")
@@ -156,7 +155,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                      t.thrld = 2.5, llStat.thrld = 5, tot.samples = ncol(s.data), 
                      model.zero.prob = FALSE, genewiseCor = TRUE,
                      log.CPM.transform = TRUE, lib.size.params = NULL, 
-                     variable.lib.size = FALSE,
+                     variable.lib.size = FALSE, w = NULL,
                      result.format = "SCE", return.details = FALSE, 
                      verbose = TRUE, prior.count = 1, const.mult = 1e6)
 {
@@ -190,7 +189,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
     if(verbose) {message("Selecting candidate DE genes ...")}
     cand.DE.genes = if(length(unique(group))>1){ 
       chooseCandGenes(cpm.data = cpm.data, group = group, const = prior.count, 
-                      lfc.thrld = lfc.thrld, t.thrld = t.thrld, 
+                      lfc.thrld = lfc.thrld, t.thrld = t.thrld, w = w,
                       llStat.thrld = llStat.thrld, pDE = pDE, n.genes = n.genes)
     } else {
       list(null.genes = rownames(s.data)) 
