@@ -20,7 +20,7 @@
   
 #' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
 #' @importFrom utils combn
-chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld,
+chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w =w,
                              max.frac.zeror.diff = Inf, const, pDE, n.genes){
   n.cells   <- table(group)
   # calculate fold-changes
@@ -38,7 +38,7 @@ chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld,
                                        (m.diff["fc",] >= lfc.thrld) & 
                                        (m.diff["frac.z.diff",] <= max.frac.zeror.diff)]
   #Why is this next step needed?
-  if(llStat.thrld > 0 & length(nonnull.genes0)>=1){
+  if(llStat.thrld > 0 && length(nonnull.genes0)>=1){
     statLLmodel <- sapply(nonnull.genes0, function(j){
       Y <- lapply(names(n.cells), function(x){
         cpm.data[j, group==x]
