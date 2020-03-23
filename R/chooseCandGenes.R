@@ -21,9 +21,8 @@
 #' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
 #' @importFrom utils combn
 chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w =w,
-                             max.frac.zeror.diff = Inf, const, pDE, n.genes){
-  n.cells   <- table(group)
-  # calculate fold-changes
+                             max.frac.zeror.diff = Inf, const, pDE, n.genes, prior.count){
+  # calculate fold-changes and t-statistics
   logConst =  log(const)
   m.diff  <- apply(cpm.data, 1, function(y){ 
     l.mod  <- lm(y~group)
@@ -37,66 +36,49 @@ chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w
   nonnull.genes0 <- colnames(m.diff)[(m.diff["t.stat",] >= t.thrld) & 
                                        (m.diff["fc",] >= lfc.thrld) & 
                                        (m.diff["frac.z.diff",] <= max.frac.zeror.diff)]
-  #Why is this next step needed?
-  if(llStat.thrld > 0 && length(nonnull.genes0)>=1){
-    statLLmodel <- sapply(nonnull.genes0, function(j){
-      Y <- lapply(names(n.cells), function(x){
-        cpm.data[j, group==x]
+  #For the ones exceeding the threshold,
+  statLLmodel <- if(length(nonnull.genes0)>=1){
+     vapply(nonnull.genes0, FUN.VALUE = numeric(0), function(j){
+      fits = tapply(cpm.data[j], group, function(Y){
+        mu.hat = mean(Y)
+        sig.hat = sd(Y)
+        #Bin counts
+        countY <- obtCount(Y = Y, w = w)
+        #Fit exponential density
+        llModel = fitLLmodel(yy = countY, mu.hat = mu.hat, sig.hat = sig.hat, 
+                             n = length(Y))
+        #define offset of carrier density
+        ofs = log(llModel$g0 + prior.count)
+        list(ofs = ofs, llModel = llModel)
       })
-      S.list <- lapply(Y, FUN = obtCount)
-      ss     <- lapply(S.list, function(x) x$S)
-      lls    <- lapply(S.list, function(x) x$lls)
-      uls    <- lapply(S.list, function(x) x$uls)
-      Ny     <- lapply(S.list, function(x) x$Ny)
-      muHats <- vapply(S.list, function(x) x$mu.hat, FUN.VALUE = 0)
-      sigHats <- vapply(S.list, function(x) x$sig.hat, FUN.VALUE = 0)
-      N = vapply(Ny, sum, FUN.VALUE = 0)
-      gg0 <- lapply(seq_along(Y), function(l){ 
-        (pnorm(uls[[l]], muHats[[l]], sigHats[[l]]) - 
-           pnorm(lls[[l]], muHats[[l]], sigHats[[l]]))*N[[l]]
-      })
-      Xy <- lapply(seq_along(Y), function(l) rep(l-1, length(ss[[l]])))
-      gg0 = do.call("c", gg0)
-      Ny <- do.call('c', Ny)
-      ss <- do.call('c', ss)
-      Xy <- do.call('c', Xy)
-      ofs = log(gg0+1)
-      
-      formulae = paste0("Ny~", 
-                        c("I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy) + I((ss^2)*Xy)", 
-                   "I(ss)+ I(ss^2)+ I(Xy) + I(ss*Xy)",
-                   "I(ss)+ I(Xy) + I(ss*Xy)"
-                   ))
-      df = data.frame(Ny = Ny, ss = ss, Xy = Xy, ofs =ofs)
-      for (form in formulae){
-      l.mod.x <- tryCatch(glm(form, data = df,
-                              family = "poisson", offset = ofs),
-                          error=function(e){}, warning=function(w){})
-      if(!is.null(l.mod.x)) break
+      #Extract counts, offsets and midpoints, and concatenate
+      counts = c(lapply(fits, function(x) x$llModel$counts))
+      mids = c(lapply(fits, function(x) x$llModel$mids))
+      offsets = c(lapply(fits, function(x) x$offs))
+      groups = factor(c(lapply(seq_along(mids), function(l) rep(l-1, length(mids[[l]])))))
+      l.mod.x = NULL; i = 5
+      #The different models to try
+      terms = c("mids", "groups", "groups:mids", "I(mids^2)", "groups:I(mids^2)")
+      while (is.null(l.mod.x) && i>=3){
+        form = paste("~", paste(terms[seq_len(i)], collapse ="+"))
+        l.mod.x <- tryCatch(glm(form, family = "poisson", offset = ofs),
+                            error=function(e){}, warning=function(w){})
+        i = i-1
       }
-      if(!is.null(l.mod.x)){
-        if(l.mod.x$rank == ncol(l.mod.x$R)){
+      #Return squared sum of test statistics
+      sum.square.Z.X = if(!is.null(l.mod.x) && l.mod.x$rank == ncol(l.mod.x$R)){
           Z.X <- summary(l.mod.x)$coefficients[, 3]
-          Z.X <- Z.X[names(Z.X) %in% c("I(Xy)", "I(ss*Xy)", "I((ss^2)*Xy)")]
-          sum.square.Z.X <- sum(Z.X^2, na.rm = TRUE)
-          sum.square.Z.X
-        }
-        else{0} 
-      }
-      else {0} 
+          Z.X <- Z.X[grepl(names(Z.X), pattern = "groups")]
+          sum(Z.X^2, na.rm = TRUE)
+      } else{0} 
+      return(sum.square.Z.X)
     })
-  } else if(llStat.thrld == 0 & length(nonnull.genes0)>=1){
-    statLLmodel <- rep(0, length(nonnull.genes0))
   } else{
-    statLLmodel <- 0
-    warning("Unable to find candidate non-null genes with. Consider to lower the fold-change threshold or llStat threshold.")
+    warning("Unable to find candidate non-null genes. Consider to lower the fold-change threshold or llStat threshold.")
+    0
   }
-  compr.stat2  <- t(m.diff[,nonnull.genes0])
-  compr.stat2$statLL <- statLLmodel[rownames(compr.stat2)]
   nonnull.genes <- nonnull.genes0[statLLmodel>=llStat.thrld]
   null.genes    <- c(null.genes0, setdiff(nonnull.genes0, nonnull.genes))
-  sel.genes <- list(null.genes = unique(null.genes), nonnull.genes = nonnull.genes)
-  
   #Throw warnings where needed
   if((1-pDE)*n.genes > length(null.genes)){
     message("Note: The number of null genes (not DE) in the source data is ",
@@ -117,5 +99,5 @@ chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w
             lowering the 'lfc.thrld' or the 'llStat.thrld' or the 't.thrld'. Consequently,
             all the simulated genes are not DE.")
   }
-  sel.genes
+  list(null.genes = unique(null.genes), nonnull.genes = nonnull.genes)
 }
