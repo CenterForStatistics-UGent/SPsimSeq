@@ -8,8 +8,9 @@
 #' @param w weight
 #'
 #' @return list of density estimates
-geneParmEst <- function(cpm.data.i, batch, group, 
-                          de.ind, model.zero.prob, min.val, w){
+geneParmEst <- function(cpm.data.i, batch, group, prior.count = prior.count,
+                          de.ind, model.zero.prob, w){
+  min.val = log(prior.count)
   tapply(seq_along(cpm.data.i), batch, function(i){ 
     #When not DE, overal density estimation
     if(!de.ind){

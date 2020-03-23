@@ -13,17 +13,14 @@
 #' @param max.frac.zeror.diff a numeric value >=0 indicating the maximum absolute
 #' difference in the fraction of zero counts between the groups for DE genes.
 #' @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
-#' @param const a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
+#' @param prior.count a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
 #' @return a list object contating a set of candidate null and non-null genes and additional results
-#' @examples
-#'  # example: see ?SPsimSeq
-  
 #' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
 #' @importFrom utils combn
 chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w =w,
-                             max.frac.zeror.diff = Inf, const, pDE, n.genes, prior.count){
+                             max.frac.zeror.diff = Inf, pDE, n.genes, prior.count){
   # calculate fold-changes and t-statistics
-  logConst =  log(const)
+  logConst =  log(prior.count)
   m.diff  <- apply(cpm.data, 1, function(y){ 
     l.mod  <- lm(y~group)
     t.stat <- max(abs(summary(l.mod)[["coefficients"]][-1, "t value"]))
@@ -38,8 +35,8 @@ chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w
                                        (m.diff["frac.z.diff",] <= max.frac.zeror.diff)]
   #For the ones exceeding the threshold,
   statLLmodel <- if(length(nonnull.genes0)>=1){
-     vapply(nonnull.genes0, FUN.VALUE = numeric(0), function(j){
-      fits = tapply(cpm.data[j], group, function(Y){
+     vapply(nonnull.genes0, FUN.VALUE = numeric(1), function(j){
+      fits = tapply(cpm.data[j,], group, function(Y){
         mu.hat = mean(Y)
         sig.hat = sd(Y)
         #Bin counts
@@ -48,20 +45,23 @@ chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w
         llModel = fitLLmodel(yy = countY, mu.hat = mu.hat, sig.hat = sig.hat, 
                              n = length(Y))
         #define offset of carrier density
-        ofs = log(llModel$g0 + prior.count)
+        ofs = log(llModel$g0*length(Y))
         list(ofs = ofs, llModel = llModel)
       })
       #Extract counts, offsets and midpoints, and concatenate
-      counts = c(lapply(fits, function(x) x$llModel$counts))
-      mids = c(lapply(fits, function(x) x$llModel$mids))
-      offsets = c(lapply(fits, function(x) x$offs))
-      groups = factor(c(lapply(seq_along(mids), function(l) rep(l-1, length(mids[[l]])))))
+      df = data.frame(
+        counts = unlist(lapply(fits, function(x) x$llModel$counts)),
+        mids = unlist(lapply(fits, function(x) x$llModel$mids)),
+        ofs = unlist(lapply(fits, function(x) x$ofs)),
+        groups = factor(unlist(lapply(seq_along(fits), function(l) {
+          rep(l, length(fits[[l]]$ofs))})))
+      )
       l.mod.x = NULL; i = 5
       #The different models to try
       terms = c("mids", "groups", "groups:mids", "I(mids^2)", "groups:I(mids^2)")
       while (is.null(l.mod.x) && i>=3){
-        form = paste("~", paste(terms[seq_len(i)], collapse ="+"))
-        l.mod.x <- tryCatch(glm(form, family = "poisson", offset = ofs),
+        form = paste("counts ~", paste(terms[seq_len(i)], collapse ="+"), "+offset(ofs)")
+        l.mod.x <- tryCatch(glm(form, family = "poisson", data = df),
                             error=function(e){}, warning=function(w){})
         i = i-1
       }
