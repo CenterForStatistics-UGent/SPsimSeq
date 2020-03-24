@@ -1,46 +1,38 @@
 #' A function that generates the simulated data for each gene
 #'
-#' @param cpm.data 
-#' @param est.list.ii 
+#' @param densList.ii 
 #' @param DE.ind.ii 
-#' @param n.batch 
-#' @param n.group 
-#' @param batch 
-#' @param group 
-#' @param config.mat 
 #' @param sel.genes.ii 
+#' @param exprmt.config
 #' @param log.CPM.transform 
-#' @param const 
-#' @param min.val 
-#' @param null.group 
+#' @param prior.count
 #' @param LL 
-#' @param copulas.batch 
-#' @param tot.samples 
+#' @param copSam 
 #' @param model.zero.prob 
 #' @param fracZero.logit.list 
 #'
 #' @return Simulated cpm values
-SPsimPerGene <- function(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, batch, group, config.mat, 
+SPsimPerGene <- function(densList.ii, DE.ind.ii, exprmt.config, 
                          sel.genes.ii, log.CPM.transform, prior.count, LL,
-                         corMats, tot.samples, model.zero.prob, fracZero.logit.list){
-    # get batch specific parameters
-    par.sample <- obtParSample(est.list.i = est.list.ii, DE.ind.ii = DE.ind.ii, 
-                               n.batch = n.batch, group = group)
-    # construct carrier density (g0)
-    g0 <- estCarrierDens(est.list.i = est.list.ii, par.sample = par.sample,
-                         DE.ind.ii = DE.ind.ii,  group = group)
-    # construct the density g1(y)
-    g1 <- estSPDens(est.list.i = est.list.ii, par.sample = par.sample,
-                    DE.ind.ii = DE.ind.ii, group = group, g0 = g0)
-    # simulate data 
-    Y.star <- sampleDatSPDens(cpm.data=cpm.data, sel.genes.i=sel.genes.ii, par.sample=par.sample, 
-                              DE.ind.ii=DE.ind.ii, null.group=null.group, LL=LL,
-                              copulas.batch=copulas.batch, group=group, batch=batch, 
-                              g1=g1, log.CPM.transform=log.CPM.transform, const=const,
-                              min.val=min.val, n.group=n.group, n.batch=n.batch,
-                              config.mat=config.mat, model.zero.prob=model.zero.prob, 
-                              fracZero.logit.list=fracZero.logit.list)
-    names(g1) <- names(g0) <- names(par.sample) <- 
-      paste0("group_", if(DE.ind.ii) unique(group) else null.group)
-     return(Y.star)
+                         copSam, model.zero.prob, fracZero.logit.list, 
+                         const.mult, prior.count){
+    ## construct the density
+    cumDens <- constructDens(densList.ii = densList.ii, exprmt.config = exprmt.config,
+                    DE.ind.ii = DE.ind.ii)
+    ## Match with copula to simulate data 
+    Y.star <- matchCopula(cumDens = cumDens, exprmt.config = exprmt.config, 
+                          copSam = copSam, DE.ind.ii = DE.ind.ii)
+    ## Back tranform to counts if needed
+    if(log.CPM.transform){
+      Y.star = lapply(seq_along(Y.star), function(i){
+        round(((exp(Y.star[[i]]) - prior.count)*LL[[i]])/const.mult)
+      })
+    }
+    ## Add zeroes if needed
+    if(model.zero.prob){
+      Y.star = lapply(seq_along(Y.star), function(i){
+        addZeroes(Y.star[[i]], fracZero.logit.list[[i]])
+      })
+    }
+   return(Y.star)
 }

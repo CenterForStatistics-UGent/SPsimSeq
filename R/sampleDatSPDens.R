@@ -81,6 +81,10 @@ sampleDatSPDens <- function(cpm.data, sel.genes.i, par.sample, DE.ind.ii, null.g
   } 
   return(Y.star)
 }
+matchCopula = function(cumDens, exprmt.config, copSam, DE.ind.ii){
+  
+}
+
 # Make y.star.b
 #
 # @param u copulas
