@@ -13,11 +13,11 @@ fitLLmodel <- function(yy, mu.hat, sig.hat, n){
   llm = NULL; degree = 4
   while(is.null(llm) && (degree >= 1)){
   llm <- tryCatch(fitPoisGlm(yy$counts, yy$mids, degree, offset = ofs), 
-                  error=function(e){}, warning=function(w){}) 
+                  error = function(e){}, warning = function(w){}) 
   if(!is.null(llm) && llm$rank != ncol(llm$R)){
     llm = NULL
   }
   degree = degree - 1
   }
-  return(c(yy, list(g0 = g0, coef = llm$coef)))
+  return(c(yy, list(g0 = g0, coef = llm$coef, n = n)))
 }

@@ -38,6 +38,7 @@
 #' @param variable.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
 #' @param verbose a logical value, if TRUE a message about the status of the simulation will be printed on the console
 #' @param w see ?hist
+#' @param const.mult
 #' 
 #' @return a list of SingleCellExperiment/list objects each containing simulated counts (not normalized), smple/cell level information in colData, and gene/feature level information in rowData.
 #'
@@ -239,12 +240,12 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
     sim.dat <- lapply(selctGenes, function(gene){ 
       SPsimPerGene(densList.ii = densList[[gene]], 
                    DE.ind.ii = gene %in% nonnull.genes0, 
-                   sel.genes.ii = gene,
+                   sel.genes.ii = gene, const.mult = const.mult,
                    exprmt.design = exprmt.design,
                    log.CPM.transform = log.CPM.transform,
-                   LL = samLS, copSam = copSam,
+                   LL = samLS, copSam = copSam, prior.count = prior.count,
                    prior.count = prior.count, model.zero.prob = model.zero.prob,
-                   tot.samples = tot.samples, fracZero.logit.list = fracZero.logit.list)
+                   fracZero.logit.list = fracZero.logit.list)
     })
     sim.data.h <- prepareSPsimOutputs(sim.dat=sim.dat, n.batch=n.batch, n.group=n.group,
                         DE.ind = selctGenes %in% nonnull.genes0, 
