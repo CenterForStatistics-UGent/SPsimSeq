@@ -21,6 +21,6 @@ constructDens = function(densList.ii, exprmt.config, DE.ind.ii){
         gy[id] = max(gy[!id])
       }
       Gy = cumsum(gy)/sum(gy)
-      return(Gy)
+      return(list(Gy = Gy, breaks = dl$breaks))
     })
   }
