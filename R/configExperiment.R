@@ -48,11 +48,11 @@ configExperiment <- function(batch.config, group.config, tot.samples, batch, gro
   n.batch <- rowSums(exprmt.config)
   n.group <- colSums(exprmt.config)
   #Select most abundant groups and batches to sample from
-  if(nrow(exprt.config) < length(unqiue(batch))){
+  if(nrow(exprmt.config) < length(unqiue(batch))){
     batchKeep = names(sort(table(batch), decreasing = TRUE))[seq_len(nrow(exprmt.config))]
     sub.batchs = rep(rep(batchKeep, ncol(exprmt.config)), times = c(exprmt.config)) 
   }
-  if(ncol(exprt.config) < length(unqiue(group))){
+  if(ncol(exprmt.config) < length(unqiue(group))){
     groupKeep = names(sort(table(group), decreasing = TRUE))[seq_len(ncol(exprmt.config))]
     sub.groups = rep(groupKeep, times = n.group) 
   }

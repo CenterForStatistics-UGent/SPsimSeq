@@ -97,7 +97,7 @@
 #' # simulate data
 #' set.seed(6452)
 #' zhang.counts2 <- zhang.counts[sample(nrow(zhang.counts), 2000), ]
-#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2, batch = NULL,
+#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
 #'                           group = MYCN.status, n.genes = 2000, batch.config = 1,
 #'                           group.config = c(0.5, 0.5), tot.samples = 20,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
@@ -243,7 +243,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                    sel.genes.ii = gene, const.mult = const.mult,
                    exprmt.design = exprmt.design,
                    log.CPM.transform = log.CPM.transform,
-                   LL = samLS, copSam = copSam, prior.count = prior.count,
+                   LL = samLS, copSam = copSam,
                    prior.count = prior.count, model.zero.prob = model.zero.prob,
                    fracZero.logit.list = fracZero.logit.list)
     })

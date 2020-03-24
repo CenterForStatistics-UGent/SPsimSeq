@@ -15,13 +15,14 @@
 SPsimPerGene <- function(densList.ii, DE.ind.ii, exprmt.config, 
                          sel.genes.ii, log.CPM.transform, prior.count, LL,
                          copSam, model.zero.prob, fracZero.logit.list, 
-                         const.mult, prior.count){
+                         const.mult){
     ## construct the density
     cumDens <- constructDens(densList.ii = densList.ii, exprmt.config = exprmt.config,
                     DE.ind.ii = DE.ind.ii)
     ## Match with copula to simulate data 
     Y.star <- matchCopula(cumDens = cumDens, exprmt.config = exprmt.config, 
-                          copSam = copSam, DE.ind.ii = DE.ind.ii)
+                          copSam = copSam, DE.ind.ii = DE.ind.ii, 
+                          sel.genes.ii = sel.genes.ii)
     ## Back tranform to counts if needed
     if(log.CPM.transform){
       Y.star = lapply(seq_along(Y.star), function(i){
