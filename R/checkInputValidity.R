@@ -48,12 +48,7 @@ checkInputValidity <- function(s.data, group, batch, group.config, batch.config,
   if(length(batch.config) > length(unique(batch))){
       stop("The number of batchs to be simulated is larger than the number of batches 
       available in the source data!")
-    }
-  }else{
-    if(length(batch.config) > 1){
-      stop("You are attempting to simulate",  length(batch.config), "batches but 
-                     there is no batch indicator (batch=NULL) for the source data. \n")
-    }  
+  }
   if(!is.null(lib.size.params) & (length(lib.size.params) != 2 | is.null(names(lib.size.params)))){
     stop("The log-normal parameters for the distribution of library sizes must be submitted in a named vector of size 2. 
              Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm()")

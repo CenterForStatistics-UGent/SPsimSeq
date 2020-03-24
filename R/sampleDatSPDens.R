@@ -81,8 +81,22 @@ sampleDatSPDens <- function(cpm.data, sel.genes.i, par.sample, DE.ind.ii, null.g
   } 
   return(Y.star)
 }
-matchCopula = function(cumDens, exprmt.config, copSam, DE.ind.ii){
-  
+matchCopula = function(cumDens, exprmt.config, copSam, DE.ind.ii, 
+                       sel.genes.ii){
+  lapply(seq_along(exprmt.config$sub.batchs), function(i){
+    batch = exprmt.config$sub.batchs[[i]]
+    copula = copSam[[batch]][sel.genes.ii,]
+    cd = if(DE.ind.ii){
+      cumDens[[batch]][[exprmt.config$sub.group[[i]]]]
+    } else {
+      cumDens[[batch]]
+    }
+    sapply(copula, function(u){
+      id = which.min(abs(cd$Gy-u))
+      runif(1, cd$breaks[id], cd$breaks[id+1])
+    })
+
+  })
 }
 
 # Make y.star.b
