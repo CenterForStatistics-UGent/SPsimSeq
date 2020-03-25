@@ -1,13 +1,16 @@
 #' Generate a copula instance
 #' @param corMat list of correlation matrices
-#' @param n.batch,batch Number of batches, and batch vector
+#' @param exprmt.design Number of batches, and batch vector
 #' 
 #' @return a list of copula instances
-genCopula = function(corMats, n.batch, batch){
-  lapply(sort(unique(batch)), function(bb){ 
-    Z       <- mvtnorm::rmvnorm(n=n.batch[bb], sigma = corMats[[bb]])  
+#' @importFrom mvtnorm rmvnorm
+genCopula = function(corMats, exprmt.design){
+  n.batch = rowSums(exprmt.design$exprmt.config)
+  copList = lapply(names(n.batch), function(b){
+    Z       <- rmvnorm(n = n.batch[b], sigma = corMats[[b]])  
     Cpl     <- apply(Z, 2, pnorm)
-    colnames(Cpl) <- rownames(corMats[[bb]])
-    Cpl
+    colnames(Cpl) <- rownames(corMats[[b]])
+    t(Cpl)
   })
+  Reduce(copList, f = cbind)
 }

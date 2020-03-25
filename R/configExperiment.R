@@ -30,32 +30,20 @@
 #' expriment.config(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
 #' }
 configExperiment <- function(batch.config, group.config, tot.samples, batch, group){
-  #Assign names
-  if(is.null(names(batch.config))){
-    names(batch.config) <- paste0("Batch_", seq_along(batch.config))
-  }
-  if(is.null(names(group.config))){
-    names(group.config) <- paste0("Group_", seq_along(group.config))
-  }
   #Sort, such that largest groups and largest batches match with simulation
   batch.config = sort(batch.config, decreasing = TRUE)
   group.config = sort(group.config, decreasing = TRUE)
+  #Assign names, and select most abundant groups and batches to sample from
+  namesBatch = names(sort(table(batch), decreasing = TRUE))[seq_along(batch.config)]
+  namesGroup = names(sort(table(group), decreasing = TRUE))[seq_along(group.config)]
+  names(batch.config) <- namesBatch
+  names(group.config) <- namesGroup
   #Configure the experiment
   exprmt.config <- round(tcrossprod(batch.config, group.config)*tot.samples)
   rownames(exprmt.config) <- names(batch.config)
   colnames(exprmt.config) <- names(group.config)
-  #Total per group and batch
-  n.batch <- rowSums(exprmt.config)
-  n.group <- colSums(exprmt.config)
-  #Select most abundant groups and batches to sample from
-  if(nrow(exprmt.config) < length(unqiue(batch))){
-    batchKeep = names(sort(table(batch), decreasing = TRUE))[seq_len(nrow(exprmt.config))]
-    sub.batchs = rep(rep(batchKeep, ncol(exprmt.config)), times = c(exprmt.config)) 
-  }
-  if(ncol(exprmt.config) < length(unqiue(group))){
-    groupKeep = names(sort(table(group), decreasing = TRUE))[seq_len(ncol(exprmt.config))]
-    sub.groups = rep(groupKeep, times = n.group) 
-  }
+  sub.batchs = rep(rep(namesBatch, ncol(exprmt.config)), times = c(exprmt.config)) 
+  sub.groups = rep(namesGroup, times = colSums(exprmt.config)) 
   list(exprmt.config = exprmt.config, sub.batchs = sub.batchs, 
        sub.groups = sub.groups)
 }

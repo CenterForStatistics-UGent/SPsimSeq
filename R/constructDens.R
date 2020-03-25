@@ -1,15 +1,15 @@
 #' Construct the cumulative density
 #'
 #' @param densList.ii the estimated density parameters
-#' @param exprmt.config experiment configuration
+#' @param exprmt.design experiment configuration
 #' @param DE.ind.ii a boolean, is the gene to be DE?
 #'
 #' @return The cumulative density
-constructDens = function(densList.ii, exprmt.config, DE.ind.ii){
-    lapply(seq_along(exprmt.config$sub.batchs), function(i){
-      batch = exprmt.config$sub.batchs[[i]]
+constructDens = function(densList.ii, exprmt.design, DE.ind.ii){
+    lapply(seq_along(exprmt.design$sub.batchs), function(i){
+      batch = exprmt.design$sub.batchs[[i]]
       dl = if(DE.ind.ii){
-        densList.ii[[batch]][[exprmt.config$sub.group[[i]]]]
+        densList.ii[[batch]][[exprmt.design$sub.group[[i]]]]
       } else {
         densList.ii[[batch]]
       }
