@@ -218,24 +218,24 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   #SIMULATION
   ## EXPERIMENT CONFIGURATION
   if(verbose) {message("Configuring design ...")}
-  exprmt.design <- configExperiment(batch.config = batch.config, group.config = group.config,
-                                    tot.samples = tot.samples, batch = batch)
+  exprmt.design <- configExperiment(batch.config = batch.config, 
+                                    group.config = group.config,
+                                    tot.samples = tot.samples, batch = batch, 
+                                    group = group)
   ## DATA GENERATION
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
     if(verbose) {message(" ...", h, " of ", n.sim)}
     #Sample libray sizes
     samLS <- if(variable.lib.size & log.CPM.transform){
-       genLibSizes(fit.ln = lib.size.params, n.batch = n.batch, 
-                       n.group = n.group, config.mat = config.mat)
-    } else LS
+       genLibSizes(fit.ln = lib.size.params, exprmt.design = exprmt.design)
+    } else sample(LS, tot.samples, replace = length(tot.samples)>length(LS))
     #Sample copula
-    copSam = genCopula(corMats.batch, n.batch = n.batch, batch = batch)
+    copSam = genCopula(corMats.batch, exprmt.design = exprmt.design)
     
     # sample DE and null genes
-    selctGenes <- selectGenes(pDE = pDE, group = group, n.genes = n.genes,
-                                 null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0,
-                                 group.config = group.config)
+    selctGenes <- selectGenes(pDE = pDE, exprmt.design = exprmt.design, n.genes = n.genes,
+                                 null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0)
     #Generate data
     sim.dat <- lapply(selctGenes, function(gene){ 
       SPsimPerGene(densList.ii = densList[[gene]], 
