@@ -25,12 +25,14 @@ SPsimPerGene <- function(densList.ii, DE.ind.ii, exprmt.design,
     ## Back tranform to counts if needed
     if(log.CPM.transform){
       Y.star = round(((exp(Y.star) - prior.count)*LL)/const.mult)
+      Y.star[Y.star<0] = 0L
     }
     ## Add zeroes if needed
     if(model.zero.prob){
-      Y.star = lapply(seq_along(Y.star), function(i){
-        addZeroes(Y.star[[i]], fracZero.logit.list[[i]])
+      zeroProbs = vapply(seq_along(Y.star), FUN.VALUE = logical(1), function(i){
+        addZeroes(Y.star[[i]], fracZero.logit.list[[exprmt.design$sub.batchs[[i]]]])
       })
+      Y.star[zeroId] = 0L
     }
    return(Y.star)
 }
