@@ -1,5 +1,7 @@
-addZeroes = function(Y, fracZero.logit.list){
-  if(model.zero.prob & mean(Y0==min.val)>0.25){
+
+
+addZeroes = function(Y, fracZero.logit.list, LL){
+  if(mean(Y==min.val)>0.25){
     lLL_b <- log(LL.b)
     pred.pz  <- try(predict(fracZero.logit.list[[bb]], type="response",
                             newdata=data.frame(x1=mean(Y0), x2=lLL_b)), 

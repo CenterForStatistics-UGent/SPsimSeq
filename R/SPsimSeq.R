@@ -38,7 +38,11 @@
 #' @param variable.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
 #' @param verbose a logical value, if TRUE a message about the status of the simulation will be printed on the console
 #' @param w see ?hist
-#' @param const.mult
+#' @param const.mult A constant by which the count are scaled. Usually 1e6 to get CPM
+#' @param n.mean.class a fraction of the number of genes
+#' for the number of groups to be created for the mean log CPM of genes
+#' @param minFracZeroes minimum fraction of zeroes before a zero inflation model
+#' is fitted
 #' 
 #' @return a list of SingleCellExperiment/list objects each containing simulated counts (not normalized), smple/cell level information in colData, and gene/feature level information in rowData.
 #'
@@ -158,7 +162,8 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                      log.CPM.transform = TRUE, lib.size.params = NULL, 
                      variable.lib.size = FALSE, w = NULL,
                      result.format = "SCE", return.details = FALSE, 
-                     verbose = TRUE, prior.count = 1, const.mult = 1e6)
+                     verbose = TRUE, prior.count = 1, const.mult = 1e6,
+                     n.mean.class = 0.2, minFracZeroes = 0.25)
 {
   #DATA EXTRACTION
   s.data = extractMat(s.data)
@@ -205,7 +210,9 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   if(model.zero.prob){
     if(verbose) {message("Fitting zero probability model ...")}
     fracZero.logit.list <- fracZeroLogitModel(s.data = s.data, batch = batch, 
-                                              cpm.data = cpm.data)
+                                              cpm.data = cpm.data, 
+                                              n.mean.class = n.mean.class, 
+                                              minFracZeroes = minFracZeroes)
   }
   # Estimate batch specific densities
   if(verbose) {message("Estimating densities ...")}
