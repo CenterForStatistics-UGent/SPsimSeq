@@ -39,7 +39,8 @@ Imports:
          WGCNA, 
          limma, 
          mvtnorm,
-         phyloseq 
+         phyloseq ,
+         utils
 biocViews: GeneExpression, RNASeq, SingleCell, Sequencing, DNASeq
 RoxygenNote: 6.1.1
 Suggests:  
