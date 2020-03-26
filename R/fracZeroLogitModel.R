@@ -11,12 +11,15 @@ fracZeroLogitModel <- function(s.data, batch, cpm.data, n.mean.class,
   LS = colSums(s.data)
   zeroMat = s.data == 0
   zeroModels = tapply(colnames(s.data), batch, function(coln){
-    zeroProbModel(cpm.data = cpm.data[, coln], logL = log(LS[coln]), 
+    zeroModel = zeroProbModel(cpm.data = cpm.data[, coln], logL = log(LS[coln]), 
                   zeroMat[, coln],  n.mean.class = n.mean.class, 
                   minFracZeroes = minFracZeroes)
+    #Calculate zero fractions of each gene within the batches
+    zeroFrac = rowMeans(zeroMat[, coln])
+    #Calculate gene-wise means
+    geneMeans = rowMeans(cpm.data[, coln])
+    #Retain the means of the genes exceeding the zero fraction threshold
+    meansLarge = geneMeans[zeroFrac > minFracZeroes]
+    list(zeroModel = zeroModel, meansLarge = meansLarge)
   })
-  zeroFracs = vapply(colnames(s.data), function(gene){
-    tapply(zeromat[gene, ], batch, mean)
-  }, FUN.VALUE = numeric(length(unique(batch))))
-  list(zeroModels = zeroModels, exceedIds = exceedIds)
 }
