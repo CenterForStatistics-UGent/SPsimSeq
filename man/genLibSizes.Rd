@@ -4,16 +4,12 @@
 \alias{genLibSizes}
 \title{Generate library sizes from log-normal}
 \usage{
-genLibSizes(n.batch, n.group, fit.ln, config.mat)
+genLibSizes(fit.ln, exprmt.design)
 }
 \arguments{
-\item{n.batch}{}
-
-\item{n.group}{}
-
 \item{fit.ln}{}
 
-\item{config.mat}{}
+\item{exprmt.design}{}
 }
 \value{
 The generated libray sizes per batch and group

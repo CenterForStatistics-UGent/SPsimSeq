@@ -2,29 +2,23 @@
 % Please edit documentation in R/zeroProbModel.R
 \name{zeroProbModel}
 \alias{zeroProbModel}
-\title{predict zero probability using logistic rgression}
+\title{Predict zero probability using logistic rgression}
 \usage{
-zeroProbModel(cpm.data, L, n.mean.class = 0.2, subset.data = FALSE,
-  n.samples = 400, const)
+zeroProbModel(cpm.data, logL, zeroMat, n.mean.class)
 }
 \arguments{
 \item{cpm.data}{log CPM matrix}
 
-\item{L}{library size of the source data}
+\item{logL}{log library size of the source data}
+
+\item{zeroMat}{the matrix of zero indicators}
 
 \item{n.mean.class}{a fraction of the number of genes
 for the number of groups to be created for the mean log CPM of genes}
-
-\item{subset.data}{a logical value to subset columns(samples) if the size of the data is too big
-for space and computation time saving}
-
-\item{n.samples}{an integer indicating the number of samples/cells to sample (if subset.data=TRUE)}
-
-\item{const}{a small constant (>0) to be added to the CPM before log transformation, to avoid  log(0)}
 }
 \value{
-a GLM class object contating the estimated logistic regression
+The coefficients of the estimated logistic regression
 }
 \description{
-predict zero probability using logistic rgression
+Predict zero probability using logistic rgression
 }

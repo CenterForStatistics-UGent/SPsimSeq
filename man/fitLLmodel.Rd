@@ -4,15 +4,17 @@
 \alias{fitLLmodel}
 \title{Fit log linear model for each gene}
 \usage{
-fitLLmodel(yy, ...)
+fitLLmodel(yy, mu.hat, sig.hat, n)
 }
 \arguments{
 \item{yy}{a list object contating a result from obtCount() function for a single gene}
 
-\item{...}{further arguments passed to or from other methods.}
+\item{mu.hat, sig.hat}{Carrier density estimators}
+
+\item{n}{number of observations}
 }
 \value{
-a list object contating the fitted log linear model
+a list object containing the fitted log linear model and carrier density
 }
 \description{
 Fit log linear model for each gene
