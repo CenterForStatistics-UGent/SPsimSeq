@@ -2,30 +2,36 @@
 % Please edit documentation in R/SPsimPerGene.R
 \name{SPsimPerGene}
 \alias{SPsimPerGene}
-\title{A function that generates the simulated data for each gene}
+\title{A function that generates the simulated data for a single gene}
 \usage{
 SPsimPerGene(cumDens, exprmt.design, sel.genes.ii, log.CPM.transform,
   prior.count, LL, copSam, model.zero.prob, fracZero.logit.list,
   const.mult)
 }
 \arguments{
-\item{cumDens}{}
+\item{cumDens}{cumulative density}
 
-\item{sel.genes.ii}{}
+\item{sel.genes.ii}{selected gene}
 
-\item{log.CPM.transform}{}
+\item{log.CPM.transform}{a boolean, is log-CPM transform required?}
 
-\item{LL}{}
+\item{prior.count}{the prior count}
 
-\item{copSam}{}
+\item{LL}{the library sizes}
 
-\item{model.zero.prob}{}
+\item{copSam}{the generated copula}
 
-\item{fracZero.logit.list}{}
+\item{model.zero.prob}{a boolean, should the zeroes be modelled separately}
+
+\item{fracZero.logit.list}{The zero model}
+
+\item{const.mult}{a large constant for the CPM transform, normally 1e6}
+
+\item{exprmt.config}{experiment configuration}
 }
 \value{
 Simulated cpm values
 }
 \description{
-A function that generates the simulated data for each gene
+A function that generates the simulated data for a single gene
 }

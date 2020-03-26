@@ -1,14 +1,15 @@
-#' A function that generates the simulated data for each gene
+#' A function that generates the simulated data for a single gene
 #'
-#' @param cumDens 
-#' @param sel.genes.ii 
-#' @param exprmt.config
-#' @param log.CPM.transform 
-#' @param prior.count
-#' @param LL 
-#' @param copSam 
-#' @param model.zero.prob 
-#' @param fracZero.logit.list 
+#' @param cumDens cumulative density
+#' @param sel.genes.ii selected gene
+#' @param exprmt.config experiment configuration
+#' @param log.CPM.transform a boolean, is log-CPM transform required?
+#' @param prior.count the prior count
+#' @param LL the library sizes
+#' @param copSam the generated copula
+#' @param model.zero.prob a boolean, should the zeroes be modelled separately
+#' @param fracZero.logit.list The zero model
+#' @param const.mult a large constant for the CPM transform, normally 1e6
 #'
 #' @return Simulated cpm values
 SPsimPerGene <- function(cumDens, exprmt.design, 
