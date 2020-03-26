@@ -5,6 +5,7 @@
 #' @param gene the gene name
 #'
 #' @return A boolean, should a zero be introduced or not?
+#' @importFrom stats rbinom
 samZeroID = function(fracZero.logit.list, logLL, gene){
   if(gene %in% names(fracZero.logit.list$meansLarge)){
     meansLarge = rep(fracZero.logit.list$meansLarge[gene], length(logLL))

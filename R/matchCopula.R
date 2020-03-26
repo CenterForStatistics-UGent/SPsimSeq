@@ -6,6 +6,7 @@
 #' @param sel.genes.ii 
 #'
 #' @return the outcome values as a vector
+#' @importFrom stats runif
 matchCopula = function(cumDens, exprmt.design, copSam, sel.genes.ii){
   vapply(seq_along(exprmt.design$sub.batchs), function(i){
     copula = copSam[sel.genes.ii,i]
