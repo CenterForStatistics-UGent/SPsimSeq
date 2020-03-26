@@ -158,7 +158,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                      n.genes = 1000, batch.config = 1, group.config = 1, 
                      pDE = 0.1, cand.DE.genes = NULL, lfc.thrld = 0.5, 
                      t.thrld = 2.5, llStat.thrld = 5, tot.samples = ncol(s.data), 
-                     model.zero.prob = FALSE, genewiseCor = TRUE,
+                     model.zero.prob = TRUE, genewiseCor = TRUE,
                      log.CPM.transform = TRUE, lib.size.params = NULL, 
                      variable.lib.size = FALSE, w = NULL,
                      result.format = "SCE", return.details = FALSE, 
@@ -205,6 +205,8 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   #Selected genes
   null.genes0    <- cand.DE.genes$null.genes
   nonnull.genes0 <- cand.DE.genes$nonnull.genes
+  allGenes = c(null.genes0, nonnull.genes0)
+  names(allGenes) = allGenes
   # Fit logistic regression for the probability of zeros
   if(all(s.data!=0)) model.zero.prob = FALSE
   if(model.zero.prob){
@@ -216,12 +218,11 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   }
   # Estimate batch specific densities
   if(verbose) {message("Estimating densities ...")}
-  densList <- lapply(c(null.genes0, nonnull.genes0), function(gene){ 
+  densList <- lapply(allGenes, function(gene){ 
     geneParmEst(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
                 de.ind = gene %in% nonnull.genes0, prior.count = prior.count,
                 model.zero.prob = model.zero.prob, w = w)
   })
-  densList = setNames(densList, c(null.genes0, nonnull.genes0))
   #SIMULATION
   ## EXPERIMENT CONFIGURATION
   if(verbose) {message("Configuring design ...")}
@@ -229,6 +230,12 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                                     group.config = group.config,
                                     tot.samples = tot.samples, batch = batch, 
                                     group = group)
+  ## PREPARE THE DENSITIES
+  prepDens <- lapply(allGenes, function(gene){ 
+    constructDens(densList.ii = densList[[gene]], 
+                 DE.ind.ii = gene %in% nonnull.genes0, 
+                 sel.genes.ii = gene)
+  })
   ## DATA GENERATION
   if(verbose) {message("Simulating data ...")}
   sim.data.list <- lapply(seq_len(n.sim), function(h){
@@ -245,8 +252,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                                  null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0)
     #Generate data
     sim.dat <- lapply(selctGenes, function(gene){ 
-      SPsimPerGene(densList.ii = densList[[gene]], 
-                   DE.ind.ii = gene %in% nonnull.genes0, 
+      SPsimPerGene(cumDens = prepDens[[gene]],
                    sel.genes.ii = gene, const.mult = const.mult,
                    exprmt.design = exprmt.design,
                    log.CPM.transform = log.CPM.transform,
