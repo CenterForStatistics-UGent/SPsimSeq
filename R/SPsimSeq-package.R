@@ -11,6 +11,7 @@
 #'
 #' @docType package
 #' @author  Alemu Takele Assefa \email{alemutak@hotmail.com}
+#' @author Stijn Hawinkel \email{stijnhawinkel@hotmail.com}
 #' @name SPsimSeq-package  
 #' 
 NULL
