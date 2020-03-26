@@ -31,7 +31,6 @@ URL: https://github.com/CenterForStatistics-UGent/SPsimSeq
 Imports: 
          stats, 
          methods,
-         MASS,
          SingleCellExperiment,  
          fitdistrplus, 
          graphics,  
@@ -40,7 +39,7 @@ Imports:
          WGCNA, 
          limma, 
          mvtnorm,
-         plyr 
+         phyloseq 
 biocViews: GeneExpression, RNASeq, SingleCell, Sequencing, DNASeq
 RoxygenNote: 6.1.1
 Suggests:  
@@ -48,4 +47,4 @@ Suggests:
     rmarkdown,
     LSD
 VignetteBuilder: knitr
-Depends: R (>= 3.6.0)
+Depends: R (>= 3.6)
