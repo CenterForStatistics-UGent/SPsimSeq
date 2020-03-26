@@ -1,21 +1,42 @@
-
-## This function is suggested only for a particular problem, and not to be used in general
-#Density estimation based on SPsimSeq parameters 
-#
-#@param x a numerical vector of observations for which we want to estimate the density
-#@param est.parms a list object returned from SPsimSeq function with name 'SPsim.est.densities'
-#for a particular gene/feature (see the example for details)
-#@param force.fit.data a logical value. If TRUE (the default), then observations larger or smaller
-#than the midpoint of the higher or lower classes (respectively) will be forced to the midpoint of
-#the higher or lower classes (respectively). This argument is particularly important to avoid
-#extrapolation problem for observations that are out of the range of the data points (midpoints)
-#used for the estimation of the SPsimSeq log-linear regression parameters.
-#
-#@return a list of estimated densities
-#
-#@examples (below)
-###
-dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
+#' Evaluate the densities in the estimated SPsimSeq object 
+#' @param SPobj The SPsimSeq object, with details retained
+#' @param newData the data points at which the density should be evaluated
+#'@param force.fit.data a logical value. If TRUE (the default), then observations larger or smaller
+#'than the midpoint of the higher or lower classes (respectively) will be forced to the midpoint of
+#'the higher or lower classes (respectively). This argument is particularly important to avoid
+#'extrapolation problem for observations that are out of the range of the data points (midpoints)
+#'used for the estimation of the SPsimSeq log-linear regression parameters.
+#'@return a list of estimated densities
+#'@export
+#'@examples
+#' data("zhang.data.sub")
+#' # filter genes with sufficient expression (important step to avoid bugs)
+#' zhang.counts <- zhang.data.sub$counts[rowSums(zhang.data.sub$counts > 0)>=5, ]
+#' MYCN.status  <- zhang.data.sub$MYCN.status
+#' # simulate data
+#' zhang.counts2 <- zhang.counts[sample(nrow(zhang.counts), 2000), ]
+#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
+#'                           group = MYCN.status, n.genes = 2000, batch.config = 1,
+#'                           group.config = c(0.5, 0.5), tot.samples = 20,
+#'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list",
+#'                           return)
+#' outDens = dSPsimSeq(sim.data.bulk, newData = zhang.counts2[1,])
+# select.genes <- sample(rownames(cpm.dat), 20)
+# #win.graph()
+# par(mfrow=c(4, 5))
+# for(i in select.genes){
+#   if(length(cpm.dat.f[[i]])==1){
+#     plot(cpm.dat[i, ], cpm.dat.f[[i]][[1]], type = "p", main = i)
+#     lines(density(cpm.dat[i, ]), col="gray")
+#   }else{
+#     plot(cpm.dat[i, ], cpm.dat.f[[i]][[1]], type = "p", ylim = c(min(min(cpm.dat.f[[i]][[1]]),
+#                                                                      min(cpm.dat.f[[i]][[2]])),
+#                                                                  max(max(cpm.dat.f[[i]][[1]]),
+#                                                                      max(cpm.dat.f[[i]][[2]]))))
+#     points(cpm.dat[i, ], cpm.dat.f[[i]][[2]], type = "p", col=2)
+#   }
+# }
+dSPsimSeq <- function(SPobj, est.parms, force.fit.data=TRUE){
   if(is.list(est.parms$Mu.batch)){
     n.groups <- length(est.parms$Mu.batch) 
   }else{
@@ -54,43 +75,3 @@ dSPsimSeq <- function(x, est.parms, force.fit.data=TRUE){
   }
   f.hat
 }
-
-# #Example
-# load(".../problemData.RData")
-# mcr_data <- mat
-# mcr_data <- mcr_data[rownames(mcr_data) != "", ]
-# 
-# sim.data <- SPsimSeq(n.sim = 1, s.data = mcr_data, batch = NULL, genewiseCor = FALSE,
-#                           group = fac, n.genes = 4900, batch.config = 1,
-#                           group.config = prop.table(table(fac)), tot.samples = 30,
-#                           pDE = 0.2, lfc.thrld = 0.5, t.thrld = 2.0, llStat.thrld = 0,
-#                           w=0.6, log.CPM.transform = FALSE, return.details = TRUE,
-#                           result.format = "list",  seed = 2581988)
-# 
-# sim.data.parm <- sim.data$detailed.results # detailed results of SPsimSeq
-# sim.data1 <- sim.data$sim.data.list[[1]]   # simulated data
-# 
-# cpm.dat <- mcr_data
-# cpm.dat <- cpm.dat[as.character(unique(sim.data1$rowData$source.ID)), ]
-# 
-# cpm.dat.f <- lapply(rownames(cpm.dat), function(rr){
-#   #print(rr)
-#   dSPsimSeq(x = cpm.dat[rr, ], est.parms = sim.data.parm[[rr]])
-# })
-# names(cpm.dat.f) <- rownames(cpm.dat)
-# 
-# select.genes <- sample(rownames(cpm.dat), 20)
-# #win.graph()
-# par(mfrow=c(4, 5))
-# for(i in select.genes){
-#   if(length(cpm.dat.f[[i]])==1){
-#     plot(cpm.dat[i, ], cpm.dat.f[[i]][[1]], type = "p", main = i)
-#     lines(density(cpm.dat[i, ]), col="gray")
-#   }else{
-#     plot(cpm.dat[i, ], cpm.dat.f[[i]][[1]], type = "p", ylim = c(min(min(cpm.dat.f[[i]][[1]]),
-#                                                                      min(cpm.dat.f[[i]][[2]])),
-#                                                                  max(max(cpm.dat.f[[i]][[1]]),
-#                                                                      max(cpm.dat.f[[i]][[2]]))))
-#     points(cpm.dat[i, ], cpm.dat.f[[i]][[2]], type = "p", col=2)
-#   }
-# }
