@@ -1,5 +1,4 @@
-# A function to prepare outputs
-
+#' A function to prepare outputs
 #' @param sim.dat The simulated data
 #' @param exprmt.design the design 
 #' @param DE.ind the differential abundance indicator
