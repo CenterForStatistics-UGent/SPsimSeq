@@ -1,11 +1,14 @@
 #' Evaluate the densities in the estimated SPsimSeq object 
 #' @param SPobj The SPsimSeq object, with details retained
-#' @param newData the data points at which the density should be evaluated
+#' @param newData All information on the data points at which the density should
+#'  be evaluated. See details
 #'@param force.fit.data a logical value. If TRUE (the default), then observations larger or smaller
 #'than the midpoint of the higher or lower classes (respectively) will be forced to the midpoint of
 #'the higher or lower classes (respectively). This argument is particularly important to avoid
 #'extrapolation problem for observations that are out of the range of the data points (midpoints)
 #'used for the estimation of the SPsimSeq log-linear regression parameters.
+#'@details The newData should consist of a matrix or data frame with entries 
+#'"gene", "group" and "batch".
 #'@return a list of estimated densities
 #'@export
 #'@examples

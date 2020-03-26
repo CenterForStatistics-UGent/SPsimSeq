@@ -1,8 +1,7 @@
 ---
 title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data"
-author: "Alemu Takele Assefa"
+author: "Alemu Takele Assefa and Stijn Hawinkel"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data}
   %\VignetteEngine{knitr::rmarkdown}
@@ -15,7 +14,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-library(SPsimSeq)
 ```
 # Introduction to SPsimSeq
 
@@ -31,6 +29,8 @@ The package can be installed and loaded using the following commands:
 library(devtools)
 install_github("CenterForStatistics-UGent/SPsimSeq")
 ```
+
+or from BioConductor
 
 ```{r BiocInstall, eval=FALSE}
 ## Install SPsimSeq
@@ -62,7 +62,7 @@ library(SPsimSeq)
  # - 172 samples (tot.samples = 172) -- equal to the source data
  # - the samples are equally divided into 2 groups each with 90 samples 
  #   (group.config = c(0.5, 0.5)) -- almost equal to the source data
- # - all samples are from a single batch (batch = NULL, batch.config = 1)
+ # - all samples are from a single batch (batch.config = 1)
  # - we add 10% DE genes (pDE = 0.1) 
  # - the DE genes have a log-fold-change of at least 0.5 in 
  #   the source data (lfc.thrld = 0.5)
@@ -70,7 +70,7 @@ library(SPsimSeq)
  #    estimation (model.zero.prob = FALSE)
  
  # simulate data
- sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2, batch = NULL,
+ sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
                           group = MYCN.status, n.genes = 3000, batch.config = 1,
                           group.config = c(0.5, 0.5), tot.samples = 172, 
                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
@@ -173,7 +173,7 @@ points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.
  # - 100 cells (tot.samples = 100) 
  # - the cells are equally divided into 2 groups each with 50 cells 
  #   (group.config = c(0.5, 0.5))
- # - all cells are from a single batch (batch = NULL, batch.config = 1)
+ # - all cells are from a single batch (batch.config = 1)
  # - we add 10% DE genes (pDE = 0.1) 
  # - the DE genes have a log-fold-change of at least 0.5
  # - we model the zeroes separately (model.zero.prob = TRUE)
@@ -193,7 +193,7 @@ points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.
  scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 5000), ]
  
  # simulate data (we simulate here only a single data, n.sim = 1)
- sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
+ sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2,
                          group = treatment, n.genes = 5000, batch.config = 1,
                          group.config = c(0.5, 0.5), tot.samples = 100, 
                          pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
@@ -264,8 +264,6 @@ sm1 <- loess(I(f.SPsim-f.real)~mid.g)
 plot(mid.g, f.SPsim-f.real, xlim=c(0, 14), col="lightskyblue", pch=20, cex.lab=1.25,
      cex.main=1.4, main="SPsimSeq - real data", ylab="difference", xlab="mean log2-CPM")
 lines(mid.g,predict(sm1, newdata = mid.g), col="blue", lwd=3)
-
-
 
 # compare the relationship between the  mean and fraction of zeros
 par(mfrow=c(1,3), mar=c(4,4,4,1))
