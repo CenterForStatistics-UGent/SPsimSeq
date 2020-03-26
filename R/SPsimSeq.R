@@ -168,11 +168,11 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   #DATA EXTRACTION
   s.data = extractMat(s.data)
   #INPUT CHECKS
-  checkInputs <- checkInputValidity(s.data = s.data, group = group, batch = batch,
+  checkInputs = checkInputValidity(s.data = s.data, group = group, batch = batch,
                                     group.config = group.config, batch.config = batch.config, 
                                     w = w, log.CPM.transform = log.CPM.transform, 
                                     prior.count = prior.count, lib.size.params = lib.size.params, 
-                                    llStat.thrld = llStat.thrld)
+                                    llStat.thrld = llStat.thrld, result.format = result.format)
   #CPM TRANSFORM
   cpm.data <- if(log.CPM.transform){
     # calculate log CPM 
@@ -234,7 +234,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   prepDens <- lapply(allGenes, function(gene){ 
     constructDens(densList.ii = densList[[gene]], 
                  DE.ind.ii = gene %in% nonnull.genes0, 
-                 sel.genes.ii = gene)
+                 exprmt.design = exprmt.design)
   })
   ## DATA GENERATION
   if(verbose) {message("Simulating data ...")}
@@ -246,12 +246,11 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
     } else sample(LS, tot.samples, replace = length(tot.samples)>length(LS))
     #Sample copula
     copSam = genCopula(corMats.batch, exprmt.design = exprmt.design)
-    
     # sample DE and null genes
     selctGenes <- selectGenes(pDE = pDE, exprmt.design = exprmt.design, n.genes = n.genes,
                                  null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0)
     #Generate data
-    sim.dat <- lapply(selctGenes, function(gene){ 
+    sim.dat <- vapply(selctGenes, function(gene){ 
       SPsimPerGene(cumDens = prepDens[[gene]],
                    sel.genes.ii = gene, const.mult = const.mult,
                    exprmt.design = exprmt.design,
@@ -259,14 +258,20 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                    LL = samLS, copSam = copSam,
                    prior.count = prior.count, model.zero.prob = model.zero.prob,
                    fracZero.logit.list = fracZero.logit.list)
-    })
-    sim.data.h <- prepareSPsimOutputs(sim.dat=sim.dat, n.batch=n.batch, n.group=n.group,
+    }, FUN.VALUE = numeric(tot.samples))
+    sim.data.h <- prepareSPsimOutputs(sim.dat = t(sim.dat), exprmt.design = exprmt.design,
                         DE.ind = selctGenes %in% nonnull.genes0, 
-                        sel.genes = selctGenes, LL=ELS, 
-                        result.format=result.format, log.CPM.transform=log.CPM.transform)
+                        result.format = result.format, LL = samLS)
     return(sim.data.h)
   })
   if(return.details){
+    details = list("densList" = densList, 
+                   "fracZero.logit.list" = if(model.zero.prob) fracZero.logit.list else NULL,
+                   "exprmt.design" = exprmt.design,
+                   "corMats.batch" = if(genewiseCor) corMats.batch else NULL, 
+                   "cand.DE.genes" = cand.DE.genes,
+                   "lib.size.params" = lib.size.params
+                   )
     list("sim.data.list" = sim.data.list, "detailed.results" = densList)
   }else{
     sim.data.list

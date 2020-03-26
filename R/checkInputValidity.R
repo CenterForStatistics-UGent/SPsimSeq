@@ -1,7 +1,7 @@
 # Check for data validity
 checkInputValidity <- function(s.data, group, batch, group.config, batch.config,
                                w, log.CPM.transform, prior.count, 
-                              lib.size.params, llStat.thrld){
+                              lib.size.params, llStat.thrld, result.format){
   # Check for class of missing values in the source data
   if(anyNA(group)){
     stop("The group indicator contains missing values!")
@@ -61,6 +61,9 @@ checkInputValidity <- function(s.data, group, batch, group.config, batch.config,
   }
   if(llStat.thrld <0){
     stop("Likelihood ratio test statistic threshold should be non-negative")
+  }
+  if(!(result.format %in% c("SCE", "list"))){
+    stop("Result should be either SCE or list!")
   }
   invisible()
 }
