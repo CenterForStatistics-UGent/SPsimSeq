@@ -14,4 +14,6 @@ groups and batches with any required sample size and library size.
 }
 \author{
 Alemu Takele Assefa \email{alemutak@hotmail.com}
+
+Stijn Hawinkel \email{stijnhawinkel@hotmail.com}
 }
