@@ -4,12 +4,12 @@
 \alias{genCopula}
 \title{Generate a copula instance}
 \usage{
-genCopula(corMat, n.batch, batch)
+genCopula(corMats, exprmt.design)
 }
 \arguments{
-\item{corMat}{list of correlation matrices}
+\item{exprmt.design}{Number of batches, and batch vector}
 
-\item{n.batch, batch}{Number of batches, and batch vector}
+\item{corMat}{list of correlation matrices}
 }
 \value{
 a list of copula instances

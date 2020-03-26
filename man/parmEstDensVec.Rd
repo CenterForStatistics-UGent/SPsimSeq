@@ -4,13 +4,13 @@
 \alias{parmEstDensVec}
 \title{Density estimation on a single vector}
 \usage{
-parmEstDensVec(Y0, model.zero.prob, min.val, prev.min.val = 0.25,
+parmEstDensVec(Y0, model.zero.prob, min.val, w, prev.min.val = 0.25,
   min.count.nonnull = 3)
 }
 \arguments{
 \item{Y0}{the vector of observations}
 
-\item{model.zero.prob, min.val}{see geneParmEst()}
+\item{model.zero.prob, min.val, w}{see geneParmEst()}
 
 \item{prev.min.val}{minimum prevalence of minimum values}
 

@@ -122,7 +122,7 @@
 #' # - all cells are from a single batch (batch = NULL, batch.config = 1)
 #' # - we add 10% DE genes (pDE = 0.1)
 #' # - the DE genes have a log-fold-change of at least 0.5
-#' #' # - we model the zeroes separately (model.zero.prob = TRUE)
+#' # - we model the zeroes separately (model.zero.prob = TRUE)
 #' # - the ouput will be in SingleCellExperiment class object (result.format = "SCE")
 #'
 #' library(SingleCellExperiment)
@@ -139,10 +139,10 @@
 #' scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 2000), ]
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' #sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, group = treatment, n.genes = 2000, batch.config = 1,
-#'   #                      group.config = c(0.5, 0.5), tot.samples = 100,
-#'    #                     pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
-#'     #                    result.format = "SCE")
+#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, group = treatment, n.genes = 2000, batch.config = 1,
+#'                       group.config = c(0.5, 0.5), tot.samples = 100,
+#'                      pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#'                     result.format = "SCE")
 #'
 #' #sim.data.sc1 <- sim.data.sc[[1]]
 #' #class(sim.data.sc1)
@@ -243,7 +243,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
     #Sample libray sizes
     samLS <- if(variable.lib.size & log.CPM.transform){
        genLibSizes(fit.ln = lib.size.params, exprmt.design = exprmt.design)
-    } else sample(LS, tot.samples, replace = length(tot.samples)>length(LS))
+    } else sample(LS, tot.samples, replace = tot.samples > length(LS))
     #Sample copula
     copSam = genCopula(corMats.batch, exprmt.design = exprmt.design)
     # sample DE and null genes

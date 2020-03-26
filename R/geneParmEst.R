@@ -38,16 +38,16 @@ parmEstDensVec = function(Y0, model.zero.prob, min.val, w, prev.min.val = 0.25,
     Y0[Y0>min.val]
   } else Y0
   n = length(Y)
-if(sum(Y > min.val) > min.count.nonnull){
   #Fit normal carrier density
   mu.hat = mean(Y)
   sig.hat = sd(Y)
   #Bin counts
   countY <- obtCount(Y = Y, w = w)
+if(sum(Y > min.val) > min.count.nonnull){
   #Fit exponential density
   fitLLmodel(yy = countY, mu.hat = mu.hat, sig.hat = sig.hat, n = n)
-} 
-else{
-  list(g0 = diff(pnorm(countY$breaks, mean = mu.hat, sd = sig.hat)), n = n)
+} else{
+  c(countY, 
+    list(g0 = diff(pnorm(countY$breaks, mean = mu.hat, sd = sig.hat)), n = n))
   }
 }
