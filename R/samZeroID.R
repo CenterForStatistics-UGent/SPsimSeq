@@ -1,4 +1,4 @@
-#' return ID for observations to be set to zero
+#' Return ID for observations to be set to zero
 #'
 #' @param fracZero.logit.list The estimated zero model
 #' @param logLL the logged library sizes
@@ -12,4 +12,9 @@ samZeroID = function(fracZero.logit.list, logLL, gene){
     zeroProb = expit(desMat %*% fracZero.logit.list$zeroModel)
     as.logical(rbinom(1, 1, zeroProb))
   } else FALSE
+}
+#' @param x the argument
+#' @return the expit of the argument
+expit = function(x){
+  exp(x)/(1+exp(x))
 }

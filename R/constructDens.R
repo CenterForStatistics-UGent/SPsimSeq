@@ -14,11 +14,15 @@ constructDens = function(densList.ii, exprmt.design, DE.ind.ii){
         densList.ii[[batch]]
       }
       Coef = dl$coef
-      s.mat <- buildXmat(dl$mids, nc = length(Coef))
-      gy = dl$g0*dl$n*exp(s.mat %*% Coef)
-      id = is.infinite(gy)
-      if(any(id)){
-        gy[id] = max(gy[!id])
+      if(is.null(Coef)){
+        gy = dl$g0*dl$n
+      } else {
+        s.mat <- buildXmat(dl$mids, nc = length(Coef))
+        gy = dl$g0*dl$n*exp(s.mat %*% Coef)
+        id = is.infinite(gy)
+        if(any(id)){
+          gy[id] = max(gy[!id])
+        }
       }
       Gy = cumsum(gy)/sum(gy)
       return(list(Gy = Gy, breaks = dl$breaks))
