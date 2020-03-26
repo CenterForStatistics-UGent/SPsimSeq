@@ -15,7 +15,7 @@
 #' @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
 #' @param prior.count a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
 #' @return a list object contating a set of candidate null and non-null genes and additional results
-#' @importFrom stats lm sd density rnbinom rlnorm var runif predict rbinom rgamma
+#' @importFrom stats lm glm sd
 #' @importFrom utils combn
 chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w =w,
                              max.frac.zeror.diff = Inf, pDE, n.genes, prior.count){

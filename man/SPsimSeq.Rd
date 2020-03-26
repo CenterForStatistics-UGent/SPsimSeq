@@ -149,7 +149,6 @@ head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
 head(sim.data.bulk$colData)        # sample info
 head(sim.data.bulk$rowData)        # gene info
 
-
 #----------------------------------------------------------------
 # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
@@ -182,11 +181,11 @@ sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, group = treatment, n.ge
                      pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
                     result.format = "SCE")
 
-#sim.data.sc1 <- sim.data.sc[[1]]
-#class(sim.data.sc1)
-#head(counts(sim.data.sc1)[, seq_len(5)])
-#colData(sim.data.sc1)
-#rowData(sim.data.sc1)
+sim.data.sc1 <- sim.data.sc[[1]]
+class(sim.data.sc1)
+head(counts(sim.data.sc1)[, seq_len(5)])
+colData(sim.data.sc1)
+rowData(sim.data.sc1)
 
 }
 \references{

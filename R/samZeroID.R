@@ -13,6 +13,7 @@ samZeroID = function(fracZero.logit.list, logLL, gene){
     as.logical(rbinom(1, 1, zeroProb))
   } else FALSE
 }
+#' Evaluate the expit function
 #' @param x the argument
 #' @return the expit of the argument
 expit = function(x){

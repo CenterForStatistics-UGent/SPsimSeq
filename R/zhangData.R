@@ -12,7 +12,6 @@
 #' this dataset to us the Zhang data or the Zhang neuroblastoma data. In this
 #' package, a subset of 5000 genes (randomly selected) are made available for illustration
 #' purpose only.
-#' 
 #'  
 #' @docType data
 #' 
@@ -34,6 +33,3 @@
 #' data("zhang.data.sub")
 #' str(zhang.data.sub)
 "zhang.data.sub"
-
-
-
