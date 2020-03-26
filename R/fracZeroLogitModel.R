@@ -12,8 +12,7 @@ fracZeroLogitModel <- function(s.data, batch, cpm.data, n.mean.class,
   zeroMat = s.data == 0
   zeroModels = tapply(colnames(s.data), batch, function(coln){
     zeroModel = zeroProbModel(cpm.data = cpm.data[, coln], logL = log(LS[coln]), 
-                  zeroMat[, coln],  n.mean.class = n.mean.class, 
-                  minFracZeroes = minFracZeroes)
+                  zeroMat[, coln],  n.mean.class = n.mean.class)
     #Calculate zero fractions of each gene within the batches
     zeroFrac = rowMeans(zeroMat[, coln])
     #Calculate gene-wise means
