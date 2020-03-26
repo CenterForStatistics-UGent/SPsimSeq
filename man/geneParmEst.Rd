@@ -4,25 +4,21 @@
 \alias{geneParmEst}
 \title{Gene level param estimates for density estimation}
 \usage{
-geneParmEst(cpm.data.i, batch, group, null.group, sub.batchs, de.ind,
-  model.zero.prob, min.val, w)
+geneParmEst(cpm.data.i, batch, group, prior.count = prior.count, de.ind,
+  model.zero.prob, w)
 }
 \arguments{
 \item{cpm.data.i}{full vector of genewise observation}
 
 \item{batch, group}{batch and group information}
 
-\item{null.group}{the null group}
-
-\item{sub.batchs}{}
-
 \item{de.ind}{a boolean, is the gene to be DE?}
 
 \item{model.zero.prob}{a boolean, should zero-density be modelled?}
 
-\item{min.val}{minimum value}
-
 \item{w}{weight}
+
+\item{min.val}{minimum value}
 }
 \value{
 list of density estimates

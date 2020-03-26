@@ -4,47 +4,27 @@
 \alias{SPsimPerGene}
 \title{A function that generates the simulated data for each gene}
 \usage{
-SPsimPerGene(cpm.data, est.list.ii, DE.ind.ii, n.batch, n.group, batch,
-  group, config.mat, sel.genes.ii, log.CPM.transform, const, min.val,
-  null.group, LL, copulas.batch, tot.samples, model.zero.prob,
-  fracZero.logit.list)
+SPsimPerGene(cumDens, exprmt.design, sel.genes.ii, log.CPM.transform,
+  prior.count, LL, copSam, model.zero.prob, fracZero.logit.list,
+  const.mult)
 }
 \arguments{
-\item{cpm.data}{}
-
-\item{est.list.ii}{}
-
-\item{DE.ind.ii}{}
-
-\item{n.batch}{}
-
-\item{n.group}{}
-
-\item{batch}{}
-
-\item{group}{}
-
-\item{config.mat}{}
+\item{cumDens}{}
 
 \item{sel.genes.ii}{}
 
 \item{log.CPM.transform}{}
 
-\item{const}{}
-
-\item{min.val}{}
-
-\item{null.group}{}
-
 \item{LL}{}
 
-\item{copulas.batch}{}
-
-\item{tot.samples}{}
+\item{copSam}{}
 
 \item{model.zero.prob}{}
 
 \item{fracZero.logit.list}{}
+}
+\value{
+Simulated cpm values
 }
 \description{
 A function that generates the simulated data for each gene

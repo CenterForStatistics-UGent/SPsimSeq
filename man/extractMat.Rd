@@ -6,6 +6,7 @@
 \alias{extractMat,SingleCellExperiment-method}
 \alias{extractMat,matrix-method}
 \alias{extractMat,data.frame-method}
+\alias{extractMat,phyloseq-method}
 \title{A function with S4 dispatching to extract the count matrix}
 \usage{
 extractMat(Y, ...)
@@ -15,9 +16,11 @@ extractMat(Y, ...)
 \S4method{extractMat}{matrix}(Y, ...)
 
 \S4method{extractMat}{data.frame}(Y, ...)
+
+\S4method{extractMat}{phyloseq}(Y, ...)
 }
 \arguments{
-\item{Y}{a matrix, data frame or SingleCellExperiment}
+\item{Y}{a matrix, data frame, phyloseq object or SingleCellExperiment}
 
 \item{...}{additional arguments, currently ignored}
 }

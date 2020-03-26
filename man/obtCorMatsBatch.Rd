@@ -4,14 +4,12 @@
 \alias{obtCorMatsBatch}
 \title{A function to obtain copulas or uniform random variables}
 \usage{
-obtCorMatsBatch(cpm.data, batch, n.batch)
+obtCorMatsBatch(cpm.data, batch)
 }
 \arguments{
 \item{cpm.data}{the transformed data matrix}
 
 \item{batch}{the batch indicators}
-
-\item{n.batch}{number of batches}
 }
 \value{
 The estimated correlation matrices per batch
