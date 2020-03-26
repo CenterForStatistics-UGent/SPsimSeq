@@ -6,7 +6,7 @@
 #' for the number of groups to be created for the mean log CPM of genes
 #'
 #' @return The coefficients of the estimated logistic regression
-#' @importFrom stats glm.fit, binomial
+#' @importFrom stats glm.fit binomial model.matrix
 #' @importFrom Hmisc cut2
 zeroProbModel <- function(cpm.data, logL, zeroMat, n.mean.class){
   # Fit a logistic model for the probability of zeros, if there are enough of them

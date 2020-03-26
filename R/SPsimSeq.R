@@ -111,7 +111,6 @@
 #' head(sim.data.bulk$colData)        # sample info
 #' head(sim.data.bulk$rowData)        # gene info
 #'
-#'
 #' #----------------------------------------------------------------
 #' # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 #' # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
@@ -144,15 +143,13 @@
 #'                      pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
 #'
-#' #sim.data.sc1 <- sim.data.sc[[1]]
-#' #class(sim.data.sc1)
-#' #head(counts(sim.data.sc1)[, seq_len(5)])
-#' #colData(sim.data.sc1)
-#' #rowData(sim.data.sc1)
+#' sim.data.sc1 <- sim.data.sc[[1]]
+#' class(sim.data.sc1)
+#' head(counts(sim.data.sc1)[, seq_len(5)])
+#' colData(sim.data.sc1)
+#' rowData(sim.data.sc1)
 #'
 #' @export
-#' @importFrom stats pnorm dnorm runif rbinom predict approx quantile glm rlnorm lm sd var setNames
-#' @importFrom plyr rbind.fill
 SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)), 
                      group = rep(1, ncol(s.data)), 
                      n.genes = 1000, batch.config = 1, group.config = 1, 

@@ -4,6 +4,8 @@
 #' @param batch the batch indicators
 #'
 #' @return The estimated correlation matrices per batch
+#' @importFrom WGCNA cor
+#' @importFrom limma voom
 obtCorMatsBatch <- function(cpm.data, batch){
   tapply(colnames(cpm.data), batch,  function(coln){ 
     data = cpm.data[, coln]
