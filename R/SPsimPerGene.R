@@ -17,8 +17,9 @@ SPsimPerGene <- function(densList.ii, DE.ind.ii, exprmt.design,
                          copSam, model.zero.prob, fracZero.logit.list, 
                          const.mult){
     ## construct the density
-    cumDens <- constructDens(densList.ii = densList.ii, exprmt.design = exprmt.design,
-                    DE.ind.ii = DE.ind.ii)
+    cumDens <- constructDens(densList.ii = densList.ii, 
+                             exprmt.design = exprmt.design, 
+                             DE.ind.ii = DE.ind.ii)
     ## Match with copula to simulate data 
     Y.star <- matchCopula(cumDens = cumDens, exprmt.design = exprmt.design, 
                           copSam = copSam, sel.genes.ii = sel.genes.ii)
@@ -29,10 +30,12 @@ SPsimPerGene <- function(densList.ii, DE.ind.ii, exprmt.design,
     }
     ## Add zeroes if needed
     if(model.zero.prob){
-      zeroProbs = vapply(seq_along(Y.star), FUN.VALUE = logical(1), function(i){
-        addZeroes(Y.star[[i]], fracZero.logit.list[[exprmt.design$sub.batchs[[i]]]])
+      logLL = log(LL)
+      zeroIds = vapply(seq_along(Y.star), FUN.VALUE = logical(1), function(i){
+        samZeroID(fracZero.logit.list[[exprmt.design$sub.batchs[[i]]]], 
+                   logLL = logLL[i], gene = sel.genes.ii)
       })
-      Y.star[zeroId] = 0L
+      Y.star[zeroIds] = 0L
     }
    return(Y.star)
 }
