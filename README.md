@@ -68,8 +68,6 @@ sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
 
     ## Estimating featurewise correlations ...
 
-    ## 
-
     ## Selecting candidate DE genes ...
 
     ## Note: The number of DE genes detected in the source data is 79 and the number of DE genes required to be included in the simulated data is 200. Therefore, candidiate DE genes are sampled with replacement.
