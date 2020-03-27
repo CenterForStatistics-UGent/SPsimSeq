@@ -4,7 +4,7 @@
 \alias{constructDens}
 \title{Construct the cumulative density}
 \usage{
-constructDens(densList.ii, exprmt.design, DE.ind.ii)
+constructDens(densList.ii, exprmt.design, DE.ind.ii, returnDens = FALSE)
 }
 \arguments{
 \item{densList.ii}{the estimated density parameters}
@@ -12,6 +12,9 @@ constructDens(densList.ii, exprmt.design, DE.ind.ii)
 \item{exprmt.design}{experiment configuration}
 
 \item{DE.ind.ii}{a boolean, is the gene to be DE?}
+
+\item{returnDens}{A boolean, should densities rather than cumulative 
+densities be returned?}
 }
 \value{
 The cumulative density

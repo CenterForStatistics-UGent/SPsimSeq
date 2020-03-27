@@ -18,7 +18,6 @@ prepareSPsimOutputs <- function(sim.dat, exprmt.design, DE.ind, result.format,
              "Group"  = exprmt.design$sub.groups,
              "sim.Lib.Size" = LL,
              row.names = colnames(sim.dat))
-  
   row.data <- data.frame("DE.ind" = DE.ind, row.names = rownames(sim.dat),
                          "source.ID" = source.ID)
   sim.data = if(result.format == "SCE"){
