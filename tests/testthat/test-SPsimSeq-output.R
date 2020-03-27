@@ -6,11 +6,11 @@ test_that("SPsimSeq returns correct output types", {
   expect_type(SPsimSeq(n.sim = 1, s.data = zhang.counts,
                           group = MYCN.status, n.genes = 2000, batch.config = 1,
                           group.config = c(0.5, 0.5), tot.samples = 20,
-                          pDE = 0.1, lfc.thrld = 50, result.format = "list"),
+                          pDE = 0.1, lfc.thrld = 0.5, result.format = "list"),
               "list")
   expect_s4_class(SPsimSeq(n.sim = 1, s.data = zhang.counts,
                        group = MYCN.status, n.genes = 2000, batch.config = 1,
                        group.config = c(0.5, 0.5), tot.samples = 20,
-                       pDE = 0.1, lfc.thrld = 50, result.format = "SCE"),
+                       pDE = 0.1, lfc.thrld = 0.5, result.format = "SCE")[[1]],
               "SingleCellExperiment")
 })
