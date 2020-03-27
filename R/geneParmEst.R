@@ -1,11 +1,11 @@
 #' Gene level param estimates for density estimation
 #'
 #' @param cpm.data.i full vector of genewise observation
-#' @param batch,group batch and group information 
 #' @param de.ind a boolean, is the gene to be DE?
 #' @param model.zero.prob a boolean, should zero-density be modelled?
-#' @param min.val minimum value
 #' @param w weight
+#' @param batch,group batch and grouping vectors 
+#' @param prior.count the prior count for the cpm transofrm
 #'
 #' @return list of density estimates
 geneParmEst <- function(cpm.data.i, batch, group, prior.count = prior.count,

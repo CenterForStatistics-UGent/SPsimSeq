@@ -38,7 +38,7 @@ dSPsimSeq <- function(SPobj, newData = names(SPobj$detailed.results$densList)){
   #Construct the appropriate densities
   lapply(newData, function(gene){
     constructDens(returnDens = TRUE, 
-                  DE.ind = gene %in% dets$cand.DE.genes$nonnull.genes, 
+                  DE.ind.ii = gene %in% dets$cand.DE.genes$nonnull.genes, 
                   exprmt.design = dets$exprmt.design, 
                   densList.ii = dets$densList[[gene]])
   })

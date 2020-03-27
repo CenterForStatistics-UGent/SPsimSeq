@@ -1,7 +1,7 @@
 #' Generate library sizes from log-normal
 #'
-#' @param fit.ln 
-#' @param exprmt.design 
+#' @param fit.ln the library size model
+#' @param exprmt.design the design
 #'
 #' @return The generated libray sizes per batch and group
 #' @importFrom stats rlnorm

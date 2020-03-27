@@ -7,9 +7,9 @@
 genCopula(corMats, exprmt.design)
 }
 \arguments{
-\item{exprmt.design}{Number of batches, and batch vector}
+\item{corMats}{List of correlation matrices}
 
-\item{corMat}{list of correlation matrices}
+\item{exprmt.design}{Number of batches, and batch vector}
 }
 \value{
 a list of copula instances
