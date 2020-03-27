@@ -120,7 +120,6 @@ estimate the probability distributions.
 # load the Zhang bulk RNA-seq data (availabl with the package)
 data("zhang.data.sub")
 
-# filter genes with sufficient expression (important step to avoid bugs)
 zhang.counts <- zhang.data.sub$counts
 MYCN.status  <- zhang.data.sub$MYCN.status
 
@@ -173,9 +172,8 @@ set.seed(654321)
 
 # simulate data (we simulate here only a single data, n.sim = 1)
 sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
- n.genes = 2000, batch.config = 1,
-                      group.config = c(0.5, 0.5), tot.samples = 100,
-                     pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+ n.genes = 2000, batch.config = 1, group.config = c(0.5, 0.5), 
+ tot.samples = 100, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
                     result.format = "SCE")
 
 sim.data.sc1 <- sim.data.sc[[1]]

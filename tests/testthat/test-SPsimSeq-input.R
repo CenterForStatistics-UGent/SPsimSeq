@@ -33,3 +33,10 @@ test_that("SPsimSeq throws errors for wrong input types", {
                         pDE = 0.2, lfc.thrld = 0.5, result.format = "list", 
                         lib.size.params = c(10, 5)))
 })
+
+test_that("SPsimSeq throws warnings when appropriate", {
+  expect_warning(SPsimSeq(n.sim = 1, s.data = zhang.counts,
+                        group = MYCN.status, n.genes = 2000, batch.config = 1,
+                        group.config = c(0.5, 0.5), tot.samples = 20,
+                        pDE = 0.1, lfc.thrld = 50, result.format = "list"))
+})
