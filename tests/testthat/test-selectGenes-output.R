@@ -14,21 +14,21 @@ Design = configExperiment(batch.config = c(0.5, 0.3, 0.2),
                           batch = batch, group = group)
 test_that("Gene selection selects correct number of genes",{
     expect_identical(
-      length(selectGenes(0.2, Design, 200, genesnull, genesnonnull)), 200
+      length(selectGenes(0.2, Design, 200, genesnull, genesnonnull)), 200L
       )
     expect_identical(
-      length(selectGenes(0, Design, 200, genesnull, genesnonnull)), 200
+      length(selectGenes(0, Design, 200, genesnull, genesnonnull)), 200L
     )
     expect_identical(
-      length(selectGenes(1, Design, 200, genesnull, genesnonnull)), 200
+      length(selectGenes(1, Design, 200, genesnull, genesnonnull)), 200L
     )
     expect_identical(
-      length(selectGenes(0.5, Design, 200, genes2null, genes2nonnull)), 200
+      length(selectGenes(0.5, Design, 200, genes2null, genes2nonnull)), 200L
     )
     expect_identical(
-      length(selectGenes(0, Design, 200, genes2null, genes2nonnull)), 200
+      length(selectGenes(0, Design, 200, genes2null, genes2nonnull)), 200L
     )
     expect_identical(
-      length(selectGenes(1, Design, 200, genes2null, genes2nonnull)), 200
+      length(selectGenes(1, Design, 200, genes2null, genes2nonnull)), 200L
     )
           })
