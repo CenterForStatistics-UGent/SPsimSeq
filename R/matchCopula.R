@@ -1,9 +1,9 @@
 #' Match copulas to estimated SP distribution
 #'
-#' @param cumDens 
-#' @param exprmt.design 
-#' @param copSam 
-#' @param sel.genes.ii 
+#' @param cumDens The cumulative densities evaluated
+#' @param exprmt.design the design
+#' @param copSam the sampled copula
+#' @param sel.genes.ii the gene
 #'
 #' @return the outcome values as a vector
 #' @importFrom stats runif

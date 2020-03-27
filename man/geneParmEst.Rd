@@ -10,15 +10,15 @@ geneParmEst(cpm.data.i, batch, group, prior.count = prior.count, de.ind,
 \arguments{
 \item{cpm.data.i}{full vector of genewise observation}
 
-\item{batch, group}{batch and group information}
+\item{batch, group}{batch and grouping vectors}
+
+\item{prior.count}{the prior count for the cpm transofrm}
 
 \item{de.ind}{a boolean, is the gene to be DE?}
 
 \item{model.zero.prob}{a boolean, should zero-density be modelled?}
 
 \item{w}{weight}
-
-\item{min.val}{minimum value}
 }
 \value{
 list of density estimates

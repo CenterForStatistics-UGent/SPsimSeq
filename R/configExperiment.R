@@ -13,21 +13,21 @@
 #' @examples 
 #' \donttest{
 #' #---- a design with a total of 10 samples/cells from 1 batch and 1 group
-#' expriment.config(batch.config=1, group.config=1, tot.samples=10)
+#' configExperiment(batch.config=1, group.config=1, tot.samples=10)
 #' 
 #' #---- a design with a total of 20 samples/cells from 1 group and 2 batchs with 
 #' # batch 1 has 15 samples/cells and batch 2 has 5
-#' expriment.config(batch.config = c(15/20, 5/20), group.config = 1, 
+#' configExperiment(batch.config = c(15/20, 5/20), group.config = 1, 
 #' tot.samples = 20)
 #' 
 #' #---- a design with a total of 20 samples/cells from 1 batch and 2 groups with 
 #' # group 1 has 10 samples/cells and batch 2 has 10
-#' expriment.config(batch.config=1, group.config=c(0.5, 0.5), tot.samples=20)
+#' configExperiment(batch.config=1, group.config=c(0.5, 0.5), tot.samples=20)
 #' 
 #' #---- a design with a total of 30 samples/cells from 2 groups with group 1 has 15 samples 
 #' # and group 2 has 15, and  three batchs with batch 1,2, and 3 have 5, 10, and 15 samples/cells, 
 #' # respectively.
-#' expriment.config(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
+#' configExperiment(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
 #' }
 configExperiment <- function(batch.config, group.config, tot.samples, batch, group){
   #Sort, such that largest groups and largest batches match with simulation

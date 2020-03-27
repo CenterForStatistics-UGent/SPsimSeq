@@ -7,13 +7,13 @@
 matchCopula(cumDens, exprmt.design, copSam, sel.genes.ii)
 }
 \arguments{
-\item{cumDens}{}
+\item{cumDens}{The cumulative densities evaluated}
 
-\item{exprmt.design}{}
+\item{exprmt.design}{the design}
 
-\item{copSam}{}
+\item{copSam}{the sampled copula}
 
-\item{sel.genes.ii}{}
+\item{sel.genes.ii}{the gene}
 }
 \value{
 the outcome values as a vector

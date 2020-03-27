@@ -11,6 +11,8 @@ SPsimPerGene(cumDens, exprmt.design, sel.genes.ii, log.CPM.transform,
 \arguments{
 \item{cumDens}{cumulative density}
 
+\item{exprmt.design}{the experiment design}
+
 \item{sel.genes.ii}{selected gene}
 
 \item{log.CPM.transform}{a boolean, is log-CPM transform required?}
@@ -26,8 +28,6 @@ SPsimPerGene(cumDens, exprmt.design, sel.genes.ii, log.CPM.transform,
 \item{fracZero.logit.list}{The zero model}
 
 \item{const.mult}{a large constant for the CPM transform, normally 1e6}
-
-\item{exprmt.config}{experiment configuration}
 }
 \value{
 Simulated cpm values
