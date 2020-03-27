@@ -1,7 +1,4 @@
 ---
-title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data"
-author: "Alemu Takele Assefa and Stijn Hawinkel"
-date: "`r Sys.Date()`"
 output: 
   rmarkdown::html_vignette:
     toc: true
@@ -12,6 +9,11 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
 ---
+
+# Contents
+
+\setcounter{tocdepth}{5}
+\tableofcontents
 
 # Introduction to SPsimSeq
 
@@ -83,18 +85,16 @@ library(SPsimSeq)
  library(LSD) # for generating heatmap plots
  
 # normalize counts for comparison  
-Y0.log.cpm <- log2(edgeR::cpm(zhang.counts2)+1)
+Y0.log.cpm <- log2(edgeR::cpm(zhang.counts)+1)
 Y1.log.cpm <- log2(edgeR::cpm(sim.data.bulk1$counts)+1)
 Y0.log.cpm <- Y0.log.cpm[rowMeans(Y0.log.cpm>0)>=0.1, ]
 Y1.log.cpm <- Y1.log.cpm[rowMeans(Y1.log.cpm>0)>=0.1, ]
- 
 
 rowVars <- function(X){apply(X, 1, var, na.rm=TRUE)}
 rowCVs <- function(X){apply(X, 1, function(x) sd(x, na.rm=TRUE)/mean(x, na.rm=TRUE))}
 
- 
 par(mfrow=c(1, 3))
-boxplot(list(real.data=log(colSums(zhang.counts2)), 
+boxplot(list(real.data=log(colSums(zhang.counts)), 
              simulated.data=log(sim.data.bulk1$colData$sim.Lib.Size)), 
         main="library size") 
 boxplot(list(real.data=rowMeans(Y0.log.cpm), 
@@ -103,8 +103,6 @@ boxplot(list(real.data=rowMeans(Y0.log.cpm),
 boxplot(list(real.data=rowVars(Y0.log.cpm), 
              simulated.data=rowVars(Y1.log.cpm)), 
         main="variance of gene expressions") 
- 
- 
 
 # compare the relationship between the mean and variability
 par(mfrow=c(1,3), mar=c(4,4,4,1))
@@ -114,7 +112,6 @@ heatscatter(rowMeans(Y0.log.cpm), rowCVs(Y0.log.cpm), ylim=c(0, 6), xlim=c(0, 16
 heatscatter(rowMeans(Y1.log.cpm), rowCVs(Y1.log.cpm), ylim=c(0, 6), xlim=c(0, 16),
      main="SPsimSeq", xlab="mean log2-CPM", ylab="coefficients of variation", 
      cexplot=0.5, alpha = 60, colpal="bl2gr2rd", cex.lab=1.25)
-
 
 n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
@@ -131,17 +128,14 @@ f.SPsim <- sapply(1:n.gride, function(r){
   y
 })
 
-
 sm1 <- loess(I(f.SPsim-f.real)~mid.g) 
 plot(mid.g, f.SPsim-f.real, xlim=c(0, 14), col="lightskyblue", pch=20, cex.lab=1.25,
      cex.main=1.4, main="SPsimSeq - real data", ylab="difference", xlab="mean log2-CPM")
 lines(mid.g,predict(sm1, newdata = mid.g), col="blue", lwd=3) 
 
-
 # compare the correlation between genes and samples 
 cor.mat.Y0 <- cor(t(Y0.log.cpm))
 cor.mat.Y1 <- cor(t(Y1.log.cpm)) 
-
 cor.vec.Y0 <- cor.mat.Y0[upper.tri(cor.mat.Y0)]
 cor.vec.Y1 <- cor.mat.Y1[upper.tri(cor.mat.Y1)] 
 
@@ -152,7 +146,6 @@ hist(cor.vec.Y0, nclass = 30, probability = TRUE,
 hist(cor.vec.Y1, nclass = 30, probability = TRUE, border="gray",
      col="steelblue1",  main="SPsimSeq", xlab="pairwise correlation between genes",
      ylim=c(0, 3.5), xlim=c(-1, 1), cex.lab=1.25)
-
 plot(seq(-1, 1, 0.1), seq(-1, 1, 0.1), type="n", xlab="quantile (real data)", 
      ylab="quantile (simulated data)",  main="correlation quantile-quantile plot")
 abline(0, 1, col="gray")
