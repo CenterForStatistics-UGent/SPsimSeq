@@ -3,9 +3,12 @@
 #' @param densList.ii the estimated density parameters
 #' @param exprmt.design experiment configuration
 #' @param DE.ind.ii a boolean, is the gene to be DE?
+#' @param returnDens A boolean, should densities rather than cumulative 
+#' densities be returned?
 #'
 #' @return The cumulative density
-constructDens = function(densList.ii, exprmt.design, DE.ind.ii){
+constructDens = function(densList.ii, exprmt.design, DE.ind.ii, 
+                         returnDens = FALSE){
     lapply(seq_along(exprmt.design$sub.batchs), function(i){
       batch = exprmt.design$sub.batchs[[i]]
       dl = if(DE.ind.ii){
@@ -24,7 +27,11 @@ constructDens = function(densList.ii, exprmt.design, DE.ind.ii){
           gy[id] = max(gy[!id])
         }
       }
-      Gy = cumsum(gy)/sum(gy)
-      return(list(Gy = Gy, breaks = dl$breaks))
+      if(returnDens){
+        return(list(gy = c(gy), breaks = dl$breaks, mids = dl$mids))
+      } else{
+        Gy = cumsum(gy)/sum(gy) 
+        return(list(Gy = Gy, breaks = dl$breaks))
+      }
     })
   }
