@@ -1,6 +1,7 @@
 #' Generate a copula instance
-#' @param corMat list of correlation matrices
+#'
 #' @param exprmt.design Number of batches, and batch vector
+#' @param corMats List of correlation matrices
 #' 
 #' @return a list of copula instances
 #' @importFrom mvtnorm rmvnorm

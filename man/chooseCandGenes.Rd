@@ -10,6 +10,8 @@ chooseCandGenes(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w = w,
 \arguments{
 \item{cpm.data}{logCPM transformed matrix (if log.CPM.transform=FALSE, then it is the source gene expression data)}
 
+\item{group}{a grouping factor}
+
 \item{lfc.thrld}{a positive numeric value for the minimum absolute log-fold-change for selecting candidate DE genes in the source data (when group is not NULL and pDE>0)}
 
 \item{llStat.thrld}{a positive numeric value for the minimum squared test statistics from the log-linear model to select candidate DE genes in the source data (when group is not NULL and  pDE>0)
@@ -22,9 +24,11 @@ containing X as a covariate to select DE genes}
 \item{max.frac.zeror.diff}{a numeric value >=0 indicating the maximum absolute
 difference in the fraction of zero counts between the groups for DE genes.}
 
-\item{prior.count}{a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.}
+\item{pDE}{fraction of DE genes}
 
-\item{X}{a vector of indicators for group memebership of cells/samples}
+\item{n.genes}{total number of genes}
+
+\item{prior.count}{a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.}
 }
 \value{
 a list object contating a set of candidate null and non-null genes and additional results

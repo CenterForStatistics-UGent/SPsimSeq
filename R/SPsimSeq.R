@@ -138,7 +138,8 @@
 #' scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 2000), ]
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, group = treatment, n.genes = 2000, batch.config = 1,
+#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, group = treatment,
+#'  n.genes = 2000, batch.config = 1,
 #'                       group.config = c(0.5, 0.5), tot.samples = 100,
 #'                      pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")

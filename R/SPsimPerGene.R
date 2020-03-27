@@ -2,7 +2,6 @@
 #'
 #' @param cumDens cumulative density
 #' @param sel.genes.ii selected gene
-#' @param exprmt.config experiment configuration
 #' @param log.CPM.transform a boolean, is log-CPM transform required?
 #' @param prior.count the prior count
 #' @param LL the library sizes
@@ -10,6 +9,7 @@
 #' @param model.zero.prob a boolean, should the zeroes be modelled separately
 #' @param fracZero.logit.list The zero model
 #' @param const.mult a large constant for the CPM transform, normally 1e6
+#' @param exprmt.design the experiment design
 #'
 #' @return Simulated cpm values
 SPsimPerGene <- function(cumDens, exprmt.design, 

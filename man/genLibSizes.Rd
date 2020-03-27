@@ -7,9 +7,9 @@
 genLibSizes(fit.ln, exprmt.design)
 }
 \arguments{
-\item{fit.ln}{}
+\item{fit.ln}{the library size model}
 
-\item{exprmt.design}{}
+\item{exprmt.design}{the design}
 }
 \value{
 The generated libray sizes per batch and group

@@ -5,7 +5,6 @@
 #' above a certain thereshold. 
 #' 
 #' @param cpm.data logCPM transformed matrix (if log.CPM.transform=FALSE, then it is the source gene expression data)
-#' @param X a vector of indicators for group memebership of cells/samples 
 #' @param lfc.thrld a positive numeric value for the minimum absolute log-fold-change for selecting candidate DE genes in the source data (when group is not NULL and pDE>0)
 #' @param t.thrld a positive numeric value for the minimum absolute t-test statistic for the log-fold-changes of genes for selecting candidate DE genes in the source data (when group is not NULL and  pDE>0)
 #' @param llStat.thrld a positive numeric value for the minimum squared test statistics from the log-linear model to select candidate DE genes in the source data (when group is not NULL and  pDE>0)
@@ -13,7 +12,11 @@
 #' @param max.frac.zeror.diff a numeric value >=0 indicating the maximum absolute
 #' difference in the fraction of zero counts between the groups for DE genes.
 #' @param w a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data
+#' @param group a grouping factor
+#' @param pDE fraction of DE genes
+#' @param n.genes total number of genes
 #' @param prior.count a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
+#'
 #' @return a list object contating a set of candidate null and non-null genes and additional results
 #' @importFrom stats lm glm sd coef
 #' @importFrom utils combn
