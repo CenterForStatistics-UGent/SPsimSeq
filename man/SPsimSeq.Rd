@@ -138,7 +138,7 @@ MYCN.status  <- zhang.data.sub$MYCN.status
 
 # simulate data
 set.seed(6452)
-sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
+sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
                           group = MYCN.status, n.genes = 2000, batch.config = 1,
                           group.config = c(0.5, 0.5), tot.samples = 20,
                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
@@ -170,7 +170,6 @@ data("scNGP.data")
 treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
 
 set.seed(654321)
-scNGP.data <- scNGP.data[sample(nrow(scNGP.data), 2000), ]
 
 # simulate data (we simulate here only a single data, n.sim = 1)
 sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,

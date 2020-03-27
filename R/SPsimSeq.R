@@ -82,7 +82,6 @@
 #' # load the Zhang bulk RNA-seq data (availabl with the package)
 #' data("zhang.data.sub")
 #'
-#' # filter genes with sufficient expression (important step to avoid bugs)
 #' zhang.counts <- zhang.data.sub$counts
 #' MYCN.status  <- zhang.data.sub$MYCN.status
 #'
@@ -100,7 +99,7 @@
 #'
 #' # simulate data
 #' set.seed(6452)
-#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
+#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
 #'                           group = MYCN.status, n.genes = 2000, batch.config = 1,
 #'                           group.config = c(0.5, 0.5), tot.samples = 20,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
@@ -132,13 +131,11 @@
 #' treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
 #'
 #' set.seed(654321)
-#' scNGP.data <- scNGP.data[sample(nrow(scNGP.data), 2000), ]
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
 #' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
-#'  n.genes = 2000, batch.config = 1,
-#'                       group.config = c(0.5, 0.5), tot.samples = 100,
-#'                      pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#'  n.genes = 2000, batch.config = 1, group.config = c(0.5, 0.5), 
+#'  tot.samples = 100, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
 #'
 #' sim.data.sc1 <- sim.data.sc[[1]]
@@ -165,7 +162,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   #INPUT CHECKS
   checkInputs = checkInputValidity(s.data = s.data, group = group, batch = batch,
                                     group.config = group.config, batch.config = batch.config, 
-                                    w = w, log.CPM.transform = log.CPM.transform, 
+                                    w = w, log.CPM.transform = log.CPM.transform, pDE = pDE,
                                     prior.count = prior.count, lib.size.params = lib.size.params, 
                                     llStat.thrld = llStat.thrld, result.format = result.format)
   #CPM TRANSFORM
