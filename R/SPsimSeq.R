@@ -83,7 +83,7 @@
 #' data("zhang.data.sub")
 #'
 #' # filter genes with sufficient expression (important step to avoid bugs)
-#' zhang.counts <- zhang.data.sub$counts[rowSums(zhang.data.sub$counts > 0)>=5, ]
+#' zhang.counts <- zhang.data.sub$counts
 #' MYCN.status  <- zhang.data.sub$MYCN.status
 #'
 #' # We simulate only a single data (n.sim = 1) with the following property
@@ -100,12 +100,10 @@
 #'
 #' # simulate data
 #' set.seed(6452)
-#' zhang.counts2 <- zhang.counts[sample(nrow(zhang.counts), 2000), ]
 #' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
 #'                           group = MYCN.status, n.genes = 2000, batch.config = 1,
 #'                           group.config = c(0.5, 0.5), tot.samples = 20,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
-#'
 #'
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
 #' head(sim.data.bulk$colData)        # sample info
@@ -131,14 +129,13 @@
 #' data("scNGP.data")
 #'
 #' # filter genes with sufficient expression (important step to avoid bugs)
-#' scNGP.data2 <- scNGP.data[rowSums(counts(scNGP.data) > 0)>=5, ]
-#' treatment <- ifelse(scNGP.data2$characteristics..treatment=="nutlin",2,1)
+#' treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
 #'
 #' set.seed(654321)
-#' scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 2000), ]
+#' scNGP.data <- scNGP.data[sample(nrow(scNGP.data), 2000), ]
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, group = treatment,
+#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
 #'  n.genes = 2000, batch.config = 1,
 #'                       group.config = c(0.5, 0.5), tot.samples = 100,
 #'                      pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,

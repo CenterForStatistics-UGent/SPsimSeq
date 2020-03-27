@@ -12,7 +12,6 @@
 #' and the experiment configurartion 
 #' @export
 #' @examples 
-#' \donttest{
 #' batch = sample(LETTERS[1:3], 20, replace = TRUE)
 #' group = sample(1:3, 20, replace = TRUE)
 #' #---- a design with a total of 10 samples/cells from 1 batch and 1 group
@@ -34,7 +33,6 @@
 #' # respectively.
 #' configExperiment(batch.config = c(5/30, 10/30, 15/30), group.config = c(0.5, 0.5),
 #'  tot.samples = 30, batch = batch, group = group)
-#' }
 configExperiment <- function(batch.config, group.config, tot.samples, batch, group){
   #Sort, such that largest groups and largest batches match with simulation
   batch.config = sort(batch.config, decreasing = TRUE)
