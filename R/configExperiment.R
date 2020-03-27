@@ -10,24 +10,30 @@
 #'
 #' @return a list object contating the number of groups and batches to be simukated, 
 #' and the experiment configurartion 
+#' @export
 #' @examples 
 #' \donttest{
+#' batch = sample(LETTERS[1:3], 20, replace = TRUE)
+#' group = sample(1:3, 20, replace = TRUE)
 #' #---- a design with a total of 10 samples/cells from 1 batch and 1 group
-#' configExperiment(batch.config=1, group.config=1, tot.samples=10)
+#' configExperiment(batch.config=1, group.config=1, tot.samples=10, 
+#' batch = batch, group = group)
 #' 
 #' #---- a design with a total of 20 samples/cells from 1 group and 2 batchs with 
 #' # batch 1 has 15 samples/cells and batch 2 has 5
 #' configExperiment(batch.config = c(15/20, 5/20), group.config = 1, 
-#' tot.samples = 20)
+#' tot.samples = 20, batch = batch, group = group)
 #' 
 #' #---- a design with a total of 20 samples/cells from 1 batch and 2 groups with 
 #' # group 1 has 10 samples/cells and batch 2 has 10
-#' configExperiment(batch.config=1, group.config=c(0.5, 0.5), tot.samples=20)
+#' configExperiment(batch.config=1, group.config=c(0.5, 0.5), tot.samples=20, 
+#' batch = batch, group = group)
 #' 
 #' #---- a design with a total of 30 samples/cells from 2 groups with group 1 has 15 samples 
 #' # and group 2 has 15, and  three batchs with batch 1,2, and 3 have 5, 10, and 15 samples/cells, 
 #' # respectively.
-#' configExperiment(batch.config=c(5/30, 10/30, 15/30), group.config=c(0.5, 0.5), tot.samples=30)
+#' configExperiment(batch.config = c(5/30, 10/30, 15/30), group.config = c(0.5, 0.5),
+#'  tot.samples = 30, batch = batch, group = group)
 #' }
 configExperiment <- function(batch.config, group.config, tot.samples, batch, group){
   #Sort, such that largest groups and largest batches match with simulation

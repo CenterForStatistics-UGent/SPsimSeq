@@ -3,7 +3,6 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-library(SPsimSeq)
 
 ## ----githubInstall, eval=FALSE------------------------------------------------
 #  ## Install SPsimSeq
