@@ -77,27 +77,26 @@ chooseCandGenes <- function(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w
       return(sum.square.Z.X)
     })
   } else{
-    warning("Unable to find candidate non-null genes. Consider to lower the fold-change threshold or llStat threshold.")
-    0
+      0
   }
   nonnull.genes <- nonnull.genes0[statLLmodel>=llStat.thrld]
   null.genes    <- c(null.genes0, setdiff(nonnull.genes0, nonnull.genes))
   #Throw warnings where needed
-  if((1-pDE)*n.genes > length(null.genes)){
+  if((1-pDE)*n.genes > length(null.genes) && length(null.genes)>1 ){
     message("Note: The number of null genes (not DE) in the source data is ",
             length(null.genes),
             " and the number of null genes required to be included in the simulated data is ", 
             round((1-pDE)*(n.genes)),
             ". Therefore, candidiate null genes are sampled with replacement.")
   }
-  if(pDE*n.genes > length(nonnull.genes)){
+  if(pDE*n.genes > length(nonnull.genes) && length(nonnull.genes)>1){
     message("Note: The number of DE genes detected in the source data is ",
             length(nonnull.genes),
             " and the number of DE genes required to be included in the simulated data is ",
             round(pDE*n.genes),
             ". Therefore, candidiate DE genes are sampled with replacement.")
   }
-  if(pDE>0 & !is.null(group) & length(nonnull.genes)==0){
+  if(pDE>0 & length(nonnull.genes)==0){
     warning("No gene met the criterion to be a candidiate DE gene. Perhaps consider
             lowering the 'lfc.thrld' or the 'llStat.thrld' or the 't.thrld'. Consequently,
             all the simulated genes are not DE.")
