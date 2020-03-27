@@ -17,7 +17,7 @@ selectGenes <- function(pDE, exprmt.design, n.genes, null.genes0, nonnull.genes0
     sel.genes <- c(nonnull.genes, null.genes)
   } else{
     sel.genes <- sample(null.genes0, n.genes, 
-                        replace = n.genes <= length(null.genes0))
+                        replace = n.genes > length(null.genes0))
   } 
   names(sel.genes) = sel.genes
   sel.genes

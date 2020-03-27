@@ -1,6 +1,10 @@
-# Check for data validity
+#' Check for data validity
+#'
+#' @param s.data,group,batch,group.config,batch.config,w,log.CPM.transform,prior.count,pDE,lib.size.params,llStat.thrld,result.format see ?SPsimSeq
+#'
+#' @return Throws errors where neede, otherwise returns invisible
 checkInputValidity <- function(s.data, group, batch, group.config, batch.config,
-                               w, log.CPM.transform, prior.count, 
+                               w, log.CPM.transform, prior.count, pDE,
                               lib.size.params, llStat.thrld, result.format){
   # Check for class of missing values in the source data
   if(anyNA(group)){
@@ -64,6 +68,9 @@ checkInputValidity <- function(s.data, group, batch, group.config, batch.config,
   }
   if(!(result.format %in% c("SCE", "list"))){
     stop("Result should be either SCE or list!")
+  }
+  if(pDE>1 || pDE<0){
+    stop("Fraction of differential features pDE should lie between 0 and 1!")
   }
   invisible()
 }
