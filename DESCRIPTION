@@ -46,6 +46,7 @@ RoxygenNote: 6.1.1
 Suggests:  
     knitr,    
     rmarkdown,
-    LSD
+    LSD,
+    testthat
 VignetteBuilder: knitr
 Depends: R (>= 3.6)
