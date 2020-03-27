@@ -2,7 +2,7 @@
 
 export(SPsimSeq)
 export(configExperiment)
-export(dSPsimSeq)
+export(evaluateDensities)
 import(methods)
 importFrom(Hmisc,cut2)
 importFrom(SingleCellExperiment,SingleCellExperiment)

@@ -21,7 +21,7 @@ BioConductor installation
 
 ```{r biocinstall, eval = FALSE}
 library(BiocManager)
-BiocManager::install("SPsimSeq", update = FALSE)
+BiocManager::install("SPsimSeq")
 ```
 
 ```{r loadspsimseqpackage}
