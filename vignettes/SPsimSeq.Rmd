@@ -1,20 +1,15 @@
 ---
-title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data"
-author: "Alemu Takele Assefa and Stijn Hawinkel"
-date: "`r Sys.Date()`"
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    keep_md: true
 vignette: >
-  %\VignetteIndexEntry{SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data}
+  %\VignetteIndexEntry{Manual for the SPsimSeq package: semi-parametric simulation for bulk and single cell RNA-seq data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
 # Introduction to SPsimSeq
 
 SPsimSeq is a semi-parametric simulation procedure for simulating bulk and single-cell RNA-seq data. It is designed to maximally retain the characteristics of real RNA-seq data with reasonable flexibility to simulate a wide range of scenarios. In a first step, the logarithmic counts per millions of reads (log-CPM) values from a given real dataset are used for semi-parametrically estimating gene-wise distributions and the between-genes correlation structure. In particular, the estimation of the probability distributions uses the fast log-linear model-based density estimation approach developed by @efron1996using and @lindsey1974construction. The method makes use of the Gaussian-copulas [@Cario97modelingand] to retain the between-genes correlation structure, as implemented by @SHawinkel2019 for microbiome data simulation. Arbitrarily large datasets, with realistically varying library sizes, can be sampled from these distributions while maintaining the correlation structure between the genes. Our method has an additional step to explicitly account for the high abundance of zero counts, typical for single-cell RNA-seq data. This step models the probability of zero counts as a function of the mean expression of the gene and the library size (read depth) of the cell (both in log scale). Zero counts are then added to the simulated data such that the observed relationship (zero probability to mean expression and library size) is maintained. In addition, our method simulates DE by separately estimating the distributions of the gene expression from the different populations (for example treatment groups) in the source data, and subsequently sampling a new dataset from each group. The details of the SPsimSeq procedures, implementations and benchmarking results can be found in the supplementary file.  
