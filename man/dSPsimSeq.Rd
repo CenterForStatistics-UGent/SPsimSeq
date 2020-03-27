@@ -4,29 +4,19 @@
 \alias{dSPsimSeq}
 \title{Evaluate the densities in the estimated SPsimSeq object}
 \usage{
-dSPsimSeq(SPobj, est.parms, force.fit.data = TRUE)
+dSPsimSeq(SPobj, newData = names(SPobj$detailed.results$densList))
 }
 \arguments{
 \item{SPobj}{The SPsimSeq object, with details retained}
 
-\item{force.fit.data}{a logical value. If TRUE (the default), then observations larger or smaller
-than the midpoint of the higher or lower classes (respectively) will be forced to the midpoint of
-the higher or lower classes (respectively). This argument is particularly important to avoid
-extrapolation problem for observations that are out of the range of the data points (midpoints)
-used for the estimation of the SPsimSeq log-linear regression parameters.}
-
-\item{newData}{All information on the data points at which the density should
-be evaluated. See details}
+\item{newData}{A character vector of gene names}
 }
 \value{
-a list of estimated densities
+a list of estimated densities, breaks and midpoints, one for every 
+gene in newData
 }
 \description{
 Evaluate the densities in the estimated SPsimSeq object
-}
-\details{
-The newData should consist of a matrix or data frame with entries 
-"gene", "group" and "batch".
 }
 \examples{
 data("zhang.data.sub")
@@ -39,6 +29,14 @@ sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
                           group = MYCN.status, n.genes = 2000, batch.config = 1,
                           group.config = c(0.5, 0.5), tot.samples = 20,
                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list",
-                          return)
-outDens = dSPsimSeq(sim.data.bulk, newData = zhang.counts2[1,])
+                          return.details = TRUE)
+outDens = dSPsimSeq(sim.data.bulk)
+select.genes <- sample(names(outDens), 4)
+select.sample = sample(
+seq_along(sim.data.bulk$detailed.results$exprmt.design$sub.groups), 1)
+par(mfrow=c(2, 2))
+for(i in select.genes){
+     plot(outDens[[i]][[select.sample]]$mids, outDens[[i]][[select.sample]]$gy, type = "l", 
+     xlab = "Outcome", ylab = "Density", main = paste("Gene", i))
+  }
 }

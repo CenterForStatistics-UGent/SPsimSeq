@@ -269,7 +269,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                    "cand.DE.genes" = cand.DE.genes,
                    "lib.size.params" = lib.size.params
                    )
-    list("sim.data.list" = sim.data.list, "detailed.results" = densList)
+    list("sim.data.list" = sim.data.list, "detailed.results" = details)
   }else{
     sim.data.list
   }
