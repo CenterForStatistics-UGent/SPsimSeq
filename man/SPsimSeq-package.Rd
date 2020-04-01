@@ -12,6 +12,13 @@ dataset from the estimated marginal distributions using Gaussian-copulas to
 retain the dependence between genes. It allows simulation of multiple 
 groups and batches with any required sample size and library size.
 }
+\references{
+\itemize{
+\item Alemu Takele Assefa, Jo Vandesompele, Olivier Thas. (2020). SPsimSeq: semi-parametric simulation of bulk and single cell RNA sequencing data, \emph{Bioinformatics}, , btaa105, https://doi.org/10.1093/bioinformatics/btaa105
+}
+}
 \author{
 Alemu Takele Assefa \email{alemutak@hotmail.com}
+
+Stijn Hawinkel \email{stijnhawinkel@hotmail.com}
 }

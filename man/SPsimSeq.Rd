@@ -4,14 +4,16 @@
 \alias{SPsimSeq}
 \title{A function to simulate bulk or single cell RNA sequencing data}
 \usage{
-SPsimSeq(n.sim = 1, s.data, batch = NULL, group = NULL,
-  n.genes = 1000, batch.config = 1, group.config = 1, pDE = 0.1,
-  cand.DE.genes = NULL, lfc.thrld = 0.5, t.thrld = 2.5,
-  llStat.thrld = 5, tot.samples = 150, model.zero.prob = FALSE,
+SPsimSeq(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
+  group = rep(1, ncol(s.data)), n.genes = 1000, batch.config = 1,
+  group.config = 1, pDE = 0.1, cand.DE.genes = NULL,
+  lfc.thrld = 0.5, t.thrld = 2.5, llStat.thrld = 5,
+  tot.samples = ncol(s.data), model.zero.prob = TRUE,
   genewiseCor = TRUE, log.CPM.transform = TRUE,
-  lib.size.params = NULL, variale.lib.size = FALSE, w = NULL,
-  const = 1, result.format = "SCE", return.details = FALSE,
-  seed = 2581988, verbose = TRUE, ...)
+  lib.size.params = NULL, variable.lib.size = FALSE, w = NULL,
+  result.format = "SCE", return.details = FALSE, verbose = TRUE,
+  prior.count = 1, const.mult = 1e+06, n.mean.class = 0.2,
+  minFracZeroes = 0.25)
 }
 \arguments{
 \item{n.sim}{an integer for the number of simulations to be generated}
@@ -24,9 +26,9 @@ SPsimSeq(n.sim = 1, s.data, batch = NULL, group = NULL,
 
 \item{n.genes}{a numeric value for the total number of genes to be simulated}
 
-\item{batch.config}{a numerical vector containing fractions  for the composition of samples/cells per batch. The fractions must sum to 1. The number of batches to be simulated is equal to the size of the vector. (Example, batch.config=c(0.6, 0.4)   means simulate 2 batches with 60\% of the simulated samples/cells in batch 1 and the rest 40\% in the second batch. Another example,  batch.config=c(0.3, 0.35, 0.25) means simulate 3 batches with the first, second and third batches contain 30\%, 35\% and 25\% of the samples/cells, respectively).}
+\item{batch.config}{a numerical vector containing fractions for the composition of samples/cells per batch. The fractions must sum to 1. The number of batches to be simulated is equal to the size of the vector. (Example, batch.config=c(0.6, 0.4)   means simulate 2 batches with 60\% of the simulated samples/cells in batch 1 and the rest 40\% in the second batch. Another example,  batch.config=c(0.3, 0.35, 0.25) means simulate 3 batches with the first, second and third batches contain 30\%, 35\% and 25\% of the samples/cells, respectively).}
 
-\item{group.config}{a numerical vector containing fractions  for the composition of samples/cells per group. Similar definition to 'batch.config'. The number of groups to be simulated is equal to the size of the vector. The fractions must sum to 1.}
+\item{group.config}{a numerical vector containing fractions for the composition of samples/cells per group. Similar definition to 'batch.config'. The number of groups to be simulated is equal to the size of the vector. The fractions must sum to 1.}
 
 \item{pDE}{a numeric value between 0 and 1 indicating the desired fraction of DE genes in the simulated data}
 
@@ -55,23 +57,31 @@ pDE>0 and cand.DE.genes is NULL)}
 
 \item{log.CPM.transform}{a logical value. If TRUE, the source data will be transformed into log-(CPM+const) before estimating the probability distributions}
 
-\item{lib.size.params}{NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.}
+\item{lib.size.params}{NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), 
+then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. 
+If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, 
+then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. 
+Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.}
 
-\item{variale.lib.size}{a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).}
+\item{variable.lib.size}{a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).}
 
-\item{w}{a numeric value between 0 and 1. The number of classes to construct the probability distribution will be round(w*n), where n is the total number of samples/cells in a particular batch of the source data}
-
-\item{const}{a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.}
+\item{w}{see ?hist}
 
 \item{result.format}{a character value for the type of format for the output. Choice can be 'SCE' for SingleCellExperiment class or "list" for a list object that contains the simulated count, column information and row information.}
 
 \item{return.details}{a logical value. If TRUE, detailed results including estimated parameters and densities will be returned}
 
-\item{seed}{an integer between 1 and 1e10 for reproducible simulation. It will be used with #set.seed() function. See also ?set.seed}
-
 \item{verbose}{a logical value, if TRUE a message about the status of the simulation will be printed on the console}
 
-\item{...}{further arguments passed to or from other methods.}
+\item{prior.count}{a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.}
+
+\item{const.mult}{A constant by which the count are scaled. Usually 1e6 to get CPM}
+
+\item{n.mean.class}{a fraction of the number of genes
+for the number of groups to be created for the mean log CPM of genes}
+
+\item{minFracZeroes}{minimum fraction of zeroes before a zero inflation model
+is fitted}
 }
 \value{
 a list of SingleCellExperiment/list objects each containing simulated counts (not normalized), smple/cell level information in colData, and gene/feature level information in rowData.
@@ -83,8 +93,7 @@ This function simulates (bulk/single cell) RNA-seq dataset from semi-parametrica
 This function uses a specially designed exponential family for density estimation
 to constructs the distribution of gene expression levels from a given real gene expression data
 (e.g. single-cell or bulk sequencing data), and subsequently, simulates a new
-from the estimated distributions.
-
+from the estimated distributions.#'
 For simulation of single-cell RNA-seq data (or any zero inflated gene expression data), the programm
 involves an additional step to explicitly account for the high abundance of zero counts (if required).
 This step models the probability of zero counts as a function the mean
@@ -94,16 +103,13 @@ for extremly large size data, it is recomended to use a random sample of cells t
 reduce computation time. To enable this, add the argument \emph{subset.data=TRUE} and you
 can specify the number of cells to be used using \emph{n.samples} argument.
 For example \emph{n.samples=400}.
-
 Given known groups of samples/cells in the source data, DGE is simulated by independently
 sampling data from distributions constructed for each group seprately. In particular, this procedure is
 applied on a set of genes with absolute log-fold-change in the source data more than a given threshold (\emph{lfc.thrld}).
 Moreover, when  the source dataset involves samples/cells processed in different batches, our
 simulation procedure incorporates this batch effect in the simulated data, if required.
-
 Different experimental designs can be simulated using the group and batch configuration arguments to
 simulate biologica/experimental conditions and batchs, respectively.
-
 Also, it is important to filter the source data so that genes with suffient expression will be used to
 estimate the probability distributions.
 }
@@ -114,8 +120,7 @@ estimate the probability distributions.
 # load the Zhang bulk RNA-seq data (availabl with the package)
 data("zhang.data.sub")
 
-# filter genes with sufficient expression (important step to avoid bugs)
-zhang.counts <- zhang.data.sub$counts[rowSums(zhang.data.sub$counts > 0)>=5, ]
+zhang.counts <- zhang.data.sub$counts
 MYCN.status  <- zhang.data.sub$MYCN.status
 
 # We simulate only a single data (n.sim = 1) with the following property
@@ -132,18 +137,14 @@ MYCN.status  <- zhang.data.sub$MYCN.status
 
 # simulate data
 set.seed(6452)
-zhang.counts2 <- zhang.counts[sample(nrow(zhang.counts), 2000), ]
-sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2, batch = NULL,
+sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
                           group = MYCN.status, n.genes = 2000, batch.config = 1,
                           group.config = c(0.5, 0.5), tot.samples = 20,
-                          pDE = 0.1, lfc.thrld = 0.5,
-                          result.format = "list",  seed = 2581988)
-
+                          pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 
 head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
 head(sim.data.bulk$colData)        # sample info
 head(sim.data.bulk$rowData)        # gene info
-
 
 #----------------------------------------------------------------
 # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
@@ -155,7 +156,7 @@ head(sim.data.bulk$rowData)        # gene info
 # - all cells are from a single batch (batch = NULL, batch.config = 1)
 # - we add 10\% DE genes (pDE = 0.1)
 # - the DE genes have a log-fold-change of at least 0.5
-#' # - we model the zeroes separately (model.zero.prob = TRUE)
+# - we model the zeroes separately (model.zero.prob = TRUE)
 # - the ouput will be in SingleCellExperiment class object (result.format = "SCE")
 
 library(SingleCellExperiment)
@@ -165,30 +166,26 @@ library(SingleCellExperiment)
 data("scNGP.data")
 
 # filter genes with sufficient expression (important step to avoid bugs)
-scNGP.data2 <- scNGP.data[rowSums(counts(scNGP.data) > 0)>=5, ]
-treatment <- ifelse(scNGP.data2$characteristics..treatment=="nutlin",2,1)
+treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
 
 set.seed(654321)
-scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 2000), ]
 
 # simulate data (we simulate here only a single data, n.sim = 1)
-#sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
- #                       group = treatment, n.genes = 2000, batch.config = 1,
-  #                      group.config = c(0.5, 0.5), tot.samples = 100,
-   #                     pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
-    #                    result.format = "SCE",  seed = 2581988)
+sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
+ n.genes = 2000, batch.config = 1, group.config = c(0.5, 0.5), 
+ tot.samples = 100, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+                    result.format = "SCE")
 
-#sim.data.sc1 <- sim.data.sc[[1]]
-#class(sim.data.sc1)
-#head(counts(sim.data.sc1)[, seq_len(5)])
-#colData(sim.data.sc1)
-#rowData(sim.data.sc1)
-
+sim.data.sc1 <- sim.data.sc[[1]]
+class(sim.data.sc1)
+head(counts(sim.data.sc1)[, seq_len(5)])
+colData(sim.data.sc1)
+rowData(sim.data.sc1)
 
 }
 \references{
 \itemize{
-\item Assefa, A. T., Vandesompele, J., & Thas, O. (2019). SPsimSeq: semi-parametric simulation of bulk and single cell RNA sequencing data. \emph{bioRxiv}, doi: https://doi.org/10.1101/677740.
+\item Assefa, A. T., Vandesompele, J., & Thas, O. (2020). SPsimSeq: semi-parametric simulation of bulk and single cell RNA sequencing data. \emph{Bioinformatics}, doi: https://doi.org/10.1093/bioinformatics/btaa105.
 \item Efron, B., & Tibshirani, R. (1996). Using specially designed exponential families for density estimation. \emph{The Annals of Statistics}, 24(6), 2431-2461.
 }
 }

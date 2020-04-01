@@ -2,18 +2,10 @@
 output: github_document
 ---
 
-# 1.0.0
+# 0.99.0
 
-- First private GitHub document
-
-# 2.0.0
-
+ - First private GitHub document
  - Major revision including gene/featurewise dependence
- 
-# 2.0.1
-
  - Minor revision on documentation and adding new features
- 
-# 2.0.2
-
  - Optimizing outputs, further enhancement, fixing bugs, and addressing issues\dontrun
+ - Added unit tests

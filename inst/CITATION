@@ -4,6 +4,7 @@ note <- sprintf("R package version %s", meta$Version)
 bibentry(bibtype = "Manual",
          title = "{SPsimSeq}: Semi-parametric simulation tool for bulk and single-cell RNA sequencing data",
          author = c(person(family = "Assefa", "Alemu Takele"),
+                    person(family = "Hawinkel", "Stijn"),
                     person(family = "Vandesompele", "Jo"),
                     person(family = "Thas", "Olivier"),
                     person("R Core Team")),

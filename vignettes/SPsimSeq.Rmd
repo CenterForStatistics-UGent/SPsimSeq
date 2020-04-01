@@ -1,23 +1,20 @@
 ---
-title: "SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data"
-author: "Alemu Takele Assefa"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    toc: true
+    keep_md: true
 vignette: >
-  %\VignetteIndexEntry{SPsimSeq: semi-parametric simulation for bulk and single cell RNA-seq data}
+  %\VignetteIndexEntry{Manual for the SPsimSeq package: semi-parametric simulation for bulk and single cell RNA-seq data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: references.bib
 ---
 
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)   
+# Contents
 
-library(SPsimSeq)
-```
+\setcounter{tocdepth}{5}
+\tableofcontents
+
 # Introduction to SPsimSeq
 
 SPsimSeq is a semi-parametric simulation procedure for simulating bulk and single-cell RNA-seq data. It is designed to maximally retain the characteristics of real RNA-seq data with reasonable flexibility to simulate a wide range of scenarios. In a first step, the logarithmic counts per millions of reads (log-CPM) values from a given real dataset are used for semi-parametrically estimating gene-wise distributions and the between-genes correlation structure. In particular, the estimation of the probability distributions uses the fast log-linear model-based density estimation approach developed by @efron1996using and @lindsey1974construction. The method makes use of the Gaussian-copulas [@Cario97modelingand] to retain the between-genes correlation structure, as implemented by @SHawinkel2019 for microbiome data simulation. Arbitrarily large datasets, with realistically varying library sizes, can be sampled from these distributions while maintaining the correlation structure between the genes. Our method has an additional step to explicitly account for the high abundance of zero counts, typical for single-cell RNA-seq data. This step models the probability of zero counts as a function of the mean expression of the gene and the library size (read depth) of the cell (both in log scale). Zero counts are then added to the simulated data such that the observed relationship (zero probability to mean expression and library size) is maintained. In addition, our method simulates DE by separately estimating the distributions of the gene expression from the different populations (for example treatment groups) in the source data, and subsequently sampling a new dataset from each group. The details of the SPsimSeq procedures, implementations and benchmarking results can be found in the supplementary file.  
@@ -27,32 +24,24 @@ In this documentation, we will demonstrate SPsimSeq for simulating bulk and sing
 # Installing SPsimSeq
 The package can be installed and loaded using the following commands:
 
-```{r load-packages, eval=FALSE, warning=FALSE, message=FALSE, echo=TRUE}
-# first install dependencies 
-pkg.depnd  <- c("SingleCellExperiment", "fitdistrplus",  
-               "edgeR", "Hmisc", "WGCNA", "limma", "mvtnorm", "plyr")
-pkg.source <- c(1,2,1,2,2,1,2,2)
-sapply(1:length(pkg.depnd), function(i){
-  pkg_available <- pkg.depnd[i] %in% rownames(installed.packages())
-  if(!pkg_available){ 
-    if(pkg.source[i] ==1){
-      BiocManager::install(pkg.depnd[i])
-    }
-    else{
-      install.packages(pkg.depnd[i])
-    } 
-  }
-})
-  
-## then install SPsimSeq
-remotes::install_github("CenterForStatistics-UGent/SPsimSeq")
+```{r githubInstall, eval=FALSE}
+## Install SPsimSeq
+library(devtools)
+install_github("CenterForStatistics-UGent/SPsimSeq")
+```
 
+or from BioConductor
 
+```{r BiocInstall, eval=FALSE}
+## Install SPsimSeq
+library(BiocManager)
+BiocManager::install("SPsimSeq")
+```
+
+```{r loadSPsimSeq}
 # load package
 library(SPsimSeq) 
 ```
-
-
 
 # Implementation of SPsimSeq
 ## Example 1: simulating bulk RNA-seq
@@ -67,13 +56,12 @@ library(SPsimSeq)
  MYCN.status  <- zhang.data.sub$MYCN.status 
  
  set.seed(6452)
- zhang.counts2 <- zhang.counts[sample(nrow(zhang.counts), 3000), ]
  # We simulate only a single data (n.sim = 1) with the following property
  # - 3000 genes ( n.genes = 3000) 
  # - 172 samples (tot.samples = 172) -- equal to the source data
  # - the samples are equally divided into 2 groups each with 90 samples 
  #   (group.config = c(0.5, 0.5)) -- almost equal to the source data
- # - all samples are from a single batch (batch = NULL, batch.config = 1)
+ # - all samples are from a single batch (batch.config = 1)
  # - we add 10% DE genes (pDE = 0.1) 
  # - the DE genes have a log-fold-change of at least 0.5 in 
  #   the source data (lfc.thrld = 0.5)
@@ -81,11 +69,10 @@ library(SPsimSeq)
  #    estimation (model.zero.prob = FALSE)
  
  # simulate data
- sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2, batch = NULL,
+ sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
                           group = MYCN.status, n.genes = 3000, batch.config = 1,
                           group.config = c(0.5, 0.5), tot.samples = 172, 
-                          pDE = 0.1, lfc.thrld = 0.5, result.format = "list",  
-                          seed = 2581988)
+                          pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
  sim.data.bulk1 <- sim.data.bulk[[1]]
  head(sim.data.bulk1$counts[, 1:5])  # count data
  head(sim.data.bulk1$colData)        # sample info
@@ -98,18 +85,16 @@ library(SPsimSeq)
  library(LSD) # for generating heatmap plots
  
 # normalize counts for comparison  
-Y0.log.cpm <- log2(edgeR::cpm(zhang.counts2)+1)
+Y0.log.cpm <- log2(edgeR::cpm(zhang.counts)+1)
 Y1.log.cpm <- log2(edgeR::cpm(sim.data.bulk1$counts)+1)
 Y0.log.cpm <- Y0.log.cpm[rowMeans(Y0.log.cpm>0)>=0.1, ]
 Y1.log.cpm <- Y1.log.cpm[rowMeans(Y1.log.cpm>0)>=0.1, ]
- 
 
 rowVars <- function(X){apply(X, 1, var, na.rm=TRUE)}
 rowCVs <- function(X){apply(X, 1, function(x) sd(x, na.rm=TRUE)/mean(x, na.rm=TRUE))}
 
- 
 par(mfrow=c(1, 3))
-boxplot(list(real.data=log(colSums(zhang.counts2)), 
+boxplot(list(real.data=log(colSums(zhang.counts)), 
              simulated.data=log(sim.data.bulk1$colData$sim.Lib.Size)), 
         main="library size") 
 boxplot(list(real.data=rowMeans(Y0.log.cpm), 
@@ -118,8 +103,6 @@ boxplot(list(real.data=rowMeans(Y0.log.cpm),
 boxplot(list(real.data=rowVars(Y0.log.cpm), 
              simulated.data=rowVars(Y1.log.cpm)), 
         main="variance of gene expressions") 
- 
- 
 
 # compare the relationship between the mean and variability
 par(mfrow=c(1,3), mar=c(4,4,4,1))
@@ -129,7 +112,6 @@ heatscatter(rowMeans(Y0.log.cpm), rowCVs(Y0.log.cpm), ylim=c(0, 6), xlim=c(0, 16
 heatscatter(rowMeans(Y1.log.cpm), rowCVs(Y1.log.cpm), ylim=c(0, 6), xlim=c(0, 16),
      main="SPsimSeq", xlab="mean log2-CPM", ylab="coefficients of variation", 
      cexplot=0.5, alpha = 60, colpal="bl2gr2rd", cex.lab=1.25)
-
 
 n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
@@ -146,17 +128,14 @@ f.SPsim <- sapply(1:n.gride, function(r){
   y
 })
 
-
 sm1 <- loess(I(f.SPsim-f.real)~mid.g) 
 plot(mid.g, f.SPsim-f.real, xlim=c(0, 14), col="lightskyblue", pch=20, cex.lab=1.25,
      cex.main=1.4, main="SPsimSeq - real data", ylab="difference", xlab="mean log2-CPM")
 lines(mid.g,predict(sm1, newdata = mid.g), col="blue", lwd=3) 
 
-
 # compare the correlation between genes and samples 
 cor.mat.Y0 <- cor(t(Y0.log.cpm))
 cor.mat.Y1 <- cor(t(Y1.log.cpm)) 
-
 cor.vec.Y0 <- cor.mat.Y0[upper.tri(cor.mat.Y0)]
 cor.vec.Y1 <- cor.mat.Y1[upper.tri(cor.mat.Y1)] 
 
@@ -167,7 +146,6 @@ hist(cor.vec.Y0, nclass = 30, probability = TRUE,
 hist(cor.vec.Y1, nclass = 30, probability = TRUE, border="gray",
      col="steelblue1",  main="SPsimSeq", xlab="pairwise correlation between genes",
      ylim=c(0, 3.5), xlim=c(-1, 1), cex.lab=1.25)
-
 plot(seq(-1, 1, 0.1), seq(-1, 1, 0.1), type="n", xlab="quantile (real data)", 
      ylab="quantile (simulated data)",  main="correlation quantile-quantile plot")
 abline(0, 1, col="gray")
@@ -185,55 +163,45 @@ points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.
  # - 100 cells (tot.samples = 100) 
  # - the cells are equally divided into 2 groups each with 50 cells 
  #   (group.config = c(0.5, 0.5))
- # - all cells are from a single batch (batch = NULL, batch.config = 1)
+ # - all cells are from a single batch (batch.config = 1)
  # - we add 10% DE genes (pDE = 0.1) 
  # - the DE genes have a log-fold-change of at least 0.5
  # - we model the zeroes separately (model.zero.prob = TRUE)
  # - the ouput will be in SingleCellExperiment class object (result.format = "SCE")
  
- 
- library(SingleCellExperiment)
+library(SingleCellExperiment)
  
  # load the NGP nutlin data (availabl with the package, processed with SMARTer/C1 protocol, and contains read-counts)
   data("scNGP.data")
- 
- # filter genes with sufficient expression (important step to avoid bugs) 
- scNGP.data2 <- scNGP.data[rowSums(counts(scNGP.data) > 0)>=5, ]  
- treatment <- ifelse(scNGP.data2$characteristics..treatment=="nutlin",2,1)
- 
- set.seed(654321)
- scNGP.data2 <- scNGP.data2[sample(nrow(scNGP.data2), 5000), ]
- 
+ treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
+  set.seed(654321)
  # simulate data (we simulate here only a single data, n.sim = 1)
- sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2, batch = NULL,
-                         group = treatment, n.genes = 5000, batch.config = 1,
+ sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data,
+                         group = treatment, n.genes = 4000, batch.config = 1,
                          group.config = c(0.5, 0.5), tot.samples = 100, 
                          pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
-                         result.format = "SCE",  seed = 2581988)
-                             
+                         result.format = "SCE")
  sim.data.sc1 <- sim.data.sc[[1]]
  class(sim.data.sc1)
  head(counts(sim.data.sc1)[, 1:5])
  colData(sim.data.sc1)
  rowData(sim.data.sc1)
  
-
  # compare the distributions of the mean expressions, variability, 
  # and fraction of zero counts per gene
  
 # normalize counts for comparison  
-Y0.log.cpm  <- log2(edgeR::cpm(counts(scNGP.data2))+1)
+Y0.log.cpm  <- log2(edgeR::cpm(counts(scNGP.data))+1)
 Y1.log.cpm  <- log2(edgeR::cpm(counts(sim.data.sc1))+1)
 Y0.log.cpm  <- Y0.log.cpm[rowMeans(Y0.log.cpm>0)>=0.1, ]
 Y1.log.cpm  <- Y1.log.cpm[rowMeans(Y1.log.cpm>0)>=0.1, ]
-
 
 rowVars <- function(X){apply(X, 1, var, na.rm=TRUE)}
 rowCVs <- function(X){apply(X, 1, function(x) sd(x, na.rm=TRUE)/mean(x, na.rm=TRUE))}
 rowZeroFrac <- function(X){apply(X, 1, function(x) mean(x==0, na.rm=TRUE))}
  
 par(mfrow=c(1, 3))
-boxplot(list(real.data=colSums(counts(scNGP.data2)), 
+boxplot(list(real.data=colSums(counts(scNGP.data)), 
              simulated.data=colData(sim.data.sc1)$sim.Lib.Size), 
         main="library size") 
 boxplot(list(real.data=rowMeans(Y0.log.cpm), 
@@ -241,10 +209,7 @@ boxplot(list(real.data=rowMeans(Y0.log.cpm),
         main="mean expression of genes") 
 boxplot(list(real.data=rowVars(Y0.log.cpm), 
              simulated.data=rowVars(Y1.log.cpm)), 
-        main="variance of gene expressions")  
-
-
-
+        main="variance of gene expressions")
 
 # compare the relationship between the mean and variability  
 par(mfrow=c(1,3), mar=c(4,4,4,1))
@@ -271,13 +236,10 @@ f.SPsim <- sapply(1:n.gride, function(r){
   y
 })
 
-
 sm1 <- loess(I(f.SPsim-f.real)~mid.g) 
 plot(mid.g, f.SPsim-f.real, xlim=c(0, 14), col="lightskyblue", pch=20, cex.lab=1.25,
      cex.main=1.4, main="SPsimSeq - real data", ylab="difference", xlab="mean log2-CPM")
 lines(mid.g,predict(sm1, newdata = mid.g), col="blue", lwd=3)
-
-
 
 # compare the relationship between the  mean and fraction of zeros
 par(mfrow=c(1,3), mar=c(4,4,4,1))
@@ -288,7 +250,6 @@ heatscatter(rowMeans(Y1.log.cpm), rowZeroFrac(Y1.log.cpm), ylim=c(0, 1),
             xlim=c(0, 16), main="SPsimSeq", xlab="mean log2-CPM", 
             ylab="fraction of zero counts",  cexplot=0.5, alpha = 60,
             colpal="bl2gr2rd", cex.lab=1.25)
-
 
 n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
@@ -305,12 +266,10 @@ f.SPsim <- sapply(1:n.gride, function(r){
   y
 })
 
-
 sm1 <- loess(I(f.SPsim-f.real)~mid.g) 
 plot(mid.g, f.SPsim-f.real, xlim=c(0, 14), col="lightskyblue", pch=20, cex.lab=1.25,
      cex.main=1.4, main="SPsimSeq - real data", ylab="difference", xlab="mean log2-CPM")
 lines(mid.g,predict(sm1, newdata = mid.g), col="blue", lwd=3)
- 
 
 # compare the correlation between genes and samples
 Y0.log.cpm2 <- Y0.log.cpm[rowMeans(Y0.log.cpm>0)>0.25, ]
@@ -337,11 +296,10 @@ points(quantile(cor.vec.Y0, seq(0, 1, 0.001)), quantile(cor.vec.Y1, seq(0, 1, 0.
        col="blue", pch=20, cex=1.5, cex.lab=1.25)  
 ```
 
-
-
-
 ```{r}
 sessionInfo()
 ```
 
 # References
+
+\printbibliography
