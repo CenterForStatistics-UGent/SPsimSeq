@@ -7,7 +7,7 @@ This is the github repo for the SPsimSeq R package.
 
 # Overview
 SPsimSeq uses a specially designed exponential family for density estimation to constructs the distribution of gene expression levels from a given real RNA sequencing data (single-cell or bulk), and subsequently, simulates a new dataset from the estimated marginal distributions using Gaussian-copulas to retain the dependence between genes. It allows simulation of multiple groups and batches with any required sample size and library size.
- 
+
 # Installation
  
 Github installation
@@ -99,3 +99,4 @@ head(counts(sim.data.sc1)[, seq_len(5)])
 colData(sim.data.sc1)
 rowData(sim.data.sc1)
 ```
+
