@@ -8,7 +8,7 @@ SPsimSeq(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   group = rep(1, ncol(s.data)), n.genes = 1000, batch.config = 1,
   group.config = 1, pDE = 0.1, cand.DE.genes = NULL,
   lfc.thrld = 0.5, t.thrld = 2.5, llStat.thrld = 5,
-  tot.samples = ncol(s.data), model.zero.prob = TRUE,
+  tot.samples = ncol(s.data), model.zero.prob = FALSE,
   genewiseCor = TRUE, log.CPM.transform = TRUE,
   lib.size.params = NULL, variable.lib.size = FALSE, w = NULL,
   result.format = "SCE", return.details = FALSE, verbose = TRUE,
@@ -139,7 +139,7 @@ MYCN.status  <- zhang.data.sub$MYCN.status
 set.seed(6452)
 sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
                           group = MYCN.status, n.genes = 2000, batch.config = 1,
-                          group.config = c(0.5, 0.5), tot.samples = 20,
+                          group.config = c(0.5, 0.5), tot.samples = ncol(zhang.counts),
                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 
 head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data

@@ -47,7 +47,8 @@ if(sum(Y > min.val) > min.count.nonnull){
   #Fit exponential density
   fitLLmodel(yy = countY, mu.hat = mu.hat, sig.hat = sig.hat, n = n)
 } else{
-  c(countY, 
-    list(g0 = diff(pnorm(countY$breaks, mean = mu.hat, sd = sig.hat)), n = n))
+  g0 = diff(pnorm(countY$breaks, mean = mu.hat, sd = sig.hat))
+  g0[g0==0] = .Machine$double.eps
+  c(countY, list(g0 = g0, n = n))
   }
 }

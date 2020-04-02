@@ -9,6 +9,7 @@
 fitLLmodel <- function(yy, mu.hat, sig.hat, n){
   #Evaluate carrier density
   g0 = diff(pnorm(yy$breaks, mean = mu.hat, sd = sig.hat))
+  g0[g0==0] = .Machine$double.eps
   ofs = log(g0*n)
   llm = NULL; degree = 4
   while(is.null(llm) && (degree >= 1)){
