@@ -22,7 +22,7 @@ BioConductor installation
 
 ``` r
 library(BiocManager)
-BiocManager::install("SPsimSeq", update = FALSE)
+BiocManager::install("SPsimSeq")
 ```
 
 ``` r
@@ -70,9 +70,7 @@ sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts2,
 
     ## Selecting candidate DE genes ...
 
-    ## Note: The number of DE genes detected in the source data is 79 and the number of DE genes required to be included in the simulated data is 200. Therefore, candidiate DE genes are sampled with replacement.
-
-    ## Fitting zero probability model ...
+    ## Note: The number of DE genes detected in the source data is 66 and the number of DE genes required to be included in the simulated data is 200. Therefore, candidiate DE genes are sampled with replacement.
 
     ## Estimating densities ...
 
@@ -88,36 +86,36 @@ head(sim.data.bulk1$counts[, seq_len(5)])  # count data
 ```
 
     ##        Sample_1 Sample_2 Sample_3 Sample_4 Sample_5
-    ## Gene_1        0        0        0        0        7
-    ## Gene_2        1        1        1        8        0
-    ## Gene_3        2       38        0       10       28
-    ## Gene_4        3       25        2      132      232
-    ## Gene_5        0        0        8        7       12
-    ## Gene_6        1        1        0       58        1
+    ## Gene_1      124        1       57      134      108
+    ## Gene_2        1        3       44        0       91
+    ## Gene_3        0        3       75        1      126
+    ## Gene_4       11       10       24       10        6
+    ## Gene_5        0        1        0        0        2
+    ## Gene_6      187       31      332       27       73
 
 ``` r
 head(sim.data.bulk1$colData)               # sample info
 ```
 
     ##          Batch Group sim.Lib.Size
-    ## Sample_1     1     1      1484907
-    ## Sample_2     1     1      1252074
-    ## Sample_3     1     1      1861492
-    ## Sample_4     1     1      1644716
-    ## Sample_5     1     1      1769902
-    ## Sample_6     1     1      1260043
+    ## Sample_1     1     1      1499454
+    ## Sample_2     1     1      1403642
+    ## Sample_3     1     1      1395046
+    ## Sample_4     1     1      1047452
+    ## Sample_5     1     1      1428862
+    ## Sample_6     1     1      1365620
 
 ``` r
 head(sim.data.bulk1$rowData)               # gene info
 ```
 
-    ##        DE.ind     source.ID
-    ## Gene_1   TRUE     HIST1H2BM
-    ## Gene_2   TRUE RP11-378A13.1
-    ## Gene_3   TRUE         HTR2C
-    ## Gene_4   TRUE          ZIC5
-    ## Gene_5   TRUE           WT1
-    ## Gene_6   TRUE       C2orf81
+    ##        DE.ind      source.ID
+    ## Gene_1   TRUE RP11-1006G14.4
+    ## Gene_2   TRUE  RP11-706O15.7
+    ## Gene_3   TRUE  RP11-706O15.7
+    ## Gene_4   TRUE       USP2-AS1
+    ## Gene_5   TRUE          XAGE5
+    ## Gene_6   TRUE          CAPS2
 
 Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 ---------------------------------------------------------------------------
@@ -154,7 +152,7 @@ sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data2,
 
     ## Selecting candidate DE genes ...
 
-    ## Note: The number of DE genes detected in the source data is 51 and the number of DE genes required to be included in the simulated data is 200. Therefore, candidiate DE genes are sampled with replacement.
+    ## Note: The number of DE genes detected in the source data is 42 and the number of DE genes required to be included in the simulated data is 200. Therefore, candidiate DE genes are sampled with replacement.
 
     ## Fitting zero probability model ...
 
@@ -180,12 +178,12 @@ head(counts(sim.data.sc1)[, seq_len(5)])
 ```
 
     ##        Sample_1 Sample_2 Sample_3 Sample_4 Sample_5
-    ## Gene_1        0        0       48        0        0
-    ## Gene_2       81        7        0        0        0
-    ## Gene_3        0       16        0        8      159
-    ## Gene_4        0        0        0        0        8
-    ## Gene_5       22        0        2        0        0
-    ## Gene_6        0        0        0        0       29
+    ## Gene_1       21        7        0        2        1
+    ## Gene_2       19        0        1        0        0
+    ## Gene_3       24        0        2       50        0
+    ## Gene_4        0       60        0       12       35
+    ## Gene_5        0        7        0        8       16
+    ## Gene_6        5       16       11        8       41
 
 ``` r
 colData(sim.data.sc1)
@@ -194,17 +192,17 @@ colData(sim.data.sc1)
     ## DataFrame with 100 rows and 3 columns
     ##               Batch    Group sim.Lib.Size
     ##            <factor> <factor>    <numeric>
-    ## Sample_1          1        1        62456
-    ## Sample_2          1        1        64650
-    ## Sample_3          1        1       101039
-    ## Sample_4          1        1        64104
-    ## Sample_5          1        1        60436
+    ## Sample_1          1        1        69309
+    ## Sample_2          1        1        37024
+    ## Sample_3          1        1        81538
+    ## Sample_4          1        1       134070
+    ## Sample_5          1        1        67218
     ## ...             ...      ...          ...
-    ## Sample_96         1        2        96673
-    ## Sample_97         1        2        46853
-    ## Sample_98         1        2        58025
-    ## Sample_99         1        2        88526
-    ## Sample_100        1        2        77400
+    ## Sample_96         1        2       122978
+    ## Sample_97         1        2        86100
+    ## Sample_98         1        2       107930
+    ## Sample_99         1        2        59519
+    ## Sample_100        1        2        67167
 
 ``` r
 rowData(sim.data.sc1)
@@ -213,14 +211,14 @@ rowData(sim.data.sc1)
     ## DataFrame with 2000 rows and 2 columns
     ##              DE.ind       source.ID
     ##           <logical>        <factor>
-    ## Gene_1         TRUE ENSG00000093072
-    ## Gene_2         TRUE ENSG00000169446
-    ## Gene_3         TRUE ENSG00000125703
-    ## Gene_4         TRUE ENSG00000081320
-    ## Gene_5         TRUE ENSG00000106346
+    ## Gene_1         TRUE ENSG00000174482
+    ## Gene_2         TRUE ENSG00000087586
+    ## Gene_3         TRUE ENSG00000164306
+    ## Gene_4         TRUE ENSG00000145386
+    ## Gene_5         TRUE ENSG00000105613
     ## ...             ...             ...
-    ## Gene_1996     FALSE ENSG00000153767
-    ## Gene_1997     FALSE ENSG00000006432
-    ## Gene_1998     FALSE ENSG00000168291
-    ## Gene_1999     FALSE ENSG00000108774
-    ## Gene_2000     FALSE ENSG00000069424
+    ## Gene_1996     FALSE ENSG00000274267
+    ## Gene_1997     FALSE ENSG00000143126
+    ## Gene_1998     FALSE ENSG00000175305
+    ## Gene_1999     FALSE ENSG00000109099
+    ## Gene_2000     FALSE ENSG00000237017
