@@ -4,8 +4,18 @@
 \alias{chooseCandGenes}
 \title{Select candidate genes}
 \usage{
-chooseCandGenes(cpm.data, group, lfc.thrld, llStat.thrld, t.thrld, w = w,
-  max.frac.zeror.diff = Inf, pDE, n.genes, prior.count)
+chooseCandGenes(
+  cpm.data,
+  group,
+  lfc.thrld,
+  llStat.thrld,
+  t.thrld,
+  w = w,
+  max.frac.zeror.diff = Inf,
+  pDE,
+  n.genes,
+  prior.count
+)
 }
 \arguments{
 \item{cpm.data}{logCPM transformed matrix (if log.CPM.transform=FALSE, then it is the source gene expression data)}

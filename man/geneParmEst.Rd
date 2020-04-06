@@ -4,8 +4,15 @@
 \alias{geneParmEst}
 \title{Gene level param estimates for density estimation}
 \usage{
-geneParmEst(cpm.data.i, batch, group, prior.count = prior.count, de.ind,
-  model.zero.prob, w)
+geneParmEst(
+  cpm.data.i,
+  batch,
+  group,
+  prior.count = prior.count,
+  de.ind,
+  model.zero.prob,
+  w
+)
 }
 \arguments{
 \item{cpm.data.i}{full vector of genewise observation}

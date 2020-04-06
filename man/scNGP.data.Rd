@@ -4,7 +4,9 @@
 \name{scNGP.data}
 \alias{scNGP.data}
 \title{Neuroblastoma NGP cells single-cell RNA-seq.}
-\format{A SingleCellExperiment object}
+\format{
+A SingleCellExperiment object
+}
 \source{
 GEO accession GSE119984
 }

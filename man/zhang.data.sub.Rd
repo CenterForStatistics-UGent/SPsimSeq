@@ -4,7 +4,9 @@
 \name{zhang.data.sub}
 \alias{zhang.data.sub}
 \title{Neuroblastoma bulk RNA-seq data retrieved from Zhang et (2015).}
-\format{A list object}
+\format{
+A list object
+}
 \source{
 \url{GEO accession GSE49711}
 }

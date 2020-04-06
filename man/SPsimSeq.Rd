@@ -4,16 +4,34 @@
 \alias{SPsimSeq}
 \title{A function to simulate bulk or single cell RNA sequencing data}
 \usage{
-SPsimSeq(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
-  group = rep(1, ncol(s.data)), n.genes = 1000, batch.config = 1,
-  group.config = 1, pDE = 0.1, cand.DE.genes = NULL,
-  lfc.thrld = 0.5, t.thrld = 2.5, llStat.thrld = 5,
-  tot.samples = ncol(s.data), model.zero.prob = FALSE,
-  genewiseCor = TRUE, log.CPM.transform = TRUE,
-  lib.size.params = NULL, variable.lib.size = FALSE, w = NULL,
-  result.format = "SCE", return.details = FALSE, verbose = TRUE,
-  prior.count = 1, const.mult = 1e+06, n.mean.class = 0.2,
-  minFracZeroes = 0.25)
+SPsimSeq(
+  n.sim = 1,
+  s.data,
+  batch = rep(1, ncol(s.data)),
+  group = rep(1, ncol(s.data)),
+  n.genes = 1000,
+  batch.config = 1,
+  group.config = 1,
+  pDE = 0.1,
+  cand.DE.genes = NULL,
+  lfc.thrld = 0.5,
+  t.thrld = 2.5,
+  llStat.thrld = 5,
+  tot.samples = ncol(s.data),
+  model.zero.prob = FALSE,
+  genewiseCor = TRUE,
+  log.CPM.transform = TRUE,
+  lib.size.params = NULL,
+  variable.lib.size = FALSE,
+  w = NULL,
+  result.format = "SCE",
+  return.details = FALSE,
+  verbose = TRUE,
+  prior.count = 1,
+  const.mult = 1e+06,
+  n.mean.class = 0.2,
+  minFracZeroes = 0.25
+)
 }
 \arguments{
 \item{n.sim}{an integer for the number of simulations to be generated}

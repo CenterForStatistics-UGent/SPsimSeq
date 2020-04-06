@@ -18,7 +18,7 @@ Authors@R:
            family = "Hawinkel",
            role = c("aut"),
            email = "stijnhawinkel@hotmail.com"))
-Description:  SPsimSeq uses a specially designed exponential family for density estimation 
+Description: SPsimSeq uses a specially designed exponential family for density estimation 
               to constructs the distribution of gene expression levels from a given real 
               RNA sequencing data (single-cell or bulk), and subsequently, simulates a new 
               dataset from the estimated marginal distributions using Gaussian-copulas to 
@@ -42,8 +42,8 @@ Imports:
          phyloseq,
          utils
 biocViews: GeneExpression, RNASeq, SingleCell, Sequencing, DNASeq
-RoxygenNote: 6.1.1
-Suggests:  
+RoxygenNote: 7.1.0
+Suggests: 
     knitr,    
     rmarkdown,
     LSD,

@@ -4,8 +4,14 @@
 \alias{parmEstDensVec}
 \title{Density estimation on a single vector}
 \usage{
-parmEstDensVec(Y0, model.zero.prob, min.val, w, prev.min.val = 0.25,
-  min.count.nonnull = 3)
+parmEstDensVec(
+  Y0,
+  model.zero.prob,
+  min.val,
+  w,
+  prev.min.val = 0.25,
+  min.count.nonnull = 3
+)
 }
 \arguments{
 \item{Y0}{the vector of observations}

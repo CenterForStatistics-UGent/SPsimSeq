@@ -4,9 +4,18 @@
 \alias{SPsimPerGene}
 \title{A function that generates the simulated data for a single gene}
 \usage{
-SPsimPerGene(cumDens, exprmt.design, sel.genes.ii, log.CPM.transform,
-  prior.count, LL, copSam, model.zero.prob, fracZero.logit.list,
-  const.mult)
+SPsimPerGene(
+  cumDens,
+  exprmt.design,
+  sel.genes.ii,
+  log.CPM.transform,
+  prior.count,
+  LL,
+  copSam,
+  model.zero.prob,
+  fracZero.logit.list,
+  const.mult
+)
 }
 \arguments{
 \item{cumDens}{cumulative density}

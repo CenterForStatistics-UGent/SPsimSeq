@@ -4,9 +4,20 @@
 \alias{checkInputValidity}
 \title{Check for data validity}
 \usage{
-checkInputValidity(s.data, group, batch, group.config, batch.config, w,
-  log.CPM.transform, prior.count, pDE, lib.size.params, llStat.thrld,
-  result.format)
+checkInputValidity(
+  s.data,
+  group,
+  batch,
+  group.config,
+  batch.config,
+  w,
+  log.CPM.transform,
+  prior.count,
+  pDE,
+  lib.size.params,
+  llStat.thrld,
+  result.format
+)
 }
 \arguments{
 \item{s.data, group, batch, group.config, batch.config, w, log.CPM.transform, prior.count, pDE, lib.size.params, llStat.thrld, result.format}{see ?SPsimSeq}

@@ -4,8 +4,7 @@
 \alias{evaluateDensities}
 \title{Evaluate the densities in the estimated SPsimSeq object}
 \usage{
-evaluateDensities(SPobj,
-  newData = names(SPobj$detailed.results$densList))
+evaluateDensities(SPobj, newData = names(SPobj$detailed.results$densList))
 }
 \arguments{
 \item{SPobj}{The SPsimSeq object, with details retained}
