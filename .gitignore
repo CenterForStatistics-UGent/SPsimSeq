@@ -4,6 +4,5 @@ inst/doc
 .RData
 .Ruserdata
 *.html
-vignettes/SPsimSeq.R
 java
-SPsimSeq.Rproj
+*.Rproj
