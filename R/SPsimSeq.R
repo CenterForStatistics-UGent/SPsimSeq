@@ -86,8 +86,8 @@
 #' MYCN.status  <- zhang.data.sub$MYCN.status
 #'
 #' # We simulate only a single data (n.sim = 1) with the following property
-#' # - 800 genes ( n.genes = 800)
-#' # - 20 samples (tot.samples = 20)
+#' # - 500 genes ( n.genes = 500)
+#' # - 12 samples (tot.samples = 12)
 #' # - the samples are equally divided into 2 groups each with 90 samples
 #' #   (group.config = c(0.5, 0.5))
 #' # - all samples are from a single batch (batch = NULL, batch.config = 1)
@@ -101,8 +101,8 @@
 #' # simulate data
 #' set.seed(6452)
 #' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
-#'                           group = MYCN.status, n.genes = 800, batch.config = 1,
-#'                           group.config = c(0.5, 0.5), tot.samples = 16,
+#'                           group = MYCN.status, n.genes = 500, batch.config = 1,
+#'                           group.config = c(0.5, 0.5), tot.samples = 12,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 #'
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
@@ -112,7 +112,7 @@
 #' #----------------------------------------------------------------
 #' # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 #' # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
-#' # - 2000 genes (n.genes = 2000)
+#' # - 500 genes (n.genes = 500)
 #' # - 10 cells (tot.samples = 10)
 #' # - the cells are equally divided into 2 groups each with 5 cells
 #' #   (group.config = c(0.5, 0.5))
@@ -136,7 +136,7 @@
 #' # simulate data (we simulate here only a single data, n.sim = 1)
 #' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
 #'  n.genes = 800, batch.config = 1, group.config = c(0.5, 0.5),
-#'  tot.samples = 16, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#'  tot.samples = 10, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
 #' sim.data.sc1 <- sim.data.sc[[1]]
 #' class(sim.data.sc1)

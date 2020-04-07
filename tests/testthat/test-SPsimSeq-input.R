@@ -30,13 +30,13 @@ test_that("SPsimSeq throws errors for wrong input types", {
   expect_error(SPsimSeq(n.sim = 1, s.data = zhang.counts,
                         group = MYCN.status, n.genes = 2000, batch.config = 1,
                         group.config = c(0.5, 0.5), tot.samples = 20,
-                        pDE = 0.2, lfc.thrld = 0.5, result.format = "list", 
+                        pDE = 0.2, lfc.thrld = 0.5, result.format = "list",
                         lib.size.params = c(10, 5)))
 })
 
-test_that("SPsimSeq throws warnings when appropriate", {
+test_that("SPsimSeq throws warnings when log-fold change threshold too high", {
   expect_warning(SPsimSeq(n.sim = 1, s.data = zhang.counts,
-                        group = MYCN.status, n.genes = 2000, batch.config = 1,
-                        group.config = c(0.5, 0.5), tot.samples = 20,
+                        group = MYCN.status, n.genes = 500, batch.config = 1,
+                        group.config = c(0.5, 0.5), tot.samples = 10,
                         pDE = 0.1, lfc.thrld = 50, result.format = "list"))
 })
