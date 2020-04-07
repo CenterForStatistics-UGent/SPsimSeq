@@ -9,3 +9,7 @@ output: github_document
  - Minor revision on documentation and adding new features
  - Optimizing outputs, further enhancement, fixing bugs, and addressing issues\dontrun
  - Added unit tests
+ 
+# 0.99.1
+
+ - Faster examples (less samples)
