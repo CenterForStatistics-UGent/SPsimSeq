@@ -30,10 +30,10 @@
 #' @param genewiseCor a logical value, if TRUE (default) the simulation will retain the gene-to-gene correlation structure of the source data using Gausian-copulas . Note that if it is TRUE, the program will be slow or it may fail for a limited memory size.
 #' @param prior.count a positive constant to be added to the CPM before log transformation, to avoid log(0). The default is 1.
 #' @param log.CPM.transform a logical value. If TRUE, the source data will be transformed into log-(CPM+const) before estimating the probability distributions
-#' @param lib.size.params NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default), 
-#' then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes. 
-#' If the user would like to specify the parameters of the log-normal distribution for the desired library sizes, 
-#' then the log-mean and log-SD params of rlnorm() functions can be passed using this argument. 
+#' @param lib.size.params NULL or a named numerical vector containing parameters for simulating library sizes from log-normal distribution. If lib.size.params =NULL (default),
+#' then the package will fit a log-normal distribution for the library sizes in the source data to simulate new library sizes.
+#' If the user would like to specify the parameters of the log-normal distribution for the desired library sizes,
+#' then the log-mean and log-SD params of rlnorm() functions can be passed using this argument.
 #' Example, lib.size.params = c(meanlog=10, sdlog=0.2). See also ?rlnorm.
 #' @param variable.lib.size a logical value. If FALSE (default), then the expected library sizes are simulated once and remains the same for every replication (if n.sim>1).
 #' @param verbose a logical value, if TRUE a message about the status of the simulation will be printed on the console
@@ -43,7 +43,7 @@
 #' for the number of groups to be created for the mean log CPM of genes
 #' @param minFracZeroes minimum fraction of zeroes before a zero inflation model
 #' is fitted
-#' 
+#'
 #' @return a list of SingleCellExperiment/list objects each containing simulated counts (not normalized), smple/cell level information in colData, and gene/feature level information in rowData.
 #'
 #' @details This function uses a specially designed exponential family for density estimation
@@ -87,7 +87,7 @@
 #'
 #' # We simulate only a single data (n.sim = 1) with the following property
 #' # - 1000 genes ( n.genes = 1000)
-#' # - 40 samples (tot.samples = 40)
+#' # - 20 samples (tot.samples = 20)
 #' # - the samples are equally divided into 2 groups each with 90 samples
 #' #   (group.config = c(0.5, 0.5))
 #' # - all samples are from a single batch (batch = NULL, batch.config = 1)
@@ -101,7 +101,7 @@
 #' set.seed(6452)
 #' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
 #'                           group = MYCN.status, n.genes = 1000, batch.config = 1,
-#'                           group.config = c(0.5, 0.5), tot.samples = 40,
+#'                           group.config = c(0.5, 0.5), tot.samples = 20,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 #'
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
@@ -134,8 +134,8 @@
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
 #' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
-#'  n.genes = 2000, batch.config = 1, group.config = c(0.5, 0.5), 
-#'  tot.samples = 100, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#'  n.genes = 1000, batch.config = 1, group.config = c(0.5, 0.5),
+#'  tot.samples = 50, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
 #'
 #' sim.data.sc1 <- sim.data.sc[[1]]
@@ -145,15 +145,15 @@
 #' rowData(sim.data.sc1)
 #'
 #' @export
-SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)), 
-                     group = rep(1, ncol(s.data)), 
-                     n.genes = 1000, batch.config = 1, group.config = 1, 
-                     pDE = 0.1, cand.DE.genes = NULL, lfc.thrld = 0.5, 
-                     t.thrld = 2.5, llStat.thrld = 5, tot.samples = ncol(s.data), 
+SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
+                     group = rep(1, ncol(s.data)),
+                     n.genes = 1000, batch.config = 1, group.config = 1,
+                     pDE = 0.1, cand.DE.genes = NULL, lfc.thrld = 0.5,
+                     t.thrld = 2.5, llStat.thrld = 5, tot.samples = ncol(s.data),
                      model.zero.prob = FALSE, genewiseCor = TRUE,
-                     log.CPM.transform = TRUE, lib.size.params = NULL, 
+                     log.CPM.transform = TRUE, lib.size.params = NULL,
                      variable.lib.size = FALSE, w = NULL,
-                     result.format = "SCE", return.details = FALSE, 
+                     result.format = "SCE", return.details = FALSE,
                      verbose = TRUE, prior.count = 1, const.mult = 1e6,
                      n.mean.class = 0.2, minFracZeroes = 0.25)
 {
@@ -161,14 +161,14 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   s.data = extractMat(s.data)
   #INPUT CHECKS
   checkInputs = checkInputValidity(s.data = s.data, group = group, batch = batch,
-                                    group.config = group.config, batch.config = batch.config, 
+                                    group.config = group.config, batch.config = batch.config,
                                     w = w, log.CPM.transform = log.CPM.transform, pDE = pDE,
-                                    prior.count = prior.count, lib.size.params = lib.size.params, 
+                                    prior.count = prior.count, lib.size.params = lib.size.params,
                                     llStat.thrld = llStat.thrld, result.format = result.format)
   #CPM TRANSFORM
   cpm.data <- if(log.CPM.transform){
-    # calculate log CPM 
-     calculateCPM(s.data, prior.count = prior.count, 
+    # calculate log CPM
+     calculateCPM(s.data, prior.count = prior.count,
                              const.mult = const.mult)
   } else s.data
   #PARAMETER ESTIMATION
@@ -186,13 +186,13 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   #Find candidate DE genes
   if(is.null(cand.DE.genes)){
     if(verbose) {message("Selecting candidate DE genes ...")}
-    cand.DE.genes = if(length(unique(group))>1){ 
-      chooseCandGenes(cpm.data = cpm.data, group = group, prior.count = prior.count, 
+    cand.DE.genes = if(length(unique(group))>1){
+      chooseCandGenes(cpm.data = cpm.data, group = group, prior.count = prior.count,
                       lfc.thrld = lfc.thrld, t.thrld = t.thrld, w = w,
                       llStat.thrld = llStat.thrld, pDE = pDE, n.genes = n.genes)
     } else {
-      list(null.genes = rownames(s.data)) 
-    } 
+      list(null.genes = rownames(s.data))
+    }
   }
   #Selected genes
   null.genes0    <- cand.DE.genes$null.genes
@@ -203,14 +203,14 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   if(all(s.data!=0)) model.zero.prob = FALSE
   if(model.zero.prob){
     if(verbose) {message("Fitting zero probability model ...")}
-    fracZero.logit.list <- fracZeroLogitModel(s.data = s.data, batch = batch, 
-                                              cpm.data = cpm.data, 
-                                              n.mean.class = n.mean.class, 
+    fracZero.logit.list <- fracZeroLogitModel(s.data = s.data, batch = batch,
+                                              cpm.data = cpm.data,
+                                              n.mean.class = n.mean.class,
                                               minFracZeroes = minFracZeroes)
   }
   # Estimate batch specific densities
   if(verbose) {message("Estimating densities ...")}
-  densList <- lapply(allGenes, function(gene){ 
+  densList <- lapply(allGenes, function(gene){
     geneParmEst(cpm.data.i = cpm.data[gene, ], batch = batch, group = group,
                 de.ind = gene %in% nonnull.genes0, prior.count = prior.count,
                 model.zero.prob = model.zero.prob, w = w)
@@ -218,14 +218,14 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   #SIMULATION
   ## EXPERIMENT CONFIGURATION
   if(verbose) {message("Configuring design ...")}
-  exprmt.design <- configExperiment(batch.config = batch.config, 
+  exprmt.design <- configExperiment(batch.config = batch.config,
                                     group.config = group.config,
-                                    tot.samples = tot.samples, batch = batch, 
+                                    tot.samples = tot.samples, batch = batch,
                                     group = group)
   ## PREPARE THE DENSITIES
-  prepDens <- lapply(allGenes, function(gene){ 
-    constructDens(densList.ii = densList[[gene]], 
-                 DE.ind.ii = gene %in% nonnull.genes0, 
+  prepDens <- lapply(allGenes, function(gene){
+    constructDens(densList.ii = densList[[gene]],
+                 DE.ind.ii = gene %in% nonnull.genes0,
                  exprmt.design = exprmt.design)
   })
   ## DATA GENERATION
@@ -242,7 +242,7 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
     selctGenes <- selectGenes(pDE = pDE, exprmt.design = exprmt.design, n.genes = n.genes,
                                  null.genes0 = null.genes0, nonnull.genes0 = nonnull.genes0)
     #Generate data
-    sim.dat <- vapply(selctGenes, function(gene){ 
+    sim.dat <- vapply(selctGenes, function(gene){
       SPsimPerGene(cumDens = prepDens[[gene]],
                    sel.genes.ii = gene, const.mult = const.mult,
                    exprmt.design = exprmt.design,
@@ -252,15 +252,15 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                    fracZero.logit.list = fracZero.logit.list)
     }, FUN.VALUE = numeric(tot.samples))
     sim.data.h <- prepareSPsimOutputs(sim.dat = t(sim.dat), exprmt.design = exprmt.design,
-                        DE.ind = selctGenes %in% nonnull.genes0, 
+                        DE.ind = selctGenes %in% nonnull.genes0,
                         result.format = result.format, LL = samLS)
     return(sim.data.h)
   })
   if(return.details){
-    details = list("densList" = densList, 
+    details = list("densList" = densList,
                    "fracZero.logit.list" = if(model.zero.prob) fracZero.logit.list else NULL,
                    "exprmt.design" = exprmt.design,
-                   "corMats.batch" = if(genewiseCor) corMats.batch else NULL, 
+                   "corMats.batch" = if(genewiseCor) corMats.batch else NULL,
                    "cand.DE.genes" = cand.DE.genes,
                    "lib.size.params" = lib.size.params
                    )
@@ -268,5 +268,5 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   }else{
     sim.data.list
   }
-  
+
 }
