@@ -86,8 +86,8 @@
 #' MYCN.status  <- zhang.data.sub$MYCN.status
 #'
 #' # We simulate only a single data (n.sim = 1) with the following property
-#' # - 2000 genes ( n.genes = 2000)
-#' # - 20 samples (tot.samples = 20)
+#' # - 1000 genes ( n.genes = 1000)
+#' # - 40 samples (tot.samples = 40)
 #' # - the samples are equally divided into 2 groups each with 90 samples
 #' #   (group.config = c(0.5, 0.5))
 #' # - all samples are from a single batch (batch = NULL, batch.config = 1)
@@ -100,8 +100,8 @@
 #' # simulate data
 #' set.seed(6452)
 #' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
-#'                           group = MYCN.status, n.genes = 2000, batch.config = 1,
-#'                           group.config = c(0.5, 0.5), tot.samples = ncol(zhang.counts),
+#'                           group = MYCN.status, n.genes = 1000, batch.config = 1,
+#'                           group.config = c(0.5, 0.5), tot.samples = 40,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 #'
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data

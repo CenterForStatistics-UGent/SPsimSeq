@@ -72,7 +72,7 @@ This dataset is now used as a template for semiparametric data generation. We si
  # simulate data
  sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
                           group = MYCN.status, n.genes = 3000, batch.config = 1,
-                          group.config = c(0.5, 0.5), tot.samples = 172, 
+                          group.config = c(0.5, 0.5), tot.samples = ncol(zhang.counts), 
                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list", return.details = TRUE)
 ```
  
