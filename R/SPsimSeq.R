@@ -79,14 +79,14 @@
 #' #----------------------------------------------------------------
 #' # Example 1: simulating bulk RNA-seq
 #'
-#' # load the Zhang bulk RNA-seq data (availabl with the package)
+#' # load the Zhang bulk RNA-seq data (available with the package)
 #' data("zhang.data.sub")
 #'
 #' zhang.counts <- zhang.data.sub$counts
 #' MYCN.status  <- zhang.data.sub$MYCN.status
 #'
 #' # We simulate only a single data (n.sim = 1) with the following property
-#' # - 1000 genes ( n.genes = 1000)
+#' # - 800 genes ( n.genes = 800)
 #' # - 20 samples (tot.samples = 20)
 #' # - the samples are equally divided into 2 groups each with 90 samples
 #' #   (group.config = c(0.5, 0.5))
@@ -96,12 +96,13 @@
 #' #   the source data (lfc.thrld = 0.5)
 #' # - we do not model the zeroes separately, they are the part of density
 #' #    estimation (model.zero.prob = FALSE)
+#' We keep the numbers of genes and samples low to limit compile time
 #'
 #' # simulate data
 #' set.seed(6452)
 #' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
-#'                           group = MYCN.status, n.genes = 1000, batch.config = 1,
-#'                           group.config = c(0.5, 0.5), tot.samples = 20,
+#'                           group = MYCN.status, n.genes = 800, batch.config = 1,
+#'                           group.config = c(0.5, 0.5), tot.samples = 16,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 #'
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
@@ -134,10 +135,9 @@
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
 #' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
-#'  n.genes = 1000, batch.config = 1, group.config = c(0.5, 0.5),
-#'  tot.samples = 20, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#'  n.genes = 800, batch.config = 1, group.config = c(0.5, 0.5),
+#'  tot.samples = 16, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
-#'
 #' sim.data.sc1 <- sim.data.sc[[1]]
 #' class(sim.data.sc1)
 #' head(counts(sim.data.sc1)[, seq_len(5)])
