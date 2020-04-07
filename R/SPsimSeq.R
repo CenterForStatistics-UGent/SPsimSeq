@@ -104,17 +104,15 @@
 #'                           group = MYCN.status, n.genes = 500, batch.config = 1,
 #'                           group.config = c(0.5, 0.5), tot.samples = 12,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
-#'
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
 #' head(sim.data.bulk$colData)        # sample info
 #' head(sim.data.bulk$rowData)        # gene info
-#'
 #' #----------------------------------------------------------------
 #' # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 #' # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
-#' # - 500 genes (n.genes = 500)
-#' # - 10 cells (tot.samples = 10)
-#' # - the cells are equally divided into 2 groups each with 5 cells
+#' # - 300 genes (n.genes = 300)
+#' # - 10 cells (tot.samples = 8)
+#' # - the cells are equally divided into 2 groups each with 4 cells
 #' #   (group.config = c(0.5, 0.5))
 #' # - all cells are from a single batch (batch = NULL, batch.config = 1)
 #' # - we add 10% DE genes (pDE = 0.1)
@@ -130,20 +128,18 @@
 #'
 #' # filter genes with sufficient expression (important step to avoid bugs)
 #' treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
-#'
 #' set.seed(654321)
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
 #' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
-#'  n.genes = 800, batch.config = 1, group.config = c(0.5, 0.5),
-#'  tot.samples = 10, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#'  n.genes = 200, batch.config = 1, group.config = c(0.5, 0.5),
+#'  tot.samples = 8, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
 #' sim.data.sc1 <- sim.data.sc[[1]]
 #' class(sim.data.sc1)
 #' head(counts(sim.data.sc1)[, seq_len(5)])
 #' colData(sim.data.sc1)
 #' rowData(sim.data.sc1)
-#'
 #' @export
 SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                      group = rep(1, ncol(s.data)),
