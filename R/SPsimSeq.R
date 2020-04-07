@@ -112,8 +112,8 @@
 #' # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 #' # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
 #' # - 2000 genes (n.genes = 2000)
-#' # - 100 cells (tot.samples = 100)
-#' # - the cells are equally divided into 2 groups each with 50 cells
+#' # - 10 cells (tot.samples = 10)
+#' # - the cells are equally divided into 2 groups each with 5 cells
 #' #   (group.config = c(0.5, 0.5))
 #' # - all cells are from a single batch (batch = NULL, batch.config = 1)
 #' # - we add 10% DE genes (pDE = 0.1)
@@ -135,7 +135,7 @@
 #' # simulate data (we simulate here only a single data, n.sim = 1)
 #' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
 #'  n.genes = 1000, batch.config = 1, group.config = c(0.5, 0.5),
-#'  tot.samples = 50, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#'  tot.samples = 20, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
 #'
 #' sim.data.sc1 <- sim.data.sc[[1]]
