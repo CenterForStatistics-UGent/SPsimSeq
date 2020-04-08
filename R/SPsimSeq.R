@@ -99,8 +99,7 @@
 #' # We keep the numbers of genes and samples low to limit compile time
 #'
 #' # simulate data
-#' set.seed(6452)
-#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts[seq_len(500),],
+#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
 #'                           group = MYCN.status, n.genes = 50, batch.config = 1,
 #'                           group.config = c(0.5, 0.5), tot.samples = 8,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
@@ -125,20 +124,12 @@
 #' # load the NGP nutlin data (availabl with the package, processed with
 #' # SMARTer/C1 protocol, and contains read-counts)
 #' data("scNGP.data")
-#'
-#' # filter genes with sufficient expression (important step to avoid bugs)
 #' treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
-#' set.seed(654321)
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data[seq_len(500),], group = treatment,
+#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
 #'  n.genes = 40, batch.config = 1, group.config = c(0.5, 0.5),
-#'  tot.samples = 6, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = FALSE,
+#'  tot.samples = 6, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
-#' sim.data.sc1 <- sim.data.sc[[1]]
-#' class(sim.data.sc1)
-#' head(counts(sim.data.sc1)[, seq_len(5)])
-#' colData(sim.data.sc1)
-#' rowData(sim.data.sc1)
 #' @export
 SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
                      group = rep(1, ncol(s.data)),
