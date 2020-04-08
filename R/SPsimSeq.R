@@ -86,9 +86,9 @@
 #' MYCN.status  <- zhang.data.sub$MYCN.status
 #'
 #' # We simulate only a single data (n.sim = 1) with the following property
-#' # - 500 genes ( n.genes = 500)
-#' # - 12 samples (tot.samples = 12)
-#' # - the samples are equally divided into 2 groups each with 90 samples
+#' # - 100 genes ( n.genes = 100)
+#' # - 8 samples (tot.samples = 8)
+#' # - the samples are equally divided into 2 groups each with 4 samples
 #' #   (group.config = c(0.5, 0.5))
 #' # - all samples are from a single batch (batch = NULL, batch.config = 1)
 #' # - we add 10% DE genes (pDE = 0.1)
@@ -101,8 +101,8 @@
 #' # simulate data
 #' set.seed(6452)
 #' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
-#'                           group = MYCN.status, n.genes = 500, batch.config = 1,
-#'                           group.config = c(0.5, 0.5), tot.samples = 12,
+#'                           group = MYCN.status, n.genes = 100, batch.config = 1,
+#'                           group.config = c(0.5, 0.5), tot.samples = 8,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
 #' head(sim.data.bulk$colData)        # sample info
@@ -110,9 +110,9 @@
 #' #----------------------------------------------------------------
 #' # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 #' # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
-#' # - 300 genes (n.genes = 300)
-#' # - 10 cells (tot.samples = 8)
-#' # - the cells are equally divided into 2 groups each with 4 cells
+#' # - 100 genes (n.genes = 100)
+#' # - 6 cells (tot.samples = 6)
+#' # - the cells are equally divided into 2 groups each with 3 cells
 #' #   (group.config = c(0.5, 0.5))
 #' # - all cells are from a single batch (batch = NULL, batch.config = 1)
 #' # - we add 10% DE genes (pDE = 0.1)
@@ -132,8 +132,8 @@
 #'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
 #' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
-#'  n.genes = 200, batch.config = 1, group.config = c(0.5, 0.5),
-#'  tot.samples = 8, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#'  n.genes = 100, batch.config = 1, group.config = c(0.5, 0.5),
+#'  tot.samples = 6, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
 #'                     result.format = "SCE")
 #' sim.data.sc1 <- sim.data.sc[[1]]
 #' class(sim.data.sc1)
