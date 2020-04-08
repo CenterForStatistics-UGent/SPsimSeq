@@ -96,7 +96,7 @@
 #' #   the source data (lfc.thrld = 0.5)
 #' # - we do not model the zeroes separately, they are the part of density
 #' #    estimation (model.zero.prob = FALSE)
-#' We keep the numbers of genes and samples low to limit compile time
+#' # We keep the numbers of genes and samples low to limit compile time
 #'
 #' # simulate data
 #' set.seed(6452)
@@ -129,11 +129,10 @@
 #' # filter genes with sufficient expression (important step to avoid bugs)
 #' treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
 #' set.seed(654321)
-#'
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data, group = treatment,
-#'  n.genes = 100, batch.config = 1, group.config = c(0.5, 0.5),
-#'  tot.samples = 6, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = TRUE,
+#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data[seq_len(1000),], group = treatment,
+#'  n.genes = 40, batch.config = 1, group.config = c(0.5, 0.5),
+#'  tot.samples = 6, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = FALSE,
 #'                     result.format = "SCE")
 #' sim.data.sc1 <- sim.data.sc[[1]]
 #' class(sim.data.sc1)
