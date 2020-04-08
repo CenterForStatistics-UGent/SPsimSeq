@@ -100,8 +100,8 @@
 #'
 #' # simulate data
 #' set.seed(6452)
-#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts,
-#'                           group = MYCN.status, n.genes = 100, batch.config = 1,
+#' sim.data.bulk <- SPsimSeq(n.sim = 1, s.data = zhang.counts[seq_len(500),],
+#'                           group = MYCN.status, n.genes = 50, batch.config = 1,
 #'                           group.config = c(0.5, 0.5), tot.samples = 8,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
 #' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
@@ -130,7 +130,7 @@
 #' treatment <- ifelse(scNGP.data$characteristics..treatment=="nutlin",2,1)
 #' set.seed(654321)
 #' # simulate data (we simulate here only a single data, n.sim = 1)
-#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data[seq_len(1000),], group = treatment,
+#' sim.data.sc <- SPsimSeq(n.sim = 1, s.data = scNGP.data[seq_len(500),], group = treatment,
 #'  n.genes = 40, batch.config = 1, group.config = c(0.5, 0.5),
 #'  tot.samples = 6, pDE = 0.1, lfc.thrld = 0.5, model.zero.prob = FALSE,
 #'                     result.format = "SCE")
