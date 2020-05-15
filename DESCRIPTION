@@ -49,4 +49,3 @@ Suggests:
     LSD,
     testthat
 VignetteBuilder: knitr
-Depends: R (>= 4.0)
