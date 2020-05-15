@@ -80,7 +80,7 @@ Next, we explore the data we just generated.
 
 ```{r dataExploration}
  sim.data.bulk1 <- sim.data.bulk$sim.data.list[[1]]
- head(sim.data.bulk1$counts[, 1:5])  # count data
+ head(sim.data.bulk1$counts[, seq_len(5)])  # count data
  head(sim.data.bulk1$colData)        # sample info
  head(sim.data.bulk1$rowData)        # gene info
 ```
@@ -133,12 +133,12 @@ n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
 max.g   <- seq(0, 20, length.out = n.gride+1)[-1] 
 mid.g   <- (min.g+max.g)/2
-f.real  <- sapply(1:n.gride, function(r){
+f.real  <- sapply(seq_len(n.gride), function(r){
   x <- Y0.log.cpm[rowMeans(Y0.log.cpm)<=max.g[r] & rowMeans(Y0.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowCVs(x)), mean(sd(x)/mean(x))) 
   y
 })
-f.SPsim <- sapply(1:n.gride, function(r){
+f.SPsim <- sapply(seq_len(n.gride), function(r){
   x <- Y1.log.cpm[rowMeans(Y1.log.cpm)<=max.g[r] & rowMeans(Y1.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowCVs(x)), mean(sd(x)/mean(x))) 
   y
@@ -205,7 +205,7 @@ Take a quick peek at the data.
 ```{r scRNAhead}
  sim.data.sc1 <- sim.data.sc[[1]]
  class(sim.data.sc1)
- head(counts(sim.data.sc1)[, 1:5])
+ head(counts(sim.data.sc1)[, seq_len(5)])
  colData(sim.data.sc1)
  rowData(sim.data.sc1)
 ```
@@ -248,12 +248,12 @@ n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
 max.g   <- seq(0, 20, length.out = n.gride+1)[-1] 
 mid.g   <- (min.g+max.g)/2
-f.real  <- sapply(1:n.gride, function(r){
+f.real  <- sapply(seq_len(n.gride), function(r){
   x <- Y0.log.cpm[rowMeans(Y0.log.cpm)<=max.g[r] & rowMeans(Y0.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowCVs(x)), mean(sd(x)/mean(x))) 
   y
 })
-f.SPsim <- sapply(1:n.gride, function(r){
+f.SPsim <- sapply(seq_len(n.gride), function(r){
   x <- Y1.log.cpm[rowMeans(Y1.log.cpm)<=max.g[r] & rowMeans(Y1.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowCVs(x)), mean(sd(x)/mean(x))) 
   y
@@ -281,12 +281,12 @@ n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
 max.g   <- seq(0, 20, length.out = n.gride+1)[-1] 
 mid.g   <- (min.g+max.g)/2
-f.real  <- sapply(1:n.gride, function(r){
+f.real  <- sapply(seq_len(n.gride), function(r){
   x <- Y0.log.cpm[rowMeans(Y0.log.cpm)<=max.g[r] & rowMeans(Y0.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowZeroFrac(x)), mean(x==0)) 
   y
 })
-f.SPsim <- sapply(1:n.gride, function(r){
+f.SPsim <- sapply(seq_len(n.gride), function(r){
   x <- Y1.log.cpm[rowMeans(Y1.log.cpm)<=max.g[r] & rowMeans(Y1.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowZeroFrac(x)), mean(x==0)) 
   y
