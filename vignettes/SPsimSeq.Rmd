@@ -1,6 +1,6 @@
 ---
 output: 
-  rmarkdown::html_vignette:
+  BiocStyle::html_document:
     toc: true
     keep_md: true
 vignette: >
