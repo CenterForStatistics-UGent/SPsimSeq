@@ -133,12 +133,12 @@ n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
 max.g   <- seq(0, 20, length.out = n.gride+1)[-1] 
 mid.g   <- (min.g+max.g)/2
-f.real  <- sapply(seq_len(n.gride), function(r){
+f.real  <- vapply(seq_len(n.gride), FUN.VALUE = double(1), function(r){
   x <- Y0.log.cpm[rowMeans(Y0.log.cpm)<=max.g[r] & rowMeans(Y0.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowCVs(x)), mean(sd(x)/mean(x))) 
   y
 })
-f.SPsim <- sapply(seq_len(n.gride), function(r){
+f.SPsim <- vapply(seq_len(n.gride), FUN.VALUE = double(1), function(r){
   x <- Y1.log.cpm[rowMeans(Y1.log.cpm)<=max.g[r] & rowMeans(Y1.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowCVs(x)), mean(sd(x)/mean(x))) 
   y
@@ -248,12 +248,12 @@ n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
 max.g   <- seq(0, 20, length.out = n.gride+1)[-1] 
 mid.g   <- (min.g+max.g)/2
-f.real  <- sapply(seq_len(n.gride), function(r){
+f.real  <- vapply(seq_len(n.gride), FUN.VALUE = double(1), function(r){
   x <- Y0.log.cpm[rowMeans(Y0.log.cpm)<=max.g[r] & rowMeans(Y0.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowCVs(x)), mean(sd(x)/mean(x))) 
   y
 })
-f.SPsim <- sapply(seq_len(n.gride), function(r){
+f.SPsim <- vapply(seq_len(n.gride), FUN.VALUE = double(1), function(r){
   x <- Y1.log.cpm[rowMeans(Y1.log.cpm)<=max.g[r] & rowMeans(Y1.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowCVs(x)), mean(sd(x)/mean(x))) 
   y
@@ -281,12 +281,12 @@ n.gride <- 1000
 min.g   <- seq(0, 20, length.out = n.gride+1)[-n.gride]
 max.g   <- seq(0, 20, length.out = n.gride+1)[-1] 
 mid.g   <- (min.g+max.g)/2
-f.real  <- sapply(seq_len(n.gride), function(r){
+f.real  <- vapply(seq_len(n.gride), FUN.VALUE = double(1), function(r){
   x <- Y0.log.cpm[rowMeans(Y0.log.cpm)<=max.g[r] & rowMeans(Y0.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowZeroFrac(x)), mean(x==0)) 
   y
 })
-f.SPsim <- sapply(seq_len(n.gride), function(r){
+f.SPsim <- vapply(seq_len(n.gride), FUN.VALUE = double(1), function(r){
   x <- Y1.log.cpm[rowMeans(Y1.log.cpm)<=max.g[r] & rowMeans(Y1.log.cpm)>min.g[r],]
   y <- ifelse(!is.null(dim(x)), mean(rowZeroFrac(x)), mean(x==0)) 
   y
