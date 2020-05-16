@@ -1,35 +1,35 @@
 #' Neuroblastoma bulk RNA-seq data retrieved from Zhang et (2015).
 #'
-#' The data contains 498 neuroblastoma tumors. In short, unstranded 
-#' poly(A)+ RNA sequencing was performed on the HiSeq 2000 instrument (Illumina). 
-#' Paired-end reads with a length of 100 nucleotides were obtained. To quantify 
-#' the full transcriptome, raw fastq files were processed with Kallisto v0.42.4 
-#' (index build with GRCh38-Ensembl v85). The pseudo-alignment tool Kallisto 
-#' was chosen above other quantification methods as it is performing equally 
-#' good but faster. For this study, a subset of 172 tumors (samples) with 
-#' high-risk disease were selected, forming two groups: the MYCN amplified 
-#' ($n_1$ = 91) and MYCN non-amplified ($n_2$ = 81) tumours. Sometimes we refer 
-#' this dataset to us the Zhang data or the Zhang neuroblastoma data. In this
+#' The data contains 498 neuroblastoma tumors. In short, unstranded
+#' poly(A)+ RNA sequencing was performed on the HiSeq 2000 instrument (Illumina).
+#' Paired-end reads with a length of 100 nucleotides were obtained. To quantify
+#' the full transcriptome, raw fastq files were processed with Kallisto v0.42.4
+#' (index build with GRCh38-Ensembl v85). The pseudo-alignment tool Kallisto
+#' was chosen above other quantification methods as it is performing equally
+#' good but faster. For this study, a subset of 172 tumors (samples) with
+#' high-risk disease were selected, forming two groups: the MYCN amplified
+#' ($n_1$ = 91) and MYCN non-amplified ($n_2$ = 81) tumours. Sometimes we refer
+#' this dataset to as the Zhang data or the Zhang neuroblastoma data. In this
 #' package, a subset of 5000 genes (randomly selected) are made available for illustration
 #' purpose only.
-#'  
+#'
 #' @docType data
-#' 
+#'
 #' @format A list object
-#' 
+#'
 #' @usage data(zhang.data.sub)
-#' 
+#'
 #' @keywords datasets
-#' 
-#' @references 
+#'
+#' @references
 #' 1. Zhang W, Yu Y, Hertwig F, Thierry-Mieg J, Zhang W, Thierry-Mieg D, Wang J, Furlanello C, Devanarayan V, Cheng J, et al. Comparison of RNA-seq and microarray-based models for clinical endpoint prediction. Genome Biol. 2015;16(133) https://doi.org/10.1186/s13059-015-0694-1
 #' 2. Assefa, A. T., De Paepe, K., Everaert, C., Mestdagh, P., Thas, O., & Vandesompele, J. (2018). Differential gene expression analysis tools exhibit substandard performance for long non-coding RNA-sequencing data. GENOME BIOLOGY, 19.
 #' \describe{
 #'   \item{counts}{gene counts}
 #'   \item{group}{MYCN (0 for MYCN non-amplified and 1 for MYCN amplified)}
-#' } 
+#' }
 #' @source \url{GEO accession GSE49711}
-#' @examples 
+#' @examples
 #' data("zhang.data.sub")
 #' str(zhang.data.sub)
 "zhang.data.sub"

@@ -47,5 +47,6 @@ Suggests:
     knitr,    
     rmarkdown,
     LSD,
-    testthat
+    testthat,
+    BiocStyle
 VignetteBuilder: knitr
