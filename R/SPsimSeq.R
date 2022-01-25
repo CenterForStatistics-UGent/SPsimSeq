@@ -103,9 +103,9 @@
 #'                           group = MYCN.status, n.genes = 50, batch.config = 1,
 #'                           group.config = c(0.5, 0.5), tot.samples = 8,
 #'                           pDE = 0.1, lfc.thrld = 0.5, result.format = "list")
-#' head(sim.data.bulk$counts[[1]][, seq_len(5)])  # count data
-#' head(sim.data.bulk$colData)        # sample info
-#' head(sim.data.bulk$rowData)        # gene info
+#' head(sim.data.bulk[[1]]$counts[, seq_len(5)])  # count data
+#' head(sim.data.bulk[[1]]$colData)        # sample info
+#' head(sim.data.bulk[[1]]$rowData)        # gene info
 #' #----------------------------------------------------------------
 #' # Example 2: simulating single cell RNA-seq from a single batch (read-counts)
 #' # we simulate only a single scRNA-seq data (n.sim = 1) with the following property
@@ -167,8 +167,10 @@ SPsimSeq <- function(n.sim = 1, s.data, batch = rep(1, ncol(s.data)),
   # Estimate correlation matrices
   if(genewiseCor){
     if(verbose) {message("Estimating featurewise correlations ...")}
-    corMats.batch <- obtCorMatsBatch(cpm.data = cpm.data, batch = batch)
   }
+  corMats.batch <- obtCorMatsBatch(cpm.data = cpm.data, batch = batch, genewiseCor)
+  
+  
   #Find candidate DE genes
   if(is.null(cand.DE.genes)){
     if(verbose) {message("Selecting candidate DE genes ...")}
