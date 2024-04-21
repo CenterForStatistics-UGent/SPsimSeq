@@ -12,6 +12,11 @@ matchCopula = function(cumDens, exprmt.design, copSam, sel.genes.ii){
     copula = copSam[sel.genes.ii,i]
     cd = cumDens[[i]]
     id = which.min(abs(cd$Gy-copula))
-    runif(1, cd$breaks[id], cd$breaks[id+1])
+    
+    if(!is.null(cd$breaks)){
+      runif(1, cd$breaks[id], cd$breaks[id+1])
+    }else{
+      0
+    }
   }, FUN.VALUE = numeric(1))
 }

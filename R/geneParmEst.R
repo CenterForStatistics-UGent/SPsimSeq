@@ -38,17 +38,23 @@ parmEstDensVec = function(Y0, model.zero.prob, min.val, w, prev.min.val = 0.25,
     Y0[Y0>min.val]
   } else Y0
   n = length(Y)
-  #Fit normal carrier density
-  mu.hat = mean(Y)
-  sig.hat = sd(Y)
-  #Bin counts
-  countY <- obtCount(Y = Y, w = w)
-if(sum(Y > min.val) > min.count.nonnull){
-  #Fit exponential density
-  fitLLmodel(yy = countY, mu.hat = mu.hat, sig.hat = sig.hat, n = n)
-} else{
-  g0 = diff(pnorm(countY$breaks, mean = mu.hat, sd = sig.hat))
-  g0[g0==0] = .Machine$double.eps
-  c(countY, list(g0 = g0, n = n))
+  n.dist = length(unique(Y))
+  if(n>=5 && n.dist>3){ # fit density only if there are at least 3 distinct values (e.g cpm)
+    #Fit normal carrier density
+    mu.hat = mean(Y)
+    sig.hat = sd(Y)
+    #Bin counts
+    countY <- obtCount(Y = Y, w = w)
+    if(sum(Y > min.val) > min.count.nonnull){
+      #Fit exponential density
+      fitLLmodel(yy = countY, mu.hat = mu.hat, sig.hat = sig.hat, n = n)
+    } else{
+      g0 = diff(pnorm(countY$breaks, mean = mu.hat, sd = sig.hat))
+      g0[g0==0] = .Machine$double.eps
+      c(countY, list(g0 = g0, n = n))
+    }
+  }else{
+    c(0, list(g0 = .Machine$double.eps, n = n))
   }
+  
 }
