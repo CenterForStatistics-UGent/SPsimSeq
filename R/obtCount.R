@@ -7,7 +7,7 @@
 #' @return a list object contating class breaks, mid points and counts
 #' @importFrom graphics hist
 obtCount <- function(Y, w){
-  h = hist(Y, plot = FALSE, 
-           nclass = if(is.null(w)) NULL else nclass = round(w*length(Y))) 
+  nclass=if(is.null(w)) NULL else round(w*length(Y))
+  h = hist(Y, plot = FALSE, nclass=nclass) 
   list(breaks = h$breaks, mids = h$mids, counts = h$counts) 
 }
