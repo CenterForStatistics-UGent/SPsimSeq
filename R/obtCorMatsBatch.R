@@ -8,7 +8,19 @@
 #' @importFrom WGCNA cor
 #' @importFrom limma voom
 obtCorMatsBatch <- function(cpm.data, batch, genewiseCor){
-  tapply(colnames(cpm.data), batch,  function(coln){ 
+  if(is.null(colnames(cpm.data))){
+    vec.columns = seq_len(ncol(cpm.data))
+  }else{
+    vec.columns = colnames(cpm.data)
+  }
+
+  if(is.null(rownames(cpm.data))){
+    vec.rows = seq_len(nrow(cpm.data))
+  }else{
+    vec.rows = rownames(cpm.data)
+  }
+  
+  tapply(vec.columns, batch,  function(coln){ 
     if(genewiseCor){
       data <- cpm.data[, coln]
       voom.res <- limma::voom(data)
@@ -17,7 +29,7 @@ obtCorMatsBatch <- function(cpm.data, batch, genewiseCor){
     }else{
       data <- cpm.data[, coln]
       cormat <- diag(x=1, nrow = nrow(data))
-      rownames(cormat) <- colnames(cormat) <- rownames(data)
+      rownames(cormat) <- vec.columns <- vec.rows
       cormat
     } 
   }) 
